@@ -4,6 +4,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { TRPCProvider } from "../lib/trpc/provider";
 
+import { StagewiseToolbar } from "@stagewise/toolbar-next";
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -29,6 +31,11 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <StagewiseToolbar
+          config={{
+            plugins: [], // Add custom plugins here when needed
+          }}
+        />
         <TRPCProvider>{children}</TRPCProvider>
       </body>
     </html>
