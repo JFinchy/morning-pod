@@ -1,103 +1,154 @@
-import Image from "next/image";
+import {
+  Button,
+  Progress,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  Select,
+  Slider,
+} from "@/components/ui";
 
 export default function Home() {
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <div className="min-h-screen bg-base-100 p-8">
+      <div className="max-w-4xl mx-auto space-y-8">
+        <div className="hero bg-base-200 rounded-lg">
+          <div className="hero-content text-center">
+            <div className="max-w-md">
+              <h1 className="text-5xl font-bold text-base-content">
+                Morning Pod
+              </h1>
+              <p className="py-6 text-base-content/70">
+                AI-powered podcast generation from your favorite news sources
+              </p>
+            </div>
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+
+        <div className="card bg-base-100 shadow-xl">
+          <div className="card-body">
+            <h2 className="card-title">UI Component Showcase</h2>
+
+            {/* Button Variants */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Buttons</h3>
+              <div className="flex flex-wrap gap-2">
+                <Button variant="primary">Primary</Button>
+                <Button variant="secondary">Secondary</Button>
+                <Button variant="accent">Accent</Button>
+                <Button btnStyle="outline" variant="primary">
+                  Outline
+                </Button>
+                <Button btnStyle="ghost">Ghost</Button>
+                <Button size="sm">Small</Button>
+                <Button size="lg">Large</Button>
+                <Button loading>Loading</Button>
+              </div>
+            </div>
+
+            {/* Progress */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Progress</h3>
+              <div className="space-y-2">
+                <Progress value={32} variant="primary" />
+                <Progress value={70} variant="success" />
+                <Progress value={45} variant="warning" />
+              </div>
+            </div>
+
+            {/* Select */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Select</h3>
+              <div className="max-w-xs">
+                <Select variant="primary">
+                  <option disabled selected>
+                    Choose a news source
+                  </option>
+                  <option>TLDR Newsletter</option>
+                  <option>Hacker News</option>
+                  <option>Morning Brew</option>
+                </Select>
+              </div>
+            </div>
+
+            {/* Slider */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Audio Controls</h3>
+              <div className="space-y-2">
+                <label className="text-sm text-base-content/70">Volume</label>
+                <Slider variant="primary" defaultValue={50} />
+                <label className="text-sm text-base-content/70">
+                  Playback Speed
+                </label>
+                <Slider
+                  variant="accent"
+                  defaultValue={100}
+                  min={50}
+                  max={200}
+                />
+              </div>
+            </div>
+
+            {/* Dialog */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Dialog</h3>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="info">Open Settings</Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Podcast Settings</DialogTitle>
+                    <DialogDescription>
+                      Configure your podcast generation preferences.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="label">
+                        <span className="label-text">Voice Model</span>
+                      </label>
+                      <Select>
+                        <option>Alloy</option>
+                        <option>Echo</option>
+                        <option>Fable</option>
+                      </Select>
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button btnStyle="outline">Cancel</Button>
+                    <Button variant="primary">Save Settings</Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </div>
+          </div>
+        </div>
+
+        <div className="stats stats-vertical lg:stats-horizontal shadow">
+          <div className="stat">
+            <div className="stat-title">Episodes Generated</div>
+            <div className="stat-value">0</div>
+            <div className="stat-desc">Ready to start</div>
+          </div>
+
+          <div className="stat">
+            <div className="stat-title">Sources Active</div>
+            <div className="stat-value">3</div>
+            <div className="stat-desc">TLDR, HN, Morning Brew</div>
+          </div>
+
+          <div className="stat">
+            <div className="stat-title">Queue Status</div>
+            <div className="stat-value">Empty</div>
+            <div className="stat-desc">No episodes generating</div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
