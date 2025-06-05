@@ -2,7 +2,7 @@
 @plugin "daisyui" {
   themes:
     forest --default,
-    light,
+    light --preferslight,
     dark --prefersdark,
     cupcake,
     bumblebee,
@@ -34,6 +34,7 @@
     dim,
     nord,
     sunset;
+  logs: true;
 }
 
 :root {

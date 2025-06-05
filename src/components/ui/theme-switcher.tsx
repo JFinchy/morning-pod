@@ -39,12 +39,12 @@ const themes = [
 ];
 
 export function ThemeSwitcher() {
-  const [currentTheme, setCurrentTheme] = useState("light");
+  const [currentTheme, setCurrentTheme] = useState("forest");
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
-    // Get theme from localStorage or default to light
-    const savedTheme = localStorage.getItem("theme") || "light";
+    // Get theme from localStorage or default to forest
+    const savedTheme = localStorage.getItem("theme") || "forest";
     document.documentElement.setAttribute("data-theme", savedTheme);
     setCurrentTheme(savedTheme);
   }, []);
