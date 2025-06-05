@@ -1,3 +1,4 @@
+import { MainLayout } from "@/components/layouts";
 import {
   Button,
   Progress,
@@ -10,27 +11,25 @@ import {
   DialogTrigger,
   Select,
   Slider,
-  ThemeSwitcher,
 } from "@/components/ui";
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-base-100 p-8 relative">
-      {/* Theme Switcher - Floating in top-right */}
-      <div className="fixed top-4 right-4 z-[100]">
-        <ThemeSwitcher />
-      </div>
-
-      <div className="max-w-4xl mx-auto space-y-8">
+    <MainLayout>
+      <div className="space-y-8">
         <div className="hero bg-base-200 rounded-lg">
           <div className="hero-content text-center">
             <div className="max-w-md">
               <h1 className="text-5xl font-bold text-base-content">
-                Morning Pod
+                Welcome to Morning Pod
               </h1>
               <p className="py-6 text-base-content/70">
-                AI-powered podcast generation from your favorite news sources
+                AI-powered podcast generation from your favorite news sources.
+                Start your day with personalized audio content.
               </p>
+              <Button variant="primary" size="lg">
+                Generate Your First Episode
+              </Button>
             </div>
           </div>
         </div>
@@ -39,8 +38,8 @@ export default function Home() {
           <div className="card-body">
             <h2 className="card-title">UI Component Showcase</h2>
             <p className="text-base-content/70 mb-4">
-              🎨 Try different themes using the theme switcher in the top-right
-              corner to see how all components adapt automatically!
+              🎨 Try different themes using the theme switcher in the navigation
+              to see how all components adapt automatically!
             </p>
 
             {/* Button Variants */}
@@ -181,6 +180,6 @@ export default function Home() {
           </div>
         </div>
       </div>
-    </div>
+    </MainLayout>
   );
 }

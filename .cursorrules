@@ -294,7 +294,7 @@ export const variantConfigs = {
 
 ### When Working with External Libraries
 1. **Use Context7 MCP** when working with open source libraries and external dependencies
-2. **Use Puppeteer MCP** to assist with development, testing, and UI validation
+2. **Use Playwright MCP** to assist with development, testing, and UI validation
 3. **Leverage browser automation** for component testing and visual validation
 4. **Use web scraping capabilities** for testing real-world integrations
 
