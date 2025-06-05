@@ -10,7 +10,11 @@
     "db:generate": "bun run drizzle-kit generate:pg",
     "db:migrate": "bun run drizzle-kit push:pg",
     "db:seed": "bun run scripts/seed.ts",
-    "test": "bun test"
+    "test": "bun test",
+    "update": "bun update",
+    "update:interactive": "bun update --interactive",
+    "outdated": "bun outdated",
+    "clean": "rm -rf node_modules bun.lockb && bun install"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.14",
@@ -40,7 +44,7 @@
   },
   "devDependencies": {
     "typescript": "^5",
-    "@types/node": "^20",
+    "@types/node": "^22.15.29",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@tailwindcss/postcss": "^4",

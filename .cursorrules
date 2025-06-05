@@ -293,7 +293,7 @@ export const variantConfigs = {
 4. **Take advantage of built-in TypeScript** support
 
 ### When Working with External Libraries
-1. **Use Context7 MCP** when working with OS libraries and external dependencies
+1. **Use Context7 MCP** when working with open source libraries and external dependencies
 2. **Use Puppeteer MCP** to assist with development, testing, and UI validation
 3. **Leverage browser automation** for component testing and visual validation
 4. **Use web scraping capabilities** for testing real-world integrations
@@ -663,14 +663,18 @@ export const mockSources = [
 ```json
 {
   "scripts": {
-    "dev": "bun run next dev",
+    "dev": "bun run next dev --turbopack",
     "build": "bun run next build",
     "start": "bun run next start",
     "lint": "bun run next lint",
     "db:generate": "bun run drizzle-kit generate:pg",
     "db:migrate": "bun run drizzle-kit push:pg",
     "db:seed": "bun run scripts/seed.ts",
-    "test": "bun test"
+    "test": "bun test",
+    "update": "bun update",
+    "update:interactive": "bun update --interactive",
+    "outdated": "bun outdated",
+    "clean": "rm -rf node_modules bun.lockb && bun install"
   }
 }
 ```
@@ -835,6 +839,12 @@ bun add <package>             # Add dependency
 bun add -d <package>          # Add dev dependency
 bun remove <package>          # Remove dependency
 
+# Package updates
+bun update                    # Update all dependencies
+bun update:interactive        # Interactive dependency updates
+bun outdated                  # Check for outdated packages
+bun clean                     # Clean install (remove node_modules & lockfile)
+
 # Running scripts
 bun run dev                   # Start development server
 bun run build                 # Build for production
@@ -845,6 +855,9 @@ bun run db:seed               # Run database seeding
 bun test                      # Run all tests
 bun test <file>               # Run specific test file
 bun test --watch              # Run tests in watch mode
+
+# Node.js version management
+nvm use                       # Use Node.js version from .nvmrc (22)
 ```
 
 Remember: The goal is to build working, tested components with multiple sleek variants that can be easily compared, selected, and composed. Focus on creating modern, intuitive user experiences while leveraging Bun's speed for rapid iteration. 
