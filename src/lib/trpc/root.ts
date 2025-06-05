@@ -2,6 +2,8 @@ import { episodesRouter } from "./routers/episodes";
 import { queueRouter } from "./routers/queue";
 import { scrapingRouter } from "./routers/scraping";
 import { sourcesRouter } from "./routers/sources";
+import { summarizationRouter } from "./routers/summarization";
+import { ttsRouter } from "./routers/tts";
 import { createTRPCRouter } from "./server";
 
 /**
@@ -14,6 +16,8 @@ export const appRouter = createTRPCRouter({
   sources: sourcesRouter,
   queue: queueRouter,
   scraping: scrapingRouter,
+  summarization: summarizationRouter,
+  tts: ttsRouter,
 });
 
 // Export type definition of API

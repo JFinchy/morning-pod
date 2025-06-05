@@ -76,7 +76,7 @@
     "geist": "^1.4.2",
     "lucide-react": "^0.513.0",
     "next": "15.3.3",
-    "openai": "^5.1.0",
+    "openai": "^5.1.1",
     "posthog-js": "^1.249.3",
     "posthog-node": "^4.18.0",
     "react": "^19.0.0",

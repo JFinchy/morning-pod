@@ -1,6 +1,15 @@
 "use client";
 
-import { ExternalLink, Palette, Code, Eye } from "lucide-react";
+import {
+  ExternalLink,
+  Palette,
+  Code,
+  Eye,
+  Search,
+  Brain,
+  Layout,
+  Volume2,
+} from "lucide-react";
 import Link from "next/link";
 
 import { MainLayout } from "@/components/layouts";
@@ -365,6 +374,112 @@ export default function InternalPage() {
               </Link>
             </div>
           </div>
+        </div>
+
+        {/* Development Tools Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* Scraping Tools */}
+          <Link href="/internal/scraping" className="group">
+            <div className="card bg-base-200 shadow-sm hover:shadow-md transition-all duration-200 group-hover:scale-[1.02]">
+              <div className="card-body">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="p-2 bg-blue-500/10 rounded-lg group-hover:bg-blue-500/20 transition-colors">
+                    <Search className="w-6 h-6 text-blue-500" />
+                  </div>
+                  <h3 className="card-title">Content Scraping</h3>
+                </div>
+                <p className="text-base-content/70 text-sm">
+                  Test scrapers, monitor performance, and view real-time metrics
+                  for TLDR, Hacker News, and Morning Brew content sources.
+                </p>
+                <div className="flex gap-2 mt-4">
+                  <div className="badge badge-primary badge-sm">
+                    Live Monitoring
+                  </div>
+                  <div className="badge badge-secondary badge-sm">
+                    3 Sources
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Link>
+
+          {/* AI Summarization Lab */}
+          <Link href="/internal/summarization" className="group">
+            <div className="card bg-base-200 shadow-sm hover:shadow-md transition-all duration-200 group-hover:scale-[1.02]">
+              <div className="card-body">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="p-2 bg-purple-500/10 rounded-lg group-hover:bg-purple-500/20 transition-colors">
+                    <Brain className="w-6 h-6 text-purple-500" />
+                  </div>
+                  <h3 className="card-title">AI Summarization</h3>
+                </div>
+                <p className="text-base-content/70 text-sm">
+                  Test AI summarization with different models, track costs and
+                  quality metrics, and optimize content for TTS conversion.
+                </p>
+                <div className="flex gap-2 mt-4">
+                  <div className="badge badge-primary badge-sm">
+                    OpenAI GPT-4
+                  </div>
+                  <div className="badge badge-secondary badge-sm">
+                    Quality Tracking
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Link>
+
+          {/* TTS Lab */}
+          <Link href="/internal/tts" className="group">
+            <div className="card bg-base-200 shadow-sm hover:shadow-md transition-all duration-200 group-hover:scale-[1.02]">
+              <div className="card-body">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="p-2 bg-green-500/10 rounded-lg group-hover:bg-green-500/20 transition-colors">
+                    <Volume2 className="w-6 h-6 text-green-500" />
+                  </div>
+                  <h3 className="card-title">TTS Lab</h3>
+                </div>
+                <p className="text-base-content/70 text-sm">
+                  Test text-to-speech audio generation with multiple voices and
+                  providers. Configure quality settings, monitor costs, and
+                  preview podcast audio.
+                </p>
+                <div className="flex gap-2 mt-4">
+                  <div className="badge badge-primary badge-sm">OpenAI TTS</div>
+                  <div className="badge badge-secondary badge-sm">
+                    Voice Selection
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Link>
+
+          {/* Component Comparison */}
+          <Link href="/internal/comparison/episode-cards" className="group">
+            <div className="card bg-base-200 shadow-sm hover:shadow-md transition-all duration-200 group-hover:scale-[1.02]">
+              <div className="card-body">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="p-2 bg-green-500/10 rounded-lg group-hover:bg-green-500/20 transition-colors">
+                    <Layout className="w-6 h-6 text-green-500" />
+                  </div>
+                  <h3 className="card-title">Component Variants</h3>
+                </div>
+                <p className="text-base-content/70 text-sm">
+                  Compare different UI component designs side-by-side. Episode
+                  cards, players, and queue status variants.
+                </p>
+                <div className="flex gap-2 mt-4">
+                  <div className="badge badge-primary badge-sm">
+                    3 Variants Each
+                  </div>
+                  <div className="badge badge-secondary badge-sm">
+                    A/B Testing
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Link>
         </div>
       </div>
     </MainLayout>
