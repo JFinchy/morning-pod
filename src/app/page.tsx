@@ -149,7 +149,7 @@ export default async function Home() {
                         {stat.value}
                       </p>
                       {stat.change && (
-                        <p className="text-xs text-base-content/50">
+                        <p className="text-xs text-base-content/70">
                           {stat.change}
                         </p>
                       )}

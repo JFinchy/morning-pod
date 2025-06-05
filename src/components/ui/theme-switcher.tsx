@@ -87,6 +87,7 @@ export function ThemeSwitcher() {
         ref={buttonRef}
         className="btn btn-ghost btn-circle tooltip tooltip-left"
         data-tip="Change Theme"
+        aria-label="Change Theme"
         onClick={() => setIsOpen(!isOpen)}
       >
         <Palette className="w-5 h-5" />

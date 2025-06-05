@@ -98,14 +98,19 @@ bun test:coverage
 ### End-to-End Tests (Playwright)
 
 ```bash
-# Run E2E tests across all browsers/themes
-bun test:e2e
+# Basic E2E testing
+bun test:e2e              # All E2E tests
+bun test:e2e:ui           # Interactive UI mode
+bun test:e2e:debug        # Debug mode
+bun test:e2e:headed       # Run with browser UI
 
-# Run specific browser combination
-bun test:e2e:chromium
-
-# Run with UI for debugging
-bun test:e2e:ui
+# Advanced features
+bun test:e2e:trace        # Enable trace collection
+bun test:e2e:video        # Record test videos
+bun test:e2e:visual       # Update visual snapshots
+bun test:e2e:codegen      # Generate test code
+bun test:e2e:report       # View HTML report
+bun test:e2e:coverage     # JS/CSS coverage collection
 ```
 
 **Test Matrix**: 48 combinations (4 themes × 3 browsers × 4 viewports)
@@ -113,8 +118,10 @@ bun test:e2e:ui
 - **Browsers**: Chromium, Firefox, WebKit
 - **Themes**: Light, Dark, Forest, Cyberpunk
 - **Viewports**: Mobile, Tablet, Desktop, Large Desktop
-- **Accessibility**: Automated axe-core scanning
-- **Performance**: Core Web Vitals tracking
+- **Accessibility**: Automated axe-core scanning with WCAG compliance
+- **Performance**: Core Web Vitals tracking (FCP, LCP, CLS, TTI)
+- **Visual Regression**: Automated screenshot comparison
+- **Coverage Collection**: JavaScript and CSS usage tracking
 
 ### Performance Testing
 

@@ -113,9 +113,9 @@ export function MainLayout({ children }: MainLayoutProps) {
                 <Podcast className="w-5 h-5 text-primary-content" />
               </div>
               <div>
-                <h1 className="text-lg font-bold text-base-content">
+                <div className="text-lg font-bold text-base-content">
                   Morning Pod
-                </h1>
+                </div>
                 <p className="text-xs text-base-content/60">
                   AI Podcast Generator
                 </p>
@@ -124,6 +124,7 @@ export function MainLayout({ children }: MainLayoutProps) {
             <button
               className="lg:hidden btn btn-ghost btn-sm btn-circle"
               onClick={() => setMobileMenuOpen(false)}
+              aria-label="Close navigation menu"
             >
               <X className="w-4 h-4" />
             </button>
@@ -174,7 +175,7 @@ export function MainLayout({ children }: MainLayoutProps) {
             {/* Internal/Development Section */}
             <div className="pt-6 mt-6 border-t border-base-300">
               <div className="px-3 mb-3">
-                <h3 className="text-xs font-semibold text-base-content/50 uppercase tracking-wider">
+                <h3 className="text-xs font-semibold text-base-content/70 uppercase tracking-wider">
                   Development
                 </h3>
               </div>
@@ -193,7 +194,7 @@ export function MainLayout({ children }: MainLayoutProps) {
                     <div className="w-2 h-2 rounded-full bg-warning mr-3 flex-shrink-0" />
                     <div className="flex-1">
                       <div className="font-medium">{item.name}</div>
-                      <div className="text-xs text-base-content/50">
+                      <div className="text-xs text-base-content/70">
                         {item.description}
                       </div>
                     </div>
@@ -222,6 +223,7 @@ export function MainLayout({ children }: MainLayoutProps) {
           <button
             className="lg:hidden btn btn-ghost btn-sm btn-circle"
             onClick={() => setMobileMenuOpen(true)}
+            aria-label="Open navigation menu"
           >
             <Menu className="w-5 h-5" />
           </button>
@@ -239,6 +241,7 @@ export function MainLayout({ children }: MainLayoutProps) {
             <button
               className="btn btn-primary btn-sm gap-2"
               onClick={() => setGenerationModalOpen(true)}
+              aria-label="Generate new podcast episode"
             >
               <Plus className="w-4 h-4" />
               <span className="hidden sm:inline">Generate Episode</span>

@@ -13,6 +13,18 @@
 # testing
 /coverage
 
+# playwright
+/test-results/
+/playwright-report/
+/playwright/.cache/
+/test-results-*
+/playwright-test-results/
+
+# Visual regression test artifacts
+/src/tests/e2e/visual-regression-should-*
+**/screenshot-*
+**/test-results/
+
 # next.js
 /.next/
 /out/
