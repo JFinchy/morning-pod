@@ -18,19 +18,19 @@ import {
   getStatusText,
 } from "@/lib/mock-data/episodes";
 
-interface EpisodeCardV2Props {
+interface EpisodeCardProps {
   episode: Episode;
   onPlay?: () => void;
   onPause?: () => void;
   className?: string;
 }
 
-export function EpisodeCardV2({
+export function EpisodeCard({
   episode,
   onPlay,
   onPause,
   className = "",
-}: EpisodeCardV2Props) {
+}: EpisodeCardProps) {
   const handlePlayPause = () => {
     if (episode.isPlaying) {
       onPause?.();

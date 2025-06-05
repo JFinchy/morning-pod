@@ -8,7 +8,7 @@ import {
   QueueStatusV1,
   QueueStatusV2,
   QueueStatusV3,
-} from "@/components/variants";
+} from "@/components/internal/variants";
 import { mockQueueItems, mockGenerationStats } from "@/lib/mock-data";
 
 export default function QueueComparisonPage() {

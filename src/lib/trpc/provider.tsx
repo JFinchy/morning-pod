@@ -2,10 +2,14 @@
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { httpBatchLink } from "@trpc/client";
+import { createTRPCReact } from "@trpc/react-query";
 import { useState } from "react";
 import superjson from "superjson";
 
-import { api } from "./client";
+import { makeQueryClient } from "./query-client";
+import type { AppRouter } from "./root";
+
+export const api = createTRPCReact<AppRouter>();
 
 function getBaseUrl() {
   if (typeof window !== "undefined") return ""; // browser should use relative url
@@ -13,18 +17,19 @@ function getBaseUrl() {
   return `http://localhost:${process.env.PORT ?? 3000}`; // dev SSR should use localhost
 }
 
-export function TRPCProvider({ children }: { children: React.ReactNode }) {
-  const [queryClient] = useState(
-    () =>
-      new QueryClient({
-        defaultOptions: {
-          queries: {
-            staleTime: 5 * 60 * 1000, // 5 minutes
-            refetchOnWindowFocus: false,
-          },
-        },
-      })
-  );
+let clientQueryClientSingleton: QueryClient | undefined = undefined;
+function getQueryClient() {
+  if (typeof window === "undefined") {
+    // Server: always make a new query client
+    return makeQueryClient();
+  } else {
+    // Browser: use singleton pattern to keep the same query client
+    return (clientQueryClientSingleton ??= makeQueryClient());
+  }
+}
+
+export function TRPCProvider(props: { children: React.ReactNode }) {
+  const queryClient = getQueryClient();
 
   const [trpcClient] = useState(() =>
     api.createClient({
@@ -39,7 +44,9 @@ export function TRPCProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <api.Provider client={trpcClient} queryClient={queryClient}>
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+      <QueryClientProvider client={queryClient}>
+        {props.children}
+      </QueryClientProvider>
     </api.Provider>
   );
 }

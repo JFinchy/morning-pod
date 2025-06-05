@@ -36,7 +36,7 @@ const DialogContent = React.forwardRef<
     <DialogPrimitive.Content
       ref={ref}
       className={cn(
-        "modal-box fixed z-50 w-full max-w-lg bg-base-100 p-6 shadow-lg rounded-lg border border-base-300",
+        "modal-box fixed z-[60] w-full max-w-lg bg-base-100 text-base-content p-6 shadow-2xl rounded-lg border border-base-300 opacity-100",
         placement === "top" && "top-4",
         placement === "middle" && "top-1/2 -translate-y-1/2",
         placement === "bottom" && "bottom-4",

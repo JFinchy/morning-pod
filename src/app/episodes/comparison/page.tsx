@@ -4,13 +4,13 @@ import { ArrowLeft, Eye, Grid, List } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
-import { MainLayout } from "@/components/layouts";
-import { Button } from "@/components/ui/button";
 import {
   EpisodeCardV1,
   EpisodeCardV2,
   EpisodeCardV3,
-} from "@/components/variants";
+} from "@/components/internal/variants";
+import { MainLayout } from "@/components/layouts";
+import { Button } from "@/components/ui/button";
 import { mockEpisodes } from "@/lib/mock-data/episodes";
 
 export default function EpisodeComparisonPage() {

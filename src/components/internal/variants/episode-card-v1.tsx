@@ -11,7 +11,7 @@ import {
 } from "@/lib/mock-data/episodes";
 
 interface EpisodeCardV1Props {
-  episode: Episode;
+  episode?: Episode;
   onPlay?: () => void;
   onPause?: () => void;
   className?: string;
@@ -23,6 +23,21 @@ export function EpisodeCardV1({
   onPause,
   className = "",
 }: EpisodeCardV1Props) {
+  // Handle undefined episode data
+  if (!episode) {
+    return (
+      <div className="card bg-base-100 shadow-sm border-0">
+        <div className="card-body p-4">
+          <div className="animate-pulse space-y-2">
+            <div className="h-4 bg-base-300 rounded w-3/4"></div>
+            <div className="h-3 bg-base-300 rounded w-full"></div>
+            <div className="h-3 bg-base-300 rounded w-2/3"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const handlePlayPause = () => {
     if (episode.isPlaying) {
       onPause?.();
@@ -43,7 +58,7 @@ export function EpisodeCardV1({
               {episode.title}
             </h3>
             <p className="text-sm text-base-content/60 mt-1">
-              {episode.source.name}
+              {episode.source?.name}
             </p>
           </div>
 

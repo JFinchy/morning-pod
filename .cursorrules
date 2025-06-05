@@ -24,17 +24,29 @@ morning-pod/
 ├── public/                         # Static assets
 ├── scripts/                        # Build and utility scripts
 ├── tests/                          # Test files
+├── drizzle/                        # Database migrations
 └── src/
     ├── app/                        # Next.js App Router
     │   ├── globals.css             # Global styles + daisyUI config
-    │   ├── layout.tsx              # Root layout
-    │   ├── page.tsx                # Homepage
+    │   ├── layout.tsx              # Root layout with tRPC provider
+    │   ├── page.tsx                # Homepage dashboard
     │   ├── favicon.ico             # App icon
+    │   ├── api/                    # API routes
+    │   │   └── trpc/[trpc]/route.ts # tRPC API handler
     │   ├── episodes/               # Episode pages
+    │   │   ├── page.tsx            # Episodes listing page
     │   │   ├── demo/               # Demo episode page
     │   │   │   └── page.tsx
     │   │   └── comparison/         # Component variant comparison
     │   │       └── page.tsx        # Episode card variants showcase
+    │   ├── sources/                # Sources management
+    │   │   └── page.tsx            # Sources management page
+    │   ├── queue/                  # Queue management
+    │   │   ├── page.tsx            # Queue status page
+    │   │   └── comparison/         # Queue variants comparison
+    │   │       └── page.tsx        # Queue status variants showcase
+    │   ├── internal/               # Development hub
+    │   │   └── page.tsx            # Component development overview
     │   └── players/                # Player comparison pages
     │       └── comparison/         # Player variants comparison
     │           └── page.tsx        # Episode player variants showcase
@@ -46,32 +58,55 @@ morning-pod/
     │   │   ├── progress.tsx        # Progress bar component
     │   │   ├── select.tsx          # Select dropdown component
     │   │   ├── slider.tsx          # Slider component
-    │   │   ├── theme-switcher.tsx  # Theme selection component
+    │   │   ├── theme-switcher.tsx  # Theme selection component (forest default)
     │   │   └── toast.tsx           # Toast notifications
     │   ├── layouts/                # Page layouts
     │   │   ├── index.ts            # Layout exports
-    │   │   ├── main-layout.tsx     # Main app layout with nav
+    │   │   ├── main-layout.tsx     # Main app layout with sidebar nav
     │   │   └── player-layout.tsx   # Episode player layout
-    │   ├── features/               # App-specific components (empty)
-    │   └── variants/               # Component variants
-    │       ├── index.ts            # Variant exports
-    │       ├── episode-card-v1.tsx # Minimal episode card
-    │       ├── episode-card-v2.tsx # Visual episode card
-    │       ├── episode-card-v3.tsx # Compact episode card
-    │       ├── episode-player-v1.tsx # Traditional audio player
-    │       ├── episode-player-v2.tsx # Spotify-inspired player
-    │       └── episode-player-v3.tsx # Minimalist waveform player
+    │   ├── features/               # App-specific components
+    │   │   └── api-test.tsx        # API connection test component
+    │   └── internal/               # Internal development components
+    │       ├── variants/           # Component variants
+    │       │   ├── index.ts        # Variant exports
+    │       │   ├── episode-card-v1.tsx # Minimal episode card
+    │       │   ├── episode-card-v2.tsx # Visual episode card
+    │       │   ├── episode-card-v3.tsx # Compact episode card
+    │       │   ├── episode-player-v1.tsx # Traditional audio player
+    │       │   ├── episode-player-v2.tsx # Spotify-inspired player
+    │       │   ├── episode-player-v3.tsx # Minimalist waveform player
+    │       │   ├── queue-status-v1.tsx # Progress bar layout
+    │       │   ├── queue-status-v2.tsx # Real-time dashboard
+    │       │   └── queue-status-v3.tsx # Timeline visualization
+    │       └── comparisons/        # Component comparison pages (future)
     ├── lib/
     │   ├── utils.ts                # Utility functions
-    │   ├── db/                     # Database schema & connection (empty)
+    │   ├── db/                     # Database schema & connection
+    │   │   ├── schema.ts           # Drizzle schema definitions
+    │   │   └── connection.ts       # Database connection
+    │   ├── trpc/                   # API layer
+    │   │   ├── client.ts           # tRPC client configuration
+    │   │   ├── server.ts           # tRPC server configuration
+    │   │   ├── server-mock.ts      # Mock server for development
+    │   │   ├── provider.tsx        # React Query provider
+    │   │   ├── root.ts             # Main router (production)
+    │   │   ├── root-mock.ts        # Mock router (development)
+    │   │   └── routers/            # Individual routers
+    │   │       ├── episodes.ts     # Episodes API
+    │   │       ├── episodes-mock.ts # Episodes mock API
+    │   │       ├── sources.ts      # Sources API
+    │   │       ├── sources-mock.ts # Sources mock API
+    │   │       ├── queue.ts        # Queue API
+    │   │       └── queue-mock.ts   # Queue mock API
     │   ├── mock-data/              # Development mock data
     │   │   ├── index.ts            # Mock data exports
-    │   │   └── episodes.ts         # Episode mock data and interfaces
-    │   ├── schemas/                # Zod validation schemas (empty)
-    │   ├── services/               # Business logic services (empty)
-    │   ├── trpc/                   # API layer (empty)
-    │   └── utils/                  # Additional utilities (empty)
-    └── types/                      # TypeScript type definitions (empty)
+    │   │   ├── episodes.ts         # Episode mock data and interfaces
+    │   │   ├── sources.ts          # Sources mock data
+    │   │   └── queue.ts            # Queue mock data
+    │   ├── schemas/                # Zod validation schemas (future)
+    │   ├── services/               # Business logic services (future)
+    │   └── utils/                  # Additional utilities (future)
+    └── types/                      # TypeScript type definitions (future)
 ```
 
 **File Update Rule**: Whenever you create, modify, delete, or move files/folders, immediately update this structure in the cursor rules. This helps maintain accurate project navigation and prevents getting lost in the codebase.
@@ -222,6 +257,9 @@ export function EpisodePlayer({ episode, isLoading, onPlay, variant = 'minimal' 
 - Implement dark mode support with DaisyUI themes
 - Use Radix UI for complex interactions (dialogs, dropdowns, etc.)
 - Add subtle animations with Framer Motion
+- **STRONGLY prefer Tailwind classes over inline styles** - use Tailwind's theme-aware classes (e.g., `bg-base-100`, `text-base-content`) that automatically adapt to DaisyUI themes
+- **AVOID global CSS overrides** unless absolutely necessary - prefer Tailwind classes for easier migrations/updates
+- When styling fixes are needed, use component-level Tailwind classes before considering inline styles or globals.css
 
 ### State Management
 - **Local state**: React useState/useReducer
@@ -373,17 +411,26 @@ export const variantConfigs = {
 
 ### Git Workflow & Commits
 1. **Make commits between subtasks** for granular progress tracking
-2. **Use semantic commit messages** following conventional commits:
+2. **Use conventional commit messages** (enforced by commitlint):
    - `feat:` for new features
-   - `chore:` for maintenance tasks
-   - `refactor:` for code refactoring
    - `fix:` for bug fixes
-   - `docs:` for documentation updates
-   - `style:` for formatting changes
-   - `test:` for adding tests
+   - `docs:` for documentation only changes
+   - `style:` for formatting/whitespace changes
+   - `refactor:` for code changes that neither fix bugs nor add features
+   - `perf:` for performance improvements
+   - `test:` for adding/correcting tests
+   - `chore:` for build process/auxiliary tool changes
+   - `ci:` for CI configuration changes
+   - `build:` for build system/dependency changes
+   - `revert:` for reverting previous commits
 3. **Include scope when applicable**: `feat(components): add button variants`
 4. **Write clear, descriptive commit messages** that explain the "what" and "why"
 5. **Commit frequently** to maintain a clean development history
+6. **Commitlint enforces**:
+   - Maximum header length: 100 characters
+   - No capitalized subjects (except proper nouns)
+   - No period at end of subject
+   - Required type and subject
 
 ### Code Quality & Standards
 1. **ESLint**: Configured with TypeScript, React, and import rules
@@ -391,7 +438,9 @@ export const variantConfigs = {
 3. **Husky**: Git hooks for quality checks
    - **Pre-commit**: Runs lint-staged (linting + formatting on staged files)
    - **Pre-push**: Runs type checking and linting on entire codebase
+   - **Commit-msg**: Runs commitlint to enforce conventional commit messages
 4. **TypeScript**: Strict type checking with `tsc --noEmit`
+5. **Commitlint**: Enforces conventional commit message format
 
 ## Setup & Development Plan
 

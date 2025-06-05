@@ -8,7 +8,7 @@ import {
   EpisodePlayerV1,
   EpisodePlayerV2,
   EpisodePlayerV3,
-} from "@/components/variants";
+} from "@/components/internal/variants";
 import { mockEpisodes } from "@/lib/mock-data";
 
 export default function PlayerComparisonPage() {

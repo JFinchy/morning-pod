@@ -38,7 +38,7 @@ const themes = [
   { name: "sunset", label: "Sunset", category: "Dark" },
 ];
 
-export function ThemeSwitcher() {
+export function ThemeSwitcherCompact() {
   const [currentTheme, setCurrentTheme] = useState("forest");
   const [isOpen, setIsOpen] = useState(false);
   const [dropdownPosition, setDropdownPosition] = useState<"above" | "below">(
@@ -78,8 +78,8 @@ export function ThemeSwitcher() {
     localStorage.setItem("theme", themeName);
   };
 
-  const lightThemes = themes.filter((theme) => theme.category === "Light");
   const darkThemes = themes.filter((theme) => theme.category === "Dark");
+  const lightThemes = themes.filter((theme) => theme.category === "Light");
 
   return (
     <div className="relative">
@@ -96,77 +96,87 @@ export function ThemeSwitcher() {
         <>
           {/* Backdrop */}
           <div
-            className="fixed inset-0 z-[200]"
+            className="fixed inset-0 z-[90]"
             onClick={() => setIsOpen(false)}
           />
 
-          {/* Dropdown - positioned to extend beyond sidebar */}
+          {/* Ultra Compact Dropdown - single continuous column */}
           <div
-            className={`fixed z-[250] w-80 bg-base-100 rounded-box shadow-2xl border border-base-300 p-2 ${
-              dropdownPosition === "above" ? "bottom-16" : "top-16"
+            className={`absolute right-0 z-[100] w-44 bg-base-100 rounded-box shadow-2xl border border-base-300 p-1.5 ${
+              dropdownPosition === "above"
+                ? "bottom-full mb-2"
+                : "top-full mt-2"
             }`}
-            style={{
-              left: buttonRef.current
-                ? `${buttonRef.current.getBoundingClientRect().right - 320}px`
-                : "0px",
-            }}
           >
-            <div className="menu max-h-96 overflow-y-auto">
-              <li className="menu-title">
-                <span>Choose Theme</span>
-              </li>
-
-              <li className="menu-title text-xs opacity-60 mt-2">
-                <span>Light Themes</span>
-              </li>
-
-              <div className="grid grid-cols-2 gap-1">
-                {lightThemes.map((theme) => (
-                  <li key={theme.name}>
-                    <button
-                      className={`flex items-center gap-2 ${
-                        currentTheme === theme.name ? "active" : ""
-                      }`}
-                      onClick={() => handleThemeChange(theme.name)}
-                    >
-                      <div
-                        className="w-4 h-4 rounded-full bg-primary border-2 border-base-content/20"
-                        data-theme={theme.name}
-                      />
-                      <span className="flex-1 text-left">{theme.label}</span>
-                      {currentTheme === theme.name && (
-                        <Check className="w-4 h-4 text-primary" />
-                      )}
-                    </button>
-                  </li>
-                ))}
+            <div className="max-h-80 overflow-y-auto">
+              {/* Header */}
+              <div className="px-2 py-1 mb-1">
+                <span className="text-xs font-medium text-base-content">
+                  Choose Theme
+                </span>
               </div>
 
-              <li className="menu-title text-xs opacity-60 mt-4">
-                <span>Dark Themes</span>
-              </li>
-
-              <div className="grid grid-cols-2 gap-1">
-                {darkThemes.map((theme) => (
-                  <li key={theme.name}>
-                    <button
-                      className={`flex items-center gap-2 ${
-                        currentTheme === theme.name ? "active" : ""
-                      }`}
-                      onClick={() => handleThemeChange(theme.name)}
-                    >
-                      <div
-                        className="w-4 h-4 rounded-full bg-primary border-2 border-base-content/20"
-                        data-theme={theme.name}
-                      />
-                      <span className="flex-1 text-left">{theme.label}</span>
-                      {currentTheme === theme.name && (
-                        <Check className="w-4 h-4 text-primary" />
-                      )}
-                    </button>
-                  </li>
-                ))}
+              {/* Dark Themes Section */}
+              <div className="px-2 py-0.5">
+                <span className="text-[10px] opacity-60 uppercase tracking-wide">
+                  Dark Themes
+                </span>
               </div>
+
+              {/* Dark Theme Items */}
+              {darkThemes.map((theme) => (
+                <button
+                  key={theme.name}
+                  className={`flex items-center gap-1.5 w-full text-xs py-1 px-2 rounded hover:bg-base-200 transition-colors ${
+                    currentTheme === theme.name
+                      ? "bg-primary/10 text-primary"
+                      : ""
+                  }`}
+                  onClick={() => handleThemeChange(theme.name)}
+                >
+                  <div
+                    className="w-2.5 h-2.5 rounded-full bg-primary border border-base-content/20 flex-shrink-0"
+                    data-theme={theme.name}
+                  />
+                  <span className="flex-1 text-left truncate text-xs">
+                    {theme.label}
+                  </span>
+                  {currentTheme === theme.name && (
+                    <Check className="w-2.5 h-2.5 text-primary flex-shrink-0" />
+                  )}
+                </button>
+              ))}
+
+              {/* Light Themes Section */}
+              <div className="px-2 py-0.5 mt-2">
+                <span className="text-[10px] opacity-60 uppercase tracking-wide">
+                  Light Themes
+                </span>
+              </div>
+
+              {/* Light Theme Items */}
+              {lightThemes.map((theme) => (
+                <button
+                  key={theme.name}
+                  className={`flex items-center gap-1.5 w-full text-xs py-1 px-2 rounded hover:bg-base-200 transition-colors ${
+                    currentTheme === theme.name
+                      ? "bg-primary/10 text-primary"
+                      : ""
+                  }`}
+                  onClick={() => handleThemeChange(theme.name)}
+                >
+                  <div
+                    className="w-2.5 h-2.5 rounded-full bg-primary border border-base-content/20 flex-shrink-0"
+                    data-theme={theme.name}
+                  />
+                  <span className="flex-1 text-left truncate text-xs">
+                    {theme.label}
+                  </span>
+                  {currentTheme === theme.name && (
+                    <Check className="w-2.5 h-2.5 text-primary flex-shrink-0" />
+                  )}
+                </button>
+              ))}
             </div>
           </div>
         </>

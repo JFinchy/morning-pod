@@ -1,141 +1,260 @@
 "use client";
 
-import { Menu, X, Home, Mic, Settings, List, Play } from "lucide-react";
+import {
+  Home,
+  Podcast,
+  Radio,
+  Settings,
+  Clock,
+  Menu,
+  X,
+  Plus,
+} from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
 
-import { ThemeSwitcher } from "@/components/ui";
+import { GenerationModal } from "../features/generation-modal";
+import { ThemeSwitcherCompact } from "../ui/theme-switcher-compact";
 
 interface MainLayoutProps {
   children: React.ReactNode;
 }
 
-export function MainLayout({ children }: MainLayoutProps) {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+const navigation = [
+  {
+    name: "Home",
+    href: "/",
+    icon: Home,
+    description: "Main dashboard",
+  },
+  {
+    name: "Episodes",
+    href: "/episodes",
+    icon: Podcast,
+    description: "Browse all episodes",
+  },
+  {
+    name: "Sources",
+    href: "/sources",
+    icon: Radio,
+    description: "Manage news sources",
+  },
+  {
+    name: "Queue",
+    href: "/queue",
+    icon: Clock,
+    description: "Generation queue",
+  },
+  {
+    name: "Settings",
+    href: "/settings",
+    icon: Settings,
+    description: "App preferences",
+  },
+];
 
-  const navigation = [
-    { name: "Home", href: "/", icon: Home },
-    { name: "Episodes", href: "/episodes", icon: Mic },
-    { name: "Queue", href: "/queue", icon: List },
-    { name: "Settings", href: "/settings", icon: Settings },
-  ];
+const internalLinks = [
+  {
+    name: "Component Hub",
+    href: "/internal",
+    description: "Development overview",
+  },
+  {
+    name: "Episode Cards",
+    href: "/internal/comparison/episode-cards",
+    description: "Episode card variants",
+  },
+  {
+    name: "Episode Players",
+    href: "/internal/comparison/episode-players",
+    description: "Player variants",
+  },
+  {
+    name: "Queue Status",
+    href: "/internal/comparison/queue-status",
+    description: "Queue status variants",
+  },
+];
+
+export function MainLayout({ children }: MainLayoutProps) {
+  const pathname = usePathname();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [generationModalOpen, setGenerationModalOpen] = useState(false);
+
+  const isActiveRoute = (href: string) => {
+    if (href === "/") {
+      return pathname === "/";
+    }
+    return pathname.startsWith(href);
+  };
 
   return (
     <div className="min-h-screen bg-base-100">
-      {/* Navigation Header */}
-      <header className="navbar bg-base-100 shadow-sm border-b border-base-300">
-        <div className="navbar-start">
-          {/* Mobile menu button */}
-          <div className="dropdown lg:hidden">
-            <button
-              className="btn btn-ghost btn-circle"
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            >
-              {isMobileMenuOpen ? (
-                <X className="w-5 h-5" />
-              ) : (
-                <Menu className="w-5 h-5" />
-              )}
-            </button>
-          </div>
-
-          {/* Logo */}
-          <Link href="/" className="btn btn-ghost text-xl font-bold">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
-                <Play className="w-4 h-4 text-primary-content fill-current" />
-              </div>
-              <span className="hidden sm:inline">Morning Pod</span>
-            </div>
-          </Link>
-        </div>
-
-        {/* Desktop Navigation */}
-        <div className="navbar-center hidden lg:flex">
-          <ul className="menu menu-horizontal px-1">
-            {navigation.map((item) => (
-              <li key={item.name}>
-                <Link href={item.href} className="flex items-center gap-2">
-                  <item.icon className="w-4 h-4" />
-                  {item.name}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        <div className="navbar-end">
-          {/* Quick Actions */}
-          <div className="flex items-center gap-2">
-            <button
-              className="btn btn-ghost btn-circle tooltip tooltip-left"
-              data-tip="Generate Episode"
-            >
-              <Mic className="w-5 h-5" />
-            </button>
-            <ThemeSwitcher />
-          </div>
-        </div>
-      </header>
-
-      {/* Mobile Navigation Menu */}
-      {isMobileMenuOpen && (
-        <>
-          {/* Backdrop */}
-          <div
-            className="fixed inset-0 bg-black/50 z-40 lg:hidden"
-            onClick={() => setIsMobileMenuOpen(false)}
-          />
-
-          {/* Mobile Menu */}
-          <div className="fixed top-16 left-0 right-0 bg-base-100 shadow-lg z-50 lg:hidden">
-            <ul className="menu menu-lg p-4">
-              {navigation.map((item) => (
-                <li key={item.name}>
-                  <Link
-                    href={item.href}
-                    className="flex items-center gap-3"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    <item.icon className="w-5 h-5" />
-                    {item.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </>
+      {/* Mobile menu backdrop */}
+      {mobileMenuOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/50 lg:hidden"
+          onClick={() => setMobileMenuOpen(false)}
+        />
       )}
 
-      {/* Main Content */}
-      <main className="container mx-auto px-4 py-6">{children}</main>
+      {/* Sidebar */}
+      <div
+        className={`fixed inset-y-0 left-0 z-50 w-72 bg-base-200 transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${
+          mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        <div className="flex h-full flex-col">
+          {/* Header */}
+          <div className="flex h-16 items-center justify-between px-6 border-b border-base-300">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                <Podcast className="w-5 h-5 text-primary-content" />
+              </div>
+              <div>
+                <h1 className="text-lg font-bold text-base-content">
+                  Morning Pod
+                </h1>
+                <p className="text-xs text-base-content/60">
+                  AI Podcast Generator
+                </p>
+              </div>
+            </div>
+            <button
+              className="lg:hidden btn btn-ghost btn-sm btn-circle"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
 
-      {/* Footer */}
-      <footer className="footer footer-center bg-base-200 text-base-content p-6 mt-12">
-        <div className="grid grid-flow-col gap-4">
-          <Link href="/about" className="link link-hover">
-            About
-          </Link>
-          <Link href="/privacy" className="link link-hover">
-            Privacy
-          </Link>
-          <Link href="/terms" className="link link-hover">
-            Terms
-          </Link>
-          <Link href="/contact" className="link link-hover">
-            Contact
-          </Link>
+          {/* Navigation */}
+          <nav className="flex-1 px-4 py-6 space-y-1">
+            <div className="space-y-1">
+              {navigation.map((item) => {
+                const Icon = item.icon;
+                const isActive = isActiveRoute(item.href);
+
+                return (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    className={`group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                      isActive
+                        ? "bg-primary text-primary-content"
+                        : "text-base-content hover:bg-base-300"
+                    }`}
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <Icon
+                      className={`mr-3 h-5 w-5 flex-shrink-0 ${
+                        isActive
+                          ? "text-primary-content"
+                          : "text-base-content/60"
+                      }`}
+                    />
+                    <div className="flex-1">
+                      <div className="font-medium">{item.name}</div>
+                      <div
+                        className={`text-xs ${
+                          isActive
+                            ? "text-primary-content/80"
+                            : "text-base-content/50"
+                        }`}
+                      >
+                        {item.description}
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+
+            {/* Internal/Development Section */}
+            <div className="pt-6 mt-6 border-t border-base-300">
+              <div className="px-3 mb-3">
+                <h3 className="text-xs font-semibold text-base-content/50 uppercase tracking-wider">
+                  Development
+                </h3>
+              </div>
+              <div className="space-y-1">
+                {internalLinks.map((item) => (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    className={`group flex items-center px-3 py-2 text-sm rounded-lg transition-colors ${
+                      isActiveRoute(item.href)
+                        ? "bg-warning/20 text-warning-content"
+                        : "text-base-content/70 hover:bg-base-300"
+                    }`}
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <div className="w-2 h-2 rounded-full bg-warning mr-3 flex-shrink-0" />
+                    <div className="flex-1">
+                      <div className="font-medium">{item.name}</div>
+                      <div className="text-xs text-base-content/50">
+                        {item.description}
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </nav>
+
+          {/* Footer */}
+          <div className="p-4 border-t border-base-300">
+            <div className="flex items-center justify-between">
+              <div className="text-xs text-base-content/50">
+                v0.1.0 • Development
+              </div>
+              <ThemeSwitcherCompact />
+            </div>
+          </div>
         </div>
-        <div>
-          <p className="font-medium">Morning Pod</p>
-          <p className="text-sm opacity-70">
-            AI-powered podcast generation from your favorite news sources
-          </p>
+      </div>
+
+      {/* Main content */}
+      <div className="lg:ml-72">
+        {/* Top bar */}
+        <div className="sticky top-0 z-30 flex h-12 items-center justify-between bg-base-100/95 backdrop-blur-sm border-b border-base-300 px-4 lg:px-6">
+          <button
+            className="lg:hidden btn btn-ghost btn-sm btn-circle"
+            onClick={() => setMobileMenuOpen(true)}
+          >
+            <Menu className="w-5 h-5" />
+          </button>
+
+          <div className="flex-1 lg:flex-none">
+            <div className="hidden lg:block">
+              <h2 className="text-lg font-semibold text-base-content">
+                {navigation.find((item) => isActiveRoute(item.href))?.name ||
+                  "Morning Pod"}
+              </h2>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              className="btn btn-primary btn-sm gap-2"
+              onClick={() => setGenerationModalOpen(true)}
+            >
+              <Plus className="w-4 h-4" />
+              <span className="hidden sm:inline">Generate Episode</span>
+            </button>
+          </div>
         </div>
-        <div className="text-xs opacity-60">
-          <p>© 2024 Morning Pod. Made with ❤️ and AI.</p>
-        </div>
-      </footer>
+
+        {/* Page content */}
+        <main className="p-4 lg:p-6">{children}</main>
+      </div>
+
+      {/* Generation Modal */}
+      <GenerationModal
+        isOpen={generationModalOpen}
+        onClose={() => setGenerationModalOpen(false)}
+      />
     </div>
   );
 }
