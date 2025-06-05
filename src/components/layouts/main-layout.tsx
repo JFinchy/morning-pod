@@ -9,11 +9,14 @@ import {
   Menu,
   X,
   Plus,
+  Shield,
+  ChevronDown,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 
+import { FeatureFlagAdmin } from "../features/feature-flag-admin";
 import { GenerationModal } from "../features/generation-modal";
 import { ThemeSwitcherCompact } from "../ui/theme-switcher-compact";
 
@@ -81,6 +84,7 @@ export function MainLayout({ children }: MainLayoutProps) {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [generationModalOpen, setGenerationModalOpen] = useState(false);
+  const [featureFlagDropdownOpen, setFeatureFlagDropdownOpen] = useState(false);
 
   const isActiveRoute = (href: string) => {
     if (href === "/") {
@@ -96,6 +100,14 @@ export function MainLayout({ children }: MainLayoutProps) {
         <div
           className="fixed inset-0 z-40 bg-black/50 lg:hidden"
           onClick={() => setMobileMenuOpen(false)}
+        />
+      )}
+
+      {/* Feature flag dropdown backdrop */}
+      {featureFlagDropdownOpen && (
+        <div
+          className="fixed inset-0 z-40"
+          onClick={() => setFeatureFlagDropdownOpen(false)}
         />
       )}
 
@@ -238,6 +250,27 @@ export function MainLayout({ children }: MainLayoutProps) {
           </div>
 
           <div className="flex items-center gap-2">
+            {/* Feature Flags Dropdown */}
+            <div className="relative">
+              <button
+                className="btn btn-ghost btn-sm gap-2"
+                onClick={() =>
+                  setFeatureFlagDropdownOpen(!featureFlagDropdownOpen)
+                }
+                aria-label="View feature flags"
+              >
+                <Shield className="w-4 h-4" />
+                <span className="hidden sm:inline">Flags</span>
+                <ChevronDown className="w-3 h-3" />
+              </button>
+
+              {featureFlagDropdownOpen && (
+                <div className="absolute right-0 top-full mt-2 w-80 z-50">
+                  <FeatureFlagAdmin />
+                </div>
+              )}
+            </div>
+
             <button
               className="btn btn-primary btn-sm gap-2"
               onClick={() => setGenerationModalOpen(true)}

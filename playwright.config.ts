@@ -67,7 +67,6 @@ export default defineConfig({
   expect: {
     timeout: 5000,
     toHaveScreenshot: { threshold: 0.3 },
-    toMatchScreenshot: { threshold: 0.3 },
   },
 
   /* Configure projects for major browsers and themes */

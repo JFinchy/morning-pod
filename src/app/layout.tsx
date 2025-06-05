@@ -7,6 +7,7 @@ import { Toaster } from "react-hot-toast";
 import "./globals.css";
 import { PerformanceMonitor } from "@/components/ui/performance-monitor";
 
+import { FeatureFlagProvider } from "../lib/feature-flags/provider";
 import { TRPCProvider } from "../lib/trpc/provider";
 
 import { StagewiseToolbar } from "@stagewise/toolbar-next";
@@ -43,7 +44,9 @@ export default function RootLayout({
             plugins: [], // Add custom plugins here when needed
           }}
         />
-        <TRPCProvider>{children}</TRPCProvider>
+        <FeatureFlagProvider>
+          <TRPCProvider>{children}</TRPCProvider>
+        </FeatureFlagProvider>
         <PerformanceMonitor />
         <Toaster
           position="top-right"

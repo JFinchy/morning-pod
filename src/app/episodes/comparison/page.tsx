@@ -106,11 +106,7 @@ export default function EpisodeComparisonPage() {
                   <span className="badge badge-sm badge-outline">Minimal</span>
                 </div>
               </div>
-              <EpisodeCardV1
-                episode={episode}
-                onPlay={handlePlay}
-                onPause={handlePause}
-              />
+              <EpisodeCardV1 episode={episode} />
             </div>
 
             {/* Version 2 - Visual */}
@@ -129,11 +125,7 @@ export default function EpisodeComparisonPage() {
                   <span className="badge badge-sm badge-outline">Rich</span>
                 </div>
               </div>
-              <EpisodeCardV2
-                episode={episode}
-                onPlay={handlePlay}
-                onPause={handlePause}
-              />
+              <EpisodeCardV2 episode={episode} />
             </div>
 
             {/* Version 3 - Compact */}
@@ -155,11 +147,7 @@ export default function EpisodeComparisonPage() {
                 </div>
               </div>
               <div className="bg-base-200/50 rounded-lg p-4">
-                <EpisodeCardV3
-                  episode={episode}
-                  onPlay={handlePlay}
-                  onPause={handlePause}
-                />
+                <EpisodeCardV3 episode={episode} />
               </div>
             </div>
           </div>
@@ -216,18 +204,10 @@ export default function EpisodeComparisonPage() {
                     <div className="lg:col-span-2">
                       {index === 2 ? (
                         <div className="bg-base-200/50 rounded-lg p-4">
-                          <Component
-                            episode={episode}
-                            onPlay={handlePlay}
-                            onPause={handlePause}
-                          />
+                          <Component episode={episode} />
                         </div>
                       ) : (
-                        <Component
-                          episode={episode}
-                          onPlay={handlePlay}
-                          onPause={handlePause}
-                        />
+                        <Component episode={episode} />
                       )}
                     </div>
                   </div>

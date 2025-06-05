@@ -42,6 +42,7 @@ export const test = base.extend<{
       }
     });
 
+    // eslint-disable-next-line react-hooks/rules-of-hooks -- false positive: this is Playwright's fixture API, not a React hook
     await use();
   },
 
@@ -74,6 +75,7 @@ export const test = base.extend<{
       observer.observe({ type: "layout-shift", buffered: true });
     });
 
+    // eslint-disable-next-line react-hooks/rules-of-hooks -- false positive: this is Playwright's fixture API, not a React hook
     await use();
 
     // Collect performance metrics at the end
@@ -123,12 +125,13 @@ export const test = base.extend<{
       },
     };
 
+    // eslint-disable-next-line react-hooks/rules-of-hooks -- false positive: this is Playwright's fixture API, not a React hook
     await use(utils);
   },
 });
 
 // Advanced page utilities
-export class PageUtils {
+class PageUtils {
   constructor(private page: Page) {}
 
   // Wait for all animations to complete
@@ -210,7 +213,7 @@ export class PageUtils {
 }
 
 // Theme testing utilities
-export class ThemeUtils {
+class ThemeUtils {
   constructor(private page: Page) {}
 
   async setTheme(theme: string) {
@@ -253,5 +256,4 @@ export class ThemeUtils {
 }
 
 // Export utilities
-export { expect };
-export { PageUtils, ThemeUtils };
+export { expect, PageUtils, ThemeUtils };

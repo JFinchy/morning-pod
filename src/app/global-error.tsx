@@ -6,10 +6,15 @@ import { useEffect } from "react";
 // import Image from 'next/image';
 // import TuneBotFrazzled from '../public/images/tunebot-frazzled.svg'; // Example path
 
-export default function GlobalError({ error, reset }) {
+interface GlobalErrorProps {
+  error: Error & { digest?: string };
+  reset: () => void;
+}
+
+export default function GlobalError({ error, reset }: GlobalErrorProps) {
   useEffect(() => {
-    // Optionally log the error to an error reporting service
-    console.error(error);
+    // Log the error to an error reporting service
+    console.error("Global error:", error);
   }, [error]);
 
   return (
@@ -46,6 +51,16 @@ export default function GlobalError({ error, reset }) {
           <p className="mt-12 text-sm text-gray-500 dark:text-gray-400">
             We&apos;re working on it! Thanks for your patience.
           </p>
+          {process.env.NODE_ENV === "development" && (
+            <details className="mt-4">
+              <summary className="cursor-pointer text-sm text-base-content/60">
+                Error details
+              </summary>
+              <pre className="text-xs mt-2 p-2 bg-base-200 rounded overflow-auto">
+                {error.message}
+              </pre>
+            </details>
+          )}
         </div>
       </body>
     </html>

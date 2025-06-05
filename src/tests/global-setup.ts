@@ -1,6 +1,7 @@
-import { chromium, FullConfig } from "@playwright/test";
 import { mkdir } from "fs/promises";
 import { join } from "path";
+
+import { chromium, FullConfig } from "@playwright/test";
 
 async function globalSetup(config: FullConfig) {
   console.log("🚀 Starting Morning Pod E2E Test Suite");
@@ -20,7 +21,6 @@ async function globalSetup(config: FullConfig) {
   // Start JS and CSS coverage
   await page.coverage.startJSCoverage({
     resetOnNavigation: false,
-    includeRawScriptCoverage: true,
   });
 
   await page.coverage.startCSSCoverage({

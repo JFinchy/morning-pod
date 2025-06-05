@@ -23,6 +23,8 @@
     "test:e2e:video": "playwright test --video=on",
     "test:e2e:coverage": "playwright test --reporter=../src/tests/coverage-reporter.ts",
     "test:e2e:visual": "playwright test --update-snapshots",
+    "test:e2e:visual:flags": "playwright test src/tests/e2e/visual-regression-feature-flags.spec.ts --update-snapshots",
+    "test:e2e:flags": "playwright test src/tests/e2e/visual-regression-feature-flags.spec.ts",
     "test:e2e:codegen": "playwright codegen localhost:3000",
     "test:performance": "playwright test src/tests/performance",
     "test:all": "bun test && bun test:e2e",

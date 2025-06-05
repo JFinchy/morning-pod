@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { getEnabledSources } from "../../feature-flags/server";
 import { createTRPCRouter, publicProcedure } from "../server-mock";
 
 // Mock sources data
@@ -43,7 +44,7 @@ const mockSources = [
 ];
 
 export const sourcesMockRouter = createTRPCRouter({
-  // Get all sources with optional filtering
+  // Get all sources with optional filtering and feature flag filtering
   getAll: publicProcedure
     .input(
       z.object({
@@ -55,6 +56,9 @@ export const sourcesMockRouter = createTRPCRouter({
       const { active, category } = input;
 
       let filteredSources = mockSources;
+
+      // Filter by feature flags first
+      filteredSources = await getEnabledSources(filteredSources);
 
       if (active !== undefined) {
         filteredSources = filteredSources.filter(
@@ -84,16 +88,18 @@ export const sourcesMockRouter = createTRPCRouter({
       return source;
     }),
 
-  // Get active sources only
+  // Get active sources only (with feature flag filtering)
   getActive: publicProcedure.query(async () => {
-    return mockSources.filter((source) => source.active);
+    const activeSources = mockSources.filter((source) => source.active);
+    return await getEnabledSources(activeSources);
   }),
 
-  // Get sources grouped by category
+  // Get sources grouped by category (with feature flag filtering)
   getByCategory: publicProcedure.query(async () => {
     const activeSources = mockSources.filter((source) => source.active);
+    const enabledSources = await getEnabledSources(activeSources);
 
-    const grouped = activeSources.reduce(
+    const grouped = enabledSources.reduce(
       (acc, source) => {
         const category = source.category;
         if (!acc[category]) {
@@ -102,7 +108,7 @@ export const sourcesMockRouter = createTRPCRouter({
         acc[category].push(source);
         return acc;
       },
-      {} as Record<string, typeof activeSources>
+      {} as Record<string, typeof enabledSources>
     );
 
     return grouped;
