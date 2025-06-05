@@ -73,7 +73,7 @@ export function ApiTest() {
 
           <div className="stat">
             <div className="stat-title">Queue Items</div>
-            <div className="stat-value">{queueStats?.totalInQueue || 0}</div>
+            <div className="stat-value">{queueStats?.total || 0}</div>
             <div className="stat-desc">In processing queue</div>
           </div>
         </div>

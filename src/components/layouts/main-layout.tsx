@@ -44,6 +44,12 @@ const navigation = [
     description: "Manage news sources",
   },
   {
+    name: "Scraping",
+    href: "/scraping",
+    icon: Radio,
+    description: "Content scraping",
+  },
+  {
     name: "Queue",
     href: "/queue",
     icon: Clock,

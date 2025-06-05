@@ -31,6 +31,25 @@ export default function InternalPage() {
     },
   ];
 
+  const developmentPages = [
+    {
+      name: "Scraping Development Tools",
+      description:
+        "Debug and monitor content scraping services with real-time metrics",
+      href: "/internal/scraping",
+      category: "Content Pipeline",
+      status: "Active",
+    },
+    {
+      name: "Scraping Strategy Comparison",
+      description:
+        "Compare content sources and scraping strategies for optimal results",
+      href: "/internal/scraping/comparison",
+      category: "Content Pipeline",
+      status: "Active",
+    },
+  ];
+
   const designPrinciples = [
     {
       title: "Component-First Development",
@@ -181,6 +200,50 @@ export default function InternalPage() {
                       >
                         <ExternalLink className="w-3 h-3" />
                         View Comparison
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Development Pages */}
+        <div>
+          <h2 className="text-xl font-semibold mb-6">Development Pages</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {developmentPages.map((page) => (
+              <div
+                key={page.name}
+                className="card bg-base-100 shadow-sm border border-base-300 hover:shadow-md transition-all duration-200"
+              >
+                <div className="card-body p-6">
+                  <div className="flex items-start justify-between mb-3">
+                    <h3 className="font-bold text-base-content">{page.name}</h3>
+                    <div className="flex items-center gap-2">
+                      <div className="badge badge-primary badge-sm">
+                        {page.category}
+                      </div>
+                      <div className="badge badge-info badge-sm">
+                        {page.status}
+                      </div>
+                    </div>
+                  </div>
+
+                  <p className="text-sm text-base-content/70 mb-4">
+                    {page.description}
+                  </p>
+
+                  <div className="card-actions">
+                    <Link href={page.href} className="w-full">
+                      <Button
+                        variant="primary"
+                        size="sm"
+                        className="w-full gap-2"
+                      >
+                        <ExternalLink className="w-3 h-3" />
+                        Open Tools
                       </Button>
                     </Link>
                   </div>
