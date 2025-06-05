@@ -3,6 +3,65 @@
 ## Project Overview
 This is a podcast generation app that automatically creates podcast episodes from news sources using AI summarization and text-to-speech. The app is built with a component-first development approach optimized for AI agent collaboration, using Bun for enhanced development speed.
 
+## Current Codebase Structure
+
+**IMPORTANT: Always update this structure when creating/modifying files or folders**
+
+```
+morning-pod/
+├── .cursorrules                    # AI development rules and workflow
+├── .husky/                         # Git hooks for code quality
+├── .nvmrc                          # Node.js version (22)
+├── bun.config.ts                   # Bun configuration
+├── bun.lockb                       # Bun lockfile
+├── eslint.config.mjs               # ESLint configuration
+├── next.config.ts                  # Next.js configuration
+├── package.json                    # Dependencies and scripts
+├── postcss.config.mjs              # PostCSS configuration
+├── .prettierrc & .prettierignore   # Code formatting config
+├── tsconfig.json                   # TypeScript configuration
+├── README.md                       # Project documentation
+├── public/                         # Static assets
+├── scripts/                        # Build and utility scripts
+├── tests/                          # Test files
+└── src/
+    ├── app/                        # Next.js App Router
+    │   ├── globals.css             # Global styles + daisyUI config
+    │   ├── layout.tsx              # Root layout
+    │   ├── page.tsx                # Homepage
+    │   ├── favicon.ico             # App icon
+    │   └── episodes/               # Episode pages
+    │       └── demo/               # Demo episode page
+    │           └── page.tsx
+    ├── components/
+    │   ├── ui/                     # Base UI components
+    │   │   ├── index.ts            # Component exports
+    │   │   ├── button.tsx          # Button component
+    │   │   ├── dialog.tsx          # Dialog/Modal component
+    │   │   ├── progress.tsx        # Progress bar component
+    │   │   ├── select.tsx          # Select dropdown component
+    │   │   ├── slider.tsx          # Slider component
+    │   │   ├── theme-switcher.tsx  # Theme selection component
+    │   │   └── toast.tsx           # Toast notifications
+    │   ├── layouts/                # Page layouts
+    │   │   ├── index.ts            # Layout exports
+    │   │   ├── main-layout.tsx     # Main app layout with nav
+    │   │   └── player-layout.tsx   # Episode player layout
+    │   ├── features/               # App-specific components (empty)
+    │   └── variants/               # Component variants (empty)
+    ├── lib/
+    │   ├── utils.ts                # Utility functions
+    │   ├── db/                     # Database schema & connection (empty)
+    │   ├── mock-data/              # Development mock data (empty)
+    │   ├── schemas/                # Zod validation schemas (empty)
+    │   ├── services/               # Business logic services (empty)
+    │   ├── trpc/                   # API layer (empty)
+    │   └── utils/                  # Additional utilities (empty)
+    └── types/                      # TypeScript type definitions (empty)
+```
+
+**File Update Rule**: Whenever you create, modify, delete, or move files/folders, immediately update this structure in the cursor rules. This helps maintain accurate project navigation and prevents getting lost in the codebase.
+
 ## Core Development Principles
 
 ### 1. Component-First Development with Variants
@@ -737,15 +796,39 @@ export function Component({ prop1, prop2, variant = 'v1' }: ComponentProps) {
 - Add proper loading and error states
 - Consider component variants in state management
 
-### Git Workflow
+### Git Workflow & Review Process
 
+**IMPORTANT: Review-Before-Commit Workflow**
+- **Always pause for user review** before making any commits
+- Present changes clearly to user for validation
+- User must approve changes before committing
+- Only commit after explicit user approval
+- Ask for commit confirmation before proceeding to next task
+
+**Standard Git Workflow:**
 1. Create feature branch from main
 2. Implement task/subtasks
 3. Build multiple component versions when applicable
 4. Test components in isolation
-5. Create PR with screenshots/demos of different variants
-6. Review and select preferred designs
-7. Merge and move to next task
+5. **PAUSE: Present changes to user for review**
+6. **WAIT: Get user approval before committing**
+7. Commit with descriptive message after approval
+8. Create PR with screenshots/demos of different variants
+9. Review and select preferred designs
+10. Merge and move to next task
+
+**Commit Process:**
+- Always describe what was changed and why
+- Include file changes summary
+- Wait for user confirmation before executing commit
+- Use semantic commit messages (feat:, fix:, chore:, etc.)
+
+**File Structure Maintenance:**
+- **REQUIRED**: Update the "Current Codebase Structure" section whenever:
+  - Creating new files or folders
+  - Deleting files or folders  
+  - Moving or renaming files or folders
+  - This prevents getting lost in the codebase and helps with navigation
 
 ### Success Criteria
 
