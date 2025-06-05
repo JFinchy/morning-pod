@@ -10,11 +10,17 @@ import {
   DialogTrigger,
   Select,
   Slider,
+  ThemeSwitcher,
 } from "@/components/ui";
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-base-100 p-8">
+    <div className="min-h-screen bg-base-100 p-8 relative">
+      {/* Theme Switcher - Floating in top-right */}
+      <div className="fixed top-4 right-4 z-50">
+        <ThemeSwitcher />
+      </div>
+
       <div className="max-w-4xl mx-auto space-y-8">
         <div className="hero bg-base-200 rounded-lg">
           <div className="hero-content text-center">
@@ -32,6 +38,10 @@ export default function Home() {
         <div className="card bg-base-100 shadow-xl">
           <div className="card-body">
             <h2 className="card-title">UI Component Showcase</h2>
+            <p className="text-base-content/70 mb-4">
+              🎨 Try different themes using the theme switcher in the top-right
+              corner to see how all components adapt automatically!
+            </p>
 
             {/* Button Variants */}
             <div className="space-y-4">
@@ -146,6 +156,28 @@ export default function Home() {
             <div className="stat-title">Queue Status</div>
             <div className="stat-value">Empty</div>
             <div className="stat-desc">No episodes generating</div>
+          </div>
+        </div>
+
+        {/* Theme Preview Cards */}
+        <div className="card bg-base-100 shadow-xl">
+          <div className="card-body">
+            <h2 className="card-title">Theme System Demo</h2>
+            <p className="text-base-content/70 mb-4">
+              All components use semantic colors that automatically adapt to any
+              theme:
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="alert alert-info">
+                <span>Info: Uses semantic info color</span>
+              </div>
+              <div className="alert alert-success">
+                <span>Success: Adapts to theme</span>
+              </div>
+              <div className="alert alert-warning">
+                <span>Warning: Always readable</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>

@@ -25,3 +25,4 @@ export {
   ToastClose,
   ToastAction,
 } from "./toast";
+export { ThemeSwitcher } from "./theme-switcher";
