@@ -31,8 +31,10 @@ morning-pod/
     │   ├── page.tsx                # Homepage
     │   ├── favicon.ico             # App icon
     │   └── episodes/               # Episode pages
-    │       └── demo/               # Demo episode page
-    │           └── page.tsx
+    │       ├── demo/               # Demo episode page
+    │       │   └── page.tsx
+    │       └── comparison/         # Component variant comparison
+    │           └── page.tsx        # Episode card variants showcase
     ├── components/
     │   ├── ui/                     # Base UI components
     │   │   ├── index.ts            # Component exports
@@ -48,11 +50,17 @@ morning-pod/
     │   │   ├── main-layout.tsx     # Main app layout with nav
     │   │   └── player-layout.tsx   # Episode player layout
     │   ├── features/               # App-specific components (empty)
-    │   └── variants/               # Component variants (empty)
+    │   └── variants/               # Component variants
+    │       ├── index.ts            # Variant exports
+    │       ├── episode-card-v1.tsx # Minimal episode card
+    │       ├── episode-card-v2.tsx # Visual episode card
+    │       └── episode-card-v3.tsx # Compact episode card
     ├── lib/
     │   ├── utils.ts                # Utility functions
     │   ├── db/                     # Database schema & connection (empty)
-    │   ├── mock-data/              # Development mock data (empty)
+    │   ├── mock-data/              # Development mock data
+    │   │   ├── index.ts            # Mock data exports
+    │   │   └── episodes.ts         # Episode mock data and interfaces
     │   ├── schemas/                # Zod validation schemas (empty)
     │   ├── services/               # Business logic services (empty)
     │   ├── trpc/                   # API layer (empty)
