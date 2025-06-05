@@ -30,11 +30,14 @@ morning-pod/
     │   ├── layout.tsx              # Root layout
     │   ├── page.tsx                # Homepage
     │   ├── favicon.ico             # App icon
-    │   └── episodes/               # Episode pages
-    │       ├── demo/               # Demo episode page
-    │       │   └── page.tsx
-    │       └── comparison/         # Component variant comparison
-    │           └── page.tsx        # Episode card variants showcase
+    │   ├── episodes/               # Episode pages
+    │   │   ├── demo/               # Demo episode page
+    │   │   │   └── page.tsx
+    │   │   └── comparison/         # Component variant comparison
+    │   │       └── page.tsx        # Episode card variants showcase
+    │   └── players/                # Player comparison pages
+    │       └── comparison/         # Player variants comparison
+    │           └── page.tsx        # Episode player variants showcase
     ├── components/
     │   ├── ui/                     # Base UI components
     │   │   ├── index.ts            # Component exports
@@ -54,7 +57,10 @@ morning-pod/
     │       ├── index.ts            # Variant exports
     │       ├── episode-card-v1.tsx # Minimal episode card
     │       ├── episode-card-v2.tsx # Visual episode card
-    │       └── episode-card-v3.tsx # Compact episode card
+    │       ├── episode-card-v3.tsx # Compact episode card
+    │       ├── episode-player-v1.tsx # Traditional audio player
+    │       ├── episode-player-v2.tsx # Spotify-inspired player
+    │       └── episode-player-v3.tsx # Minimalist waveform player
     ├── lib/
     │   ├── utils.ts                # Utility functions
     │   ├── db/                     # Database schema & connection (empty)

@@ -2,6 +2,11 @@ export { EpisodeCardV1 } from "./episode-card-v1";
 export { EpisodeCardV2 } from "./episode-card-v2";
 export { EpisodeCardV3 } from "./episode-card-v3";
 
+// Episode Player Variants
+export { EpisodePlayerV1 } from "./episode-player-v1";
+export { EpisodePlayerV2 } from "./episode-player-v2";
+export { EpisodePlayerV3 } from "./episode-player-v3";
+
 // Variant configuration for easy switching
 export const episodeCardVariants = {
   v1: "minimal",

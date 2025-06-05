@@ -1,0 +1,234 @@
+"use client";
+
+import { ArrowLeft, Settings } from "lucide-react";
+import Link from "next/link";
+import { useState } from "react";
+
+import {
+  EpisodePlayerV1,
+  EpisodePlayerV2,
+  EpisodePlayerV3,
+} from "@/components/variants";
+import { mockEpisodes } from "@/lib/mock-data";
+
+export default function PlayerComparisonPage() {
+  const [selectedEpisodeIndex, setSelectedEpisodeIndex] = useState(0);
+  const [currentTime, setCurrentTime] = useState(30); // 30 seconds in
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [volume, setVolume] = useState(0.8);
+
+  const episode = mockEpisodes[selectedEpisodeIndex];
+  const duration = 300; // 5 minutes
+
+  const playerVariants = [
+    {
+      name: "Traditional Player with Header (V1)",
+      component: EpisodePlayerV1,
+      description:
+        "Classic audio player design with colored header and traditional controls",
+      strengths: [
+        "Familiar interface",
+        "Clear time display",
+        "Visual hierarchy",
+        "Easy to understand",
+      ],
+      useCase:
+        "Users who prefer traditional audio player interfaces with modern visual appeal",
+    },
+    {
+      name: "Spotify-Inspired (V2)",
+      component: EpisodePlayerV2,
+      description:
+        "Modern streaming-style player with visual emphasis and premium feel",
+      strengths: [
+        "Modern aesthetic",
+        "Rich visual feedback",
+        "Engaging interaction",
+      ],
+      useCase: "Users who want a premium, visually rich experience",
+    },
+    {
+      name: "Minimalist Waveform (V3)",
+      component: EpisodePlayerV3,
+      description:
+        "Compact design with waveform visualization and space efficiency",
+      strengths: ["Space efficient", "Visual waveform", "Clean minimal design"],
+      useCase: "Users who prefer compact, functional interfaces",
+    },
+  ];
+
+  return (
+    <div className="min-h-screen bg-base-200">
+      {/* Header */}
+      <div className="bg-base-100 border-b border-base-300">
+        <div className="container mx-auto px-4 py-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Link href="/" className="btn btn-ghost btn-sm">
+                <ArrowLeft className="w-4 h-4" />
+                Back
+              </Link>
+              <div>
+                <h1 className="text-2xl font-bold text-base-content">
+                  Episode Player Variants
+                </h1>
+                <p className="text-base-content/60">
+                  Compare different player designs and interactions
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <button className="btn btn-ghost btn-sm">
+                <Settings className="w-4 h-4" />
+                Settings
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="container mx-auto px-4 py-8">
+        {/* Episode Selector */}
+        <div className="card bg-base-100 shadow-sm mb-8">
+          <div className="card-body p-6">
+            <h2 className="font-semibold text-lg mb-4">Test Episode</h2>
+            <div className="flex flex-wrap gap-2">
+              {mockEpisodes.map((ep, index) => (
+                <button
+                  key={ep.id}
+                  className={`btn btn-sm ${
+                    selectedEpisodeIndex === index
+                      ? "btn-primary"
+                      : "btn-outline"
+                  }`}
+                  onClick={() => setSelectedEpisodeIndex(index)}
+                >
+                  {ep.title}
+                </button>
+              ))}
+            </div>
+
+            {/* Playback Controls */}
+            <div className="mt-4 flex items-center gap-4">
+              <button
+                className={`btn btn-sm ${isPlaying ? "btn-secondary" : "btn-primary"}`}
+                onClick={() => setIsPlaying(!isPlaying)}
+              >
+                {isPlaying ? "Pause All" : "Play All"}
+              </button>
+              <div className="flex items-center gap-2">
+                <span className="text-sm">Current Time:</span>
+                <input
+                  type="range"
+                  min="0"
+                  max={duration}
+                  value={currentTime}
+                  onChange={(e) => setCurrentTime(Number(e.target.value))}
+                  className="range range-primary range-sm"
+                />
+                <span className="text-sm text-base-content/60">
+                  {Math.floor(currentTime / 60)}:
+                  {(currentTime % 60).toString().padStart(2, "0")}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Player Variants Grid */}
+        <div className="grid gap-8 lg:grid-cols-1 xl:grid-cols-3">
+          {playerVariants.map((variant, index) => {
+            const PlayerComponent = variant.component;
+
+            return (
+              <div key={index} className="space-y-4">
+                {/* Variant Info */}
+                <div className="card bg-base-100 shadow-sm">
+                  <div className="card-body p-4">
+                    <h3 className="font-semibold text-lg text-primary">
+                      {variant.name}
+                    </h3>
+                    <p className="text-sm text-base-content/70 mb-3">
+                      {variant.description}
+                    </p>
+
+                    <div className="space-y-2">
+                      <div>
+                        <span className="text-xs font-medium text-base-content/60">
+                          Strengths:
+                        </span>
+                        <ul className="text-xs text-base-content/70 ml-2">
+                          {variant.strengths.map((strength, i) => (
+                            <li key={i}>• {strength}</li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      <div>
+                        <span className="text-xs font-medium text-base-content/60">
+                          Best for:
+                        </span>
+                        <p className="text-xs text-base-content/70">
+                          {variant.useCase}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Player Component */}
+                <div className="space-y-2">
+                  <PlayerComponent
+                    episode={episode}
+                    isPlaying={isPlaying}
+                    onPlayPause={() => setIsPlaying(!isPlaying)}
+                    currentTime={currentTime}
+                    duration={duration}
+                    onSeek={setCurrentTime}
+                    volume={volume}
+                    onVolumeChange={setVolume}
+                  />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Design Notes */}
+        <div className="card bg-base-100 shadow-sm mt-8">
+          <div className="card-body p-6">
+            <h2 className="font-semibold text-lg mb-4">Design Philosophy</h2>
+            <div className="prose prose-sm">
+              <p>
+                Each player variant targets different user preferences and use
+                cases:
+              </p>
+              <ul>
+                <li>
+                  <strong>V1 (Traditional):</strong> Focuses on clarity and
+                  familiarity, perfect for users who want a straightforward
+                  audio experience
+                </li>
+                <li>
+                  <strong>V2 (Spotify-Inspired):</strong> Emphasizes visual
+                  richness and modern streaming aesthetics for an engaging
+                  experience
+                </li>
+                <li>
+                  <strong>V3 (Minimalist):</strong> Prioritizes space efficiency
+                  and unique waveform visualization for compact interfaces
+                </li>
+              </ul>
+              <p>
+                All variants share core functionality while expressing different
+                design personalities. Test each variant to see which resonates
+                best with your user base.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
