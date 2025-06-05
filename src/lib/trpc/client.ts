@@ -1,5 +1,5 @@
 import { createTRPCReact } from "@trpc/react-query";
 
-import type { AppRouter } from "./root";
+import type { AppMockRouter } from "./root-mock";
 
-export const api = createTRPCReact<AppRouter>();
+export const api = createTRPCReact<AppMockRouter>();

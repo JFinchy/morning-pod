@@ -1,3 +1,4 @@
+import { ApiTest } from "@/components/features";
 import { MainLayout } from "@/components/layouts";
 import {
   Button,
@@ -138,25 +139,8 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="stats stats-vertical lg:stats-horizontal shadow">
-          <div className="stat">
-            <div className="stat-title">Episodes Generated</div>
-            <div className="stat-value">0</div>
-            <div className="stat-desc">Ready to start</div>
-          </div>
-
-          <div className="stat">
-            <div className="stat-title">Sources Active</div>
-            <div className="stat-value">3</div>
-            <div className="stat-desc">TLDR, HN, Morning Brew</div>
-          </div>
-
-          <div className="stat">
-            <div className="stat-title">Queue Status</div>
-            <div className="stat-value">Empty</div>
-            <div className="stat-desc">No episodes generating</div>
-          </div>
-        </div>
+        {/* API Test Component */}
+        <ApiTest />
 
         {/* Theme Preview Cards */}
         <div className="card bg-base-100 shadow-xl">
