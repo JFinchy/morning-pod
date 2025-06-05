@@ -81,7 +81,7 @@ export default function EpisodeComparisonPage() {
                   selectedEpisode === index ? "btn-primary" : "btn-outline"
                 }`}
               >
-                {ep.source.name}
+                {ep.source?.name || `Episode ${index + 1}`}
               </button>
             ))}
           </div>

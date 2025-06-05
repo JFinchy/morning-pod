@@ -51,7 +51,7 @@ export function EpisodeCard({
           </h3>
           <div className="flex items-center justify-between">
             <p className="text-sm font-medium text-primary">
-              {episode.source.name}
+              {episode.source?.name || `Source ${episode.sourceId}`}
             </p>
             <div className={`badge badge-${getStatusColor(episode.status)}`}>
               {getStatusText(episode.status)}

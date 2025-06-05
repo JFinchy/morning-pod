@@ -38,11 +38,14 @@ async function getServerDataWithFallback() {
 
     return {
       episodes: recentEpisodesData?.episodes || [],
-      sources: activeSources || [],
+      sources: (activeSources || []).filter((s) => s && s.name),
       queueStats: queueStats || {
-        totalInQueue: 0,
-        currentlyProcessing: 0,
-        successRate: 0,
+        total: 0,
+        pending: 0,
+        active: 0,
+        completed: 0,
+        failed: 0,
+        totalCost: "0.00",
       },
     };
   } catch (error) {
@@ -88,17 +91,31 @@ export default async function Home() {
     },
     {
       label: "Queue Items",
-      value: queueStats?.totalInQueue || 0,
+      value: queueStats
+        ? "total" in queueStats
+          ? queueStats.total
+          : queueStats.totalInQueue
+        : 0,
       icon: Clock,
       color: "text-warning",
-      change: queueStats?.currentlyProcessing
-        ? `${queueStats.currentlyProcessing} processing`
+      change: queueStats
+        ? "active" in queueStats
+          ? queueStats.active
+            ? `${queueStats.active} processing`
+            : null
+          : queueStats.currentlyProcessing
+            ? `${queueStats.currentlyProcessing} processing`
+            : null
         : null,
     },
     {
       label: "Success Rate",
       value: queueStats
-        ? `${Math.round((queueStats.successRate || 0) * 100)}%`
+        ? "successRate" in queueStats
+          ? `${Math.round((queueStats.successRate || 0) * 100)}%`
+          : queueStats.total > 0
+            ? `${Math.round((queueStats.completed / queueStats.total) * 100)}%`
+            : "0%"
         : "0%",
       icon: CheckCircle,
       color: "text-info",
@@ -244,7 +261,12 @@ export default async function Home() {
                     Generation Queue
                   </h3>
                   <p className="text-sm text-base-content/60">
-                    {queueStats?.currentlyProcessing || 0} processing
+                    {queueStats
+                      ? ("active" in queueStats
+                          ? queueStats.active
+                          : queueStats.currentlyProcessing) || 0
+                      : 0}{" "}
+                    processing
                   </p>
                 </div>
               </div>

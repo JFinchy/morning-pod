@@ -100,7 +100,9 @@ export function EpisodePlayerV3({
           <h3 className="font-semibold text-sm text-base-content truncate">
             {episode.title}
           </h3>
-          <p className="text-xs text-base-content/60">{episode.source.name}</p>
+          <p className="text-xs text-base-content/60">
+            {episode.source?.name || `Source ${episode.sourceId}`}
+          </p>
         </div>
         <button className="btn btn-ghost btn-xs">
           <MoreHorizontal className="w-4 h-4" />
