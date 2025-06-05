@@ -17,7 +17,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-base-100 p-8 relative">
       {/* Theme Switcher - Floating in top-right */}
-      <div className="fixed top-4 right-4 z-50">
+      <div className="fixed top-4 right-4 z-[100]">
         <ThemeSwitcher />
       </div>
 
@@ -74,8 +74,8 @@ export default function Home() {
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">Select</h3>
               <div className="max-w-xs">
-                <Select variant="primary">
-                  <option disabled selected>
+                <Select variant="primary" defaultValue="">
+                  <option disabled value="">
                     Choose a news source
                   </option>
                   <option>TLDR Newsletter</option>
@@ -122,7 +122,7 @@ export default function Home() {
                       <label className="label">
                         <span className="label-text">Voice Model</span>
                       </label>
-                      <Select>
+                      <Select defaultValue="Alloy">
                         <option>Alloy</option>
                         <option>Echo</option>
                         <option>Fable</option>

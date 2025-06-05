@@ -62,77 +62,84 @@ export function ThemeSwitcher() {
   const darkThemes = themes.filter((theme) => theme.category === "Dark");
 
   return (
-    <div className="dropdown dropdown-end">
-      <div
-        tabIndex={0}
-        role="button"
-        className="btn btn-ghost btn-circle"
+    <div className="relative">
+      <button
+        className="btn btn-ghost btn-circle tooltip tooltip-left"
+        data-tip="Change Theme"
         onClick={() => setIsOpen(!isOpen)}
       >
         <Palette className="w-5 h-5" />
-      </div>
+      </button>
 
       {isOpen && (
-        <ul
-          tabIndex={0}
-          className="dropdown-content menu bg-base-100 rounded-box z-[1] w-80 p-2 shadow-2xl border border-base-300"
-        >
-          <li className="menu-title">
-            <span>Choose Theme</span>
-          </li>
+        <>
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 z-[90]"
+            onClick={() => setIsOpen(false)}
+          />
 
-          <li className="menu-title text-xs opacity-60 mt-2">
-            <span>Light Themes</span>
-          </li>
-
-          <div className="grid grid-cols-2 gap-1">
-            {lightThemes.map((theme) => (
-              <li key={theme.name}>
-                <button
-                  className={`flex items-center gap-2 ${
-                    currentTheme === theme.name ? "active" : ""
-                  }`}
-                  onClick={() => handleThemeChange(theme.name)}
-                >
-                  <div
-                    className="w-4 h-4 rounded-full bg-primary border-2 border-base-content/20"
-                    data-theme={theme.name}
-                  />
-                  <span className="flex-1 text-left">{theme.label}</span>
-                  {currentTheme === theme.name && (
-                    <Check className="w-4 h-4 text-primary" />
-                  )}
-                </button>
+          {/* Dropdown */}
+          <div className="absolute right-0 top-full mt-2 z-[100] w-80 bg-base-100 rounded-box shadow-2xl border border-base-300 p-2">
+            <div className="menu">
+              <li className="menu-title">
+                <span>Choose Theme</span>
               </li>
-            ))}
-          </div>
 
-          <li className="menu-title text-xs opacity-60 mt-4">
-            <span>Dark Themes</span>
-          </li>
-
-          <div className="grid grid-cols-2 gap-1">
-            {darkThemes.map((theme) => (
-              <li key={theme.name}>
-                <button
-                  className={`flex items-center gap-2 ${
-                    currentTheme === theme.name ? "active" : ""
-                  }`}
-                  onClick={() => handleThemeChange(theme.name)}
-                >
-                  <div
-                    className="w-4 h-4 rounded-full bg-primary border-2 border-base-content/20"
-                    data-theme={theme.name}
-                  />
-                  <span className="flex-1 text-left">{theme.label}</span>
-                  {currentTheme === theme.name && (
-                    <Check className="w-4 h-4 text-primary" />
-                  )}
-                </button>
+              <li className="menu-title text-xs opacity-60 mt-2">
+                <span>Light Themes</span>
               </li>
-            ))}
+
+              <div className="grid grid-cols-2 gap-1">
+                {lightThemes.map((theme) => (
+                  <li key={theme.name}>
+                    <button
+                      className={`flex items-center gap-2 ${
+                        currentTheme === theme.name ? "active" : ""
+                      }`}
+                      onClick={() => handleThemeChange(theme.name)}
+                    >
+                      <div
+                        className="w-4 h-4 rounded-full bg-primary border-2 border-base-content/20"
+                        data-theme={theme.name}
+                      />
+                      <span className="flex-1 text-left">{theme.label}</span>
+                      {currentTheme === theme.name && (
+                        <Check className="w-4 h-4 text-primary" />
+                      )}
+                    </button>
+                  </li>
+                ))}
+              </div>
+
+              <li className="menu-title text-xs opacity-60 mt-4">
+                <span>Dark Themes</span>
+              </li>
+
+              <div className="grid grid-cols-2 gap-1">
+                {darkThemes.map((theme) => (
+                  <li key={theme.name}>
+                    <button
+                      className={`flex items-center gap-2 ${
+                        currentTheme === theme.name ? "active" : ""
+                      }`}
+                      onClick={() => handleThemeChange(theme.name)}
+                    >
+                      <div
+                        className="w-4 h-4 rounded-full bg-primary border-2 border-base-content/20"
+                        data-theme={theme.name}
+                      />
+                      <span className="flex-1 text-left">{theme.label}</span>
+                      {currentTheme === theme.name && (
+                        <Check className="w-4 h-4 text-primary" />
+                      )}
+                    </button>
+                  </li>
+                ))}
+              </div>
+            </div>
           </div>
-        </ul>
+        </>
       )}
 
       {/* Hidden theme controller inputs for daisyUI */}
