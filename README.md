@@ -58,8 +58,9 @@ cd morning-pod
 bun install
 
 # Set up environment variables
-cp .env.example .env.local
-# Edit .env.local with your database and API keys
+# See ENV_TEMPLATE.md for all available variables and setup instructions
+touch .env.local
+# Edit .env.local with your database and API keys (follow ENV_TEMPLATE.md)
 
 # Run database migrations
 bun run db:migrate

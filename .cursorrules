@@ -409,9 +409,21 @@ export const variantConfigs = {
 3. **Leverage browser automation** for component testing and visual validation
 4. **Use web scraping capabilities** for testing real-world integrations
 
-### Git Workflow & Commits
-1. **Make commits between subtasks** for granular progress tracking
-2. **Use conventional commit messages** (enforced by commitlint):
+### Git Workflow & Branching Strategy
+1. **Create new branch after commits and before starting new tasks**:
+   - After completing a task and committing changes, create a new branch
+   - Use descriptive branch names: `feat/feature-flags`, `fix/posthog-client-issue`, `refactor/component-structure`
+   - Branch from main unless continuing related work
+   - Example workflow:
+     ```bash
+     git add .
+     git commit -m "feat: implement feature flag infrastructure"
+     git checkout -b feat/visual-regression-testing  # New branch for next task
+     ```
+
+2. **Make commits between subtasks** for granular progress tracking
+
+3. **Use conventional commit messages** (enforced by commitlint):
    - `feat:` for new features
    - `fix:` for bug fixes
    - `docs:` for documentation only changes
@@ -423,14 +435,24 @@ export const variantConfigs = {
    - `ci:` for CI configuration changes
    - `build:` for build system/dependency changes
    - `revert:` for reverting previous commits
-3. **Include scope when applicable**: `feat(components): add button variants`
-4. **Write clear, descriptive commit messages** that explain the "what" and "why"
-5. **Commit frequently** to maintain a clean development history
-6. **Commitlint enforces**:
+
+4. **Include scope when applicable**: `feat(components): add button variants`
+
+5. **Write clear, descriptive commit messages** that explain the "what" and "why"
+
+6. **Commit frequently** to maintain a clean development history
+
+7. **Commitlint enforces**:
    - Maximum header length: 100 characters
    - No capitalized subjects (except proper nouns)
    - No period at end of subject
    - Required type and subject
+
+8. **Branch Management Best Practices**:
+   - Keep branches focused on single features/fixes
+   - Merge branches back to main when complete
+   - Delete merged branches to keep repository clean
+   - Use descriptive branch names that match the task being worked on
 
 ### Code Quality & Standards
 1. **ESLint**: Configured with TypeScript, React, and import rules
@@ -965,9 +987,21 @@ export function Component({ prop1, prop2, variant = 'v1' }: ComponentProps) {
 5. **PAUSE: Present changes to user for review**
 6. **WAIT: Get user approval before committing**
 7. Commit with descriptive message after approval
-8. Create PR with screenshots/demos of different variants
-9. Review and select preferred designs
-10. Merge and move to next task
+8. **CREATE NEW BRANCH before starting next task** (e.g., `git checkout -b feat/next-feature`)
+9. Create PR with screenshots/demos of different variants
+10. Review and select preferred designs
+11. Merge and move to next task
+
+**Branching Strategy:**
+- **Always create a new branch after commits and before starting new tasks**
+- Use descriptive branch names: `feat/feature-flags`, `fix/posthog-client-issue`, `refactor/component-structure`
+- Branch from main unless continuing related work
+- Example workflow:
+  ```bash
+  git add .
+  git commit -m "feat: implement feature flag infrastructure"
+  git checkout -b feat/visual-regression-testing  # New branch for next task
+  ```
 
 **Commit Process:**
 - Always describe what was changed and why
