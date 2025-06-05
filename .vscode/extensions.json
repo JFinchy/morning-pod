@@ -1,0 +1,13 @@
+{
+  // See https://go.microsoft.com/fwlink/?LinkId=827846
+  "recommendations": [
+    "coderabbitai.coderabbit-vscode", // Code Rabbit AI code review
+    "esbenp.prettier-vscode", // Prettier code formatter
+    "dbaeumer.vscode-eslint", // ESLint integration
+    "bradlc.vscode-tailwindcss", // Tailwind CSS IntelliSense
+    "Prisma.prisma", // Prisma/Drizzle syntax highlighting
+    "ms-azuretools.vscode-docker", // Docker support
+    "GitHub.copilot", // GitHub Copilot (optional)
+    "eamodio.gitlens" // GitLens for git insights
+  ]
+}

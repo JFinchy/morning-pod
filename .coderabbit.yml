@@ -1,0 +1,15 @@
+review:
+  focus:
+    - code quality
+    - accessibility
+    - performance
+    - documentation
+  exclude:
+    - tests/
+    - docs/
+prompts:
+  - "Check for modern React and Next.js best practices."
+  - "Ensure all new components have strict TypeScript interfaces."
+  - "Review for accessibility (ARIA, keyboard navigation, color contrast)."
+  - "Suggest improvements for code readability and maintainability."
+  - "Flag any potential performance bottlenecks." 
