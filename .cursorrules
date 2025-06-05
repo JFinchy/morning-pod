@@ -312,6 +312,14 @@ export const variantConfigs = {
 4. **Write clear, descriptive commit messages** that explain the "what" and "why"
 5. **Commit frequently** to maintain a clean development history
 
+### Code Quality & Standards
+1. **ESLint**: Configured with TypeScript, React, and import rules
+2. **Prettier**: Automatic code formatting on commit
+3. **Husky**: Git hooks for quality checks
+   - **Pre-commit**: Runs lint-staged (linting + formatting on staged files)
+   - **Pre-push**: Runs type checking and linting on entire codebase
+4. **TypeScript**: Strict type checking with `tsc --noEmit`
+
 ## Setup & Development Plan
 
 ### Updated Tech Stack
@@ -671,6 +679,11 @@ export const mockSources = [
     "db:migrate": "bun run drizzle-kit push:pg",
     "db:seed": "bun run scripts/seed.ts",
     "test": "bun test",
+    "lint:check": "bun run lint",
+    "lint:fix": "bun run lint --fix",
+    "format:check": "prettier --check .",
+    "format": "prettier --write .",
+    "type-check": "tsc --noEmit",
     "update": "bun update",
     "update:interactive": "bun update --interactive",
     "outdated": "bun outdated",
@@ -850,6 +863,13 @@ bun run dev                   # Start development server
 bun run build                 # Build for production
 bun run test                  # Run tests
 bun run db:seed               # Run database seeding
+
+# Code quality
+bun run lint:check            # Check for linting errors
+bun run lint:fix              # Fix linting errors automatically
+bun run format:check          # Check code formatting
+bun run format                # Format code with Prettier
+bun run type-check            # TypeScript type checking
 
 # Testing
 bun test                      # Run all tests

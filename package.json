@@ -11,10 +11,24 @@
     "db:migrate": "bun run drizzle-kit push:pg",
     "db:seed": "bun run scripts/seed.ts",
     "test": "bun test",
+    "lint:check": "bun run lint",
+    "lint:fix": "bun run lint --fix",
+    "format:check": "prettier --check .",
+    "format": "prettier --write .",
+    "type-check": "tsc --noEmit",
     "update": "bun update",
     "update:interactive": "bun update --interactive",
     "outdated": "bun outdated",
-    "clean": "rm -rf node_modules bun.lockb && bun install"
+    "clean": "rm -rf node_modules bun.lockb && bun install",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "prettier --write"
+    ],
+    "*.{json,md,css}": [
+      "prettier --write"
+    ]
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.14",
@@ -43,14 +57,23 @@
     "zod": "^3.25.51"
   },
   "devDependencies": {
-    "typescript": "^5",
+    "@eslint/eslintrc": "^3",
+    "@tailwindcss/postcss": "^4",
     "@types/node": "^22.15.29",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "@tailwindcss/postcss": "^4",
-    "tailwindcss": "^4",
+    "@typescript-eslint/eslint-plugin": "^8.33.1",
+    "@typescript-eslint/parser": "^8.33.1",
     "eslint": "^9",
     "eslint-config-next": "15.3.3",
-    "@eslint/eslintrc": "^3"
+    "eslint-plugin-import": "^2.31.0",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.1.0",
+    "prettier": "^3.5.3",
+    "tailwindcss": "^4",
+    "typescript": "^5"
   }
 }
