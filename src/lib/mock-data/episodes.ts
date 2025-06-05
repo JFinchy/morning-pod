@@ -11,7 +11,7 @@ export interface Episode {
   generationCost: number;
   ttsService: "openai" | "google";
   status: "pending" | "generating" | "ready" | "failed";
-  source: {
+  source?: {
     name: string;
     url: string;
     category: string;

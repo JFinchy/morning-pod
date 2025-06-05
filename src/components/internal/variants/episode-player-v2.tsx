@@ -100,7 +100,7 @@ export function EpisodePlayerV2({
               {episode.title}
             </h3>
             <p className="text-sm text-primary font-medium">
-              {episode.source.name}
+              {episode.source?.name || `Source ${episode.sourceId}`}
             </p>
           </div>
         </div>

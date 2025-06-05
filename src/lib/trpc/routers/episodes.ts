@@ -1,7 +1,7 @@
-import { eq, desc, and, sql } from "drizzle-orm";
+import { eq, desc, and, sql, count } from "drizzle-orm";
 import { z } from "zod";
 
-import { episodes, sources } from "../../db/connection";
+import { db, episodes, sources } from "../../db/connection";
 import { createTRPCRouter, publicProcedure } from "../server";
 
 // Input validation schemas
@@ -33,51 +33,83 @@ const updateEpisodeSchema = z.object({
 });
 
 const getEpisodesSchema = z.object({
-  limit: z.number().int().min(1).max(100).default(10),
-  offset: z.number().int().min(0).default(0),
-  status: z.enum(["pending", "generating", "ready", "failed"]).optional(),
-  sourceId: z.string().optional(),
+  limit: z
+    .number()
+    .int()
+    .min(1)
+    .max(100)
+    .default(10)
+    .describe("Number of episodes to return (1-100)"),
+  offset: z
+    .number()
+    .int()
+    .min(0)
+    .default(0)
+    .describe("Number of episodes to skip for pagination"),
+  status: z
+    .enum(["pending", "generating", "ready", "failed"])
+    .optional()
+    .describe("Filter episodes by generation status"),
+  sourceId: z.string().optional().describe("Filter episodes by source ID"),
 });
 
 export const episodesRouter = createTRPCRouter({
   // Get all episodes with pagination and filtering
   getAll: publicProcedure
+    .meta({
+      description:
+        "Retrieve all episodes with pagination and filtering support. Returns episodes with their metadata, audio URLs, and generation status.",
+    })
     .input(getEpisodesSchema)
-    .query(async ({ ctx, input }) => {
+    .query(async ({ input }) => {
       const { limit, offset, status, sourceId } = input;
 
+      // Build where conditions
       const conditions = [];
-      if (status) conditions.push(eq(episodes.status, status));
-      if (sourceId) conditions.push(eq(episodes.sourceId, sourceId));
+      if (status) {
+        conditions.push(eq(episodes.status, status));
+      }
+      if (sourceId) {
+        conditions.push(eq(episodes.sourceId, sourceId));
+      }
 
-      const whereClause =
-        conditions.length > 0 ? and(...conditions) : undefined;
-
-      const episodeList = await ctx.db
+      // Get episodes with source information
+      const episodesList = await db
         .select({
-          episode: episodes,
-          source: sources,
+          id: episodes.id,
+          sourceId: episodes.sourceId,
+          title: episodes.title,
+          summary: episodes.summary,
+          contentHash: episodes.contentHash,
+          audioUrl: episodes.audioUrl,
+          audioSize: episodes.audioSize,
+          duration: episodes.duration,
+          playCount: episodes.playCount,
+          generationCost: episodes.generationCost,
+          ttsService: episodes.ttsService,
+          status: episodes.status,
+          createdAt: episodes.createdAt,
+          updatedAt: episodes.updatedAt,
+          sourceName: sources.name,
+          sourceCategory: sources.category,
         })
         .from(episodes)
-        .leftJoin(sources, eq(episodes.sourceId, sources.id))
-        .where(whereClause)
+        .innerJoin(sources, eq(episodes.sourceId, sources.id))
+        .where(conditions.length > 0 ? and(...conditions) : undefined)
         .orderBy(desc(episodes.createdAt))
         .limit(limit)
         .offset(offset);
 
       // Get total count for pagination
-      const totalResult = await ctx.db
-        .select({ count: sql<number>`count(*)` })
+      const [totalResult] = await db
+        .select({ count: count() })
         .from(episodes)
-        .where(whereClause);
+        .where(conditions.length > 0 ? and(...conditions) : undefined);
 
-      const total = totalResult[0]?.count || 0;
+      const total = totalResult?.count ?? 0;
 
       return {
-        episodes: episodeList.map(({ episode, source }) => ({
-          ...episode,
-          source: source || undefined,
-        })),
+        episodes: episodesList,
         pagination: {
           total,
           limit,
@@ -89,26 +121,45 @@ export const episodesRouter = createTRPCRouter({
 
   // Get episode by ID
   getById: publicProcedure
-    .input(z.object({ id: z.string().min(1) }))
-    .query(async ({ ctx, input }) => {
-      const result = await ctx.db
+    .meta({
+      description:
+        "Fetch a specific episode by its unique ID. Returns detailed episode information including audio data and metadata.",
+    })
+    .input(
+      z.object({
+        id: z.string().min(1).describe("Unique episode identifier"),
+      })
+    )
+    .query(async ({ input }) => {
+      const [episode] = await db
         .select({
-          episode: episodes,
-          source: sources,
+          id: episodes.id,
+          sourceId: episodes.sourceId,
+          title: episodes.title,
+          summary: episodes.summary,
+          contentHash: episodes.contentHash,
+          audioUrl: episodes.audioUrl,
+          audioSize: episodes.audioSize,
+          duration: episodes.duration,
+          playCount: episodes.playCount,
+          generationCost: episodes.generationCost,
+          ttsService: episodes.ttsService,
+          status: episodes.status,
+          createdAt: episodes.createdAt,
+          updatedAt: episodes.updatedAt,
+          sourceName: sources.name,
+          sourceCategory: sources.category,
+          sourceUrl: sources.url,
         })
         .from(episodes)
-        .leftJoin(sources, eq(episodes.sourceId, sources.id))
-        .where(eq(episodes.id, input.id))
-        .limit(1);
+        .innerJoin(sources, eq(episodes.sourceId, sources.id))
+        .where(eq(episodes.id, input.id));
 
-      if (!result[0]) {
+      if (!episode) {
         throw new Error("Episode not found");
       }
 
-      return {
-        ...result[0].episode,
-        source: result[0].source || undefined,
-      };
+      return episode;
     }),
 
   // Create new episode
@@ -163,16 +214,23 @@ export const episodesRouter = createTRPCRouter({
 
   // Increment play count
   incrementPlayCount: publicProcedure
-    .input(z.object({ id: z.string().min(1) }))
-    .mutation(async ({ ctx, input }) => {
-      const [updatedEpisode] = await ctx.db
+    .meta({
+      description: "Increment the play count for an episode when it's played.",
+    })
+    .input(
+      z.object({
+        id: z.string().min(1).describe("Episode ID to increment play count"),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const [updatedEpisode] = await db
         .update(episodes)
         .set({
           playCount: sql`${episodes.playCount} + 1`,
           updatedAt: new Date(),
         })
         .where(eq(episodes.id, input.id))
-        .returning();
+        .returning({ id: episodes.id, playCount: episodes.playCount });
 
       if (!updatedEpisode) {
         throw new Error("Episode not found");
@@ -182,29 +240,90 @@ export const episodesRouter = createTRPCRouter({
     }),
 
   // Get episode statistics
-  getStats: publicProcedure.query(async ({ ctx }) => {
-    const stats = await ctx.db
-      .select({
-        total: sql<number>`count(*)`,
-        ready: sql<number>`count(*) filter (where status = 'ready')`,
-        generating: sql<number>`count(*) filter (where status = 'generating')`,
-        pending: sql<number>`count(*) filter (where status = 'pending')`,
-        failed: sql<number>`count(*) filter (where status = 'failed')`,
-        totalPlays: sql<number>`sum(play_count)`,
-        totalCost: sql<string>`sum(generation_cost)`,
-      })
-      .from(episodes);
+  getStats: publicProcedure
+    .meta({
+      description:
+        "Get comprehensive statistics about episodes including counts by status, total plays, and generation costs.",
+    })
+    .query(async () => {
+      // Get counts by status in parallel
+      const [
+        totalResult,
+        readyResult,
+        generatingResult,
+        pendingResult,
+        failedResult,
+        playsResult,
+        costResult,
+      ] = await Promise.all([
+        db.select({ count: count() }).from(episodes),
+        db
+          .select({ count: count() })
+          .from(episodes)
+          .where(eq(episodes.status, "ready")),
+        db
+          .select({ count: count() })
+          .from(episodes)
+          .where(eq(episodes.status, "generating")),
+        db
+          .select({ count: count() })
+          .from(episodes)
+          .where(eq(episodes.status, "pending")),
+        db
+          .select({ count: count() })
+          .from(episodes)
+          .where(eq(episodes.status, "failed")),
+        db.select({ total: count(), plays: episodes.playCount }).from(episodes),
+        db
+          .select({ total: count(), cost: episodes.generationCost })
+          .from(episodes),
+      ]);
 
-    return (
-      stats[0] || {
-        total: 0,
-        ready: 0,
-        generating: 0,
-        pending: 0,
-        failed: 0,
-        totalPlays: 0,
-        totalCost: "0",
-      }
-    );
-  }),
+      // Calculate totals
+      const totalPlays = playsResult.reduce(
+        (sum: number, ep: any) => sum + (ep.plays || 0),
+        0
+      );
+      const totalCost = costResult.reduce(
+        (sum: number, ep: any) => sum + Number(ep.cost || 0),
+        0
+      );
+
+      return {
+        total: totalResult[0]?.count ?? 0,
+        ready: readyResult[0]?.count ?? 0,
+        generating: generatingResult[0]?.count ?? 0,
+        pending: pendingResult[0]?.count ?? 0,
+        failed: failedResult[0]?.count ?? 0,
+        totalPlays,
+        totalCost: totalCost.toFixed(2),
+      };
+    }),
+
+  // Get recent episodes
+  getRecent: publicProcedure
+    .meta({
+      description: "Get the most recent episodes for dashboard display.",
+    })
+    .input(
+      z.object({
+        limit: z.number().int().min(1).max(20).default(5),
+      })
+    )
+    .query(async ({ input }) => {
+      const recentEpisodes = await db
+        .select({
+          id: episodes.id,
+          title: episodes.title,
+          status: episodes.status,
+          createdAt: episodes.createdAt,
+          sourceName: sources.name,
+        })
+        .from(episodes)
+        .innerJoin(sources, eq(episodes.sourceId, sources.id))
+        .orderBy(desc(episodes.createdAt))
+        .limit(input.limit);
+
+      return recentEpisodes;
+    }),
 });

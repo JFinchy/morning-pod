@@ -1,15 +1,13 @@
-import { eq, desc, asc, sql, and } from "drizzle-orm";
+import { eq, desc, asc, sql, and, count } from "drizzle-orm";
 import { z } from "zod";
 
-import { queue, episodes, sources } from "../../db/connection";
+import { db, queue, episodes, sources } from "../../db";
 import { createTRPCRouter, publicProcedure } from "../server";
 
 // Input validation schemas
-const createQueueItemSchema = z.object({
-  episodeId: z.string().min(1),
-  episodeTitle: z.string().min(1).max(500),
-  sourceId: z.string().min(1),
-  sourceName: z.string().min(1).max(255),
+const getQueueSchema = z.object({
+  limit: z.number().int().min(1).max(50).default(20),
+  offset: z.number().int().min(0).default(0),
   status: z
     .enum([
       "pending",
@@ -20,10 +18,17 @@ const createQueueItemSchema = z.object({
       "completed",
       "failed",
     ])
-    .default("pending"),
-  progress: z.number().int().min(0).max(100).default(0),
-  estimatedTimeRemaining: z.number().int().min(0).optional(),
+    .optional()
+    .describe("Filter by queue status"),
+});
+
+const createQueueItemSchema = z.object({
+  episodeId: z.string().min(1),
+  episodeTitle: z.string().min(1).max(500),
+  sourceId: z.string().min(1),
+  sourceName: z.string().min(1).max(255),
   position: z.number().int().min(0),
+  estimatedTimeRemaining: z.number().int().positive().optional(),
 });
 
 const updateQueueItemSchema = z.object({
@@ -40,195 +45,168 @@ const updateQueueItemSchema = z.object({
     ])
     .optional(),
   progress: z.number().int().min(0).max(100).optional(),
-  estimatedTimeRemaining: z.number().int().min(0).optional(),
+  estimatedTimeRemaining: z.number().int().positive().optional(),
   startedAt: z.date().optional(),
   completedAt: z.date().optional(),
   errorMessage: z.string().optional(),
   cost: z.string().optional(),
 });
 
-const getQueueSchema = z.object({
-  status: z
-    .enum([
-      "pending",
-      "scraping",
-      "summarizing",
-      "generating-audio",
-      "uploading",
-      "completed",
-      "failed",
-    ])
-    .optional(),
-  limit: z.number().int().min(1).max(100).default(50),
-});
-
 export const queueRouter = createTRPCRouter({
-  // Get all queue items with optional filtering
+  // Get all queue items with filtering
   getAll: publicProcedure
+    .meta({
+      description: "Retrieve all queue items with filtering and pagination.",
+    })
     .input(getQueueSchema)
-    .query(async ({ ctx, input }) => {
-      const { status, limit } = input;
+    .query(async ({ input }) => {
+      const { limit, offset, status } = input;
 
+      // Build where conditions
       const conditions = [];
-      if (status) conditions.push(eq(queue.status, status));
+      if (status) {
+        conditions.push(eq(queue.status, status));
+      }
 
-      const whereClause =
-        conditions.length > 0 ? and(...conditions) : undefined;
-
-      const queueItems = await ctx.db
+      // Get queue items with episode and source info
+      const queueItems = await db
         .select({
-          queueItem: queue,
-          episode: episodes,
-          source: sources,
+          id: queue.id,
+          episodeId: queue.episodeId,
+          episodeTitle: queue.episodeTitle,
+          sourceId: queue.sourceId,
+          sourceName: queue.sourceName,
+          status: queue.status,
+          progress: queue.progress,
+          estimatedTimeRemaining: queue.estimatedTimeRemaining,
+          startedAt: queue.startedAt,
+          completedAt: queue.completedAt,
+          errorMessage: queue.errorMessage,
+          cost: queue.cost,
+          position: queue.position,
+          createdAt: queue.createdAt,
+          updatedAt: queue.updatedAt,
+          // Additional episode and source details
+          episodeStatus: episodes.status,
+          sourceActive: sources.active,
         })
         .from(queue)
-        .leftJoin(episodes, eq(queue.episodeId, episodes.id))
-        .leftJoin(sources, eq(queue.sourceId, sources.id))
-        .where(whereClause)
-        .orderBy(asc(queue.position))
-        .limit(limit);
+        .innerJoin(episodes, eq(queue.episodeId, episodes.id))
+        .innerJoin(sources, eq(queue.sourceId, sources.id))
+        .where(conditions.length > 0 ? and(...conditions) : undefined)
+        .orderBy(queue.position, desc(queue.createdAt))
+        .limit(limit)
+        .offset(offset);
 
-      return queueItems.map(({ queueItem, episode, source }) => ({
-        ...queueItem,
-        episode: episode || undefined,
-        source: source || undefined,
-      }));
+      // Get total count
+      const [totalResult] = await db
+        .select({ count: count() })
+        .from(queue)
+        .where(conditions.length > 0 ? and(...conditions) : undefined);
+
+      const total = totalResult?.count ?? 0;
+
+      return {
+        queueItems,
+        pagination: {
+          total,
+          limit,
+          offset,
+          hasMore: offset + limit < total,
+        },
+      };
+    }),
+
+  // Get current queue (active and pending items)
+  getCurrent: publicProcedure
+    .meta({
+      description: "Get currently active and pending queue items.",
+    })
+    .query(async () => {
+      const currentQueue = await db
+        .select({
+          id: queue.id,
+          episodeTitle: queue.episodeTitle,
+          sourceName: queue.sourceName,
+          status: queue.status,
+          progress: queue.progress,
+          estimatedTimeRemaining: queue.estimatedTimeRemaining,
+          position: queue.position,
+          createdAt: queue.createdAt,
+        })
+        .from(queue)
+        .where(
+          sql`${queue.status} IN ('pending', 'scraping', 'summarizing', 'generating-audio', 'uploading')`
+        )
+        .orderBy(queue.position);
+
+      return currentQueue;
     }),
 
   // Get queue item by ID
   getById: publicProcedure
+    .meta({
+      description: "Get a specific queue item by ID.",
+    })
     .input(z.object({ id: z.string().min(1) }))
-    .query(async ({ ctx, input }) => {
-      const [result] = await ctx.db
+    .query(async ({ input }) => {
+      const [queueItem] = await db
         .select({
-          queueItem: queue,
-          episode: episodes,
-          source: sources,
+          id: queue.id,
+          episodeId: queue.episodeId,
+          episodeTitle: queue.episodeTitle,
+          sourceId: queue.sourceId,
+          sourceName: queue.sourceName,
+          status: queue.status,
+          progress: queue.progress,
+          estimatedTimeRemaining: queue.estimatedTimeRemaining,
+          startedAt: queue.startedAt,
+          completedAt: queue.completedAt,
+          errorMessage: queue.errorMessage,
+          cost: queue.cost,
+          position: queue.position,
+          createdAt: queue.createdAt,
+          updatedAt: queue.updatedAt,
+          // Episode and source details
+          episodeStatus: episodes.status,
+          episodeSummary: episodes.summary,
+          sourceUrl: sources.url,
+          sourceCategory: sources.category,
         })
         .from(queue)
-        .leftJoin(episodes, eq(queue.episodeId, episodes.id))
-        .leftJoin(sources, eq(queue.sourceId, sources.id))
-        .where(eq(queue.id, input.id))
-        .limit(1);
+        .innerJoin(episodes, eq(queue.episodeId, episodes.id))
+        .innerJoin(sources, eq(queue.sourceId, sources.id))
+        .where(eq(queue.id, input.id));
 
-      if (!result) {
+      if (!queueItem) {
         throw new Error("Queue item not found");
       }
 
-      return {
-        ...result.queueItem,
-        episode: result.episode || undefined,
-        source: result.source || undefined,
-      };
+      return queueItem;
     }),
-
-  // Get currently processing items
-  getProcessing: publicProcedure.query(async ({ ctx }) => {
-    const processingItems = await ctx.db
-      .select({
-        queueItem: queue,
-        episode: episodes,
-        source: sources,
-      })
-      .from(queue)
-      .leftJoin(episodes, eq(queue.episodeId, episodes.id))
-      .leftJoin(sources, eq(queue.sourceId, sources.id))
-      .where(
-        and(
-          sql`${queue.status} IN ('scraping', 'summarizing', 'generating-audio', 'uploading')`,
-          sql`${queue.startedAt} IS NOT NULL`
-        )
-      )
-      .orderBy(asc(queue.startedAt));
-
-    return processingItems.map(({ queueItem, episode, source }) => ({
-      ...queueItem,
-      episode: episode || undefined,
-      source: source || undefined,
-    }));
-  }),
-
-  // Get pending items
-  getPending: publicProcedure.query(async ({ ctx }) => {
-    const pendingItems = await ctx.db
-      .select({
-        queueItem: queue,
-        episode: episodes,
-        source: sources,
-      })
-      .from(queue)
-      .leftJoin(episodes, eq(queue.episodeId, episodes.id))
-      .leftJoin(sources, eq(queue.sourceId, sources.id))
-      .where(eq(queue.status, "pending"))
-      .orderBy(asc(queue.position));
-
-    return pendingItems.map(({ queueItem, episode, source }) => ({
-      ...queueItem,
-      episode: episode || undefined,
-      source: source || undefined,
-    }));
-  }),
-
-  // Get queue statistics
-  getStats: publicProcedure.query(async ({ ctx }) => {
-    const stats = await ctx.db
-      .select({
-        totalInQueue: sql<number>`count(*)`,
-        pending: sql<number>`count(*) filter (where status = 'pending')`,
-        processing: sql<number>`count(*) filter (where status IN ('scraping', 'summarizing', 'generating-audio', 'uploading'))`,
-        completed: sql<number>`count(*) filter (where status = 'completed')`,
-        failed: sql<number>`count(*) filter (where status = 'failed')`,
-        totalCost: sql<string>`sum(cost)`,
-        avgProgress: sql<number>`avg(progress) filter (where status IN ('scraping', 'summarizing', 'generating-audio', 'uploading'))`,
-      })
-      .from(queue);
-
-    const result = stats[0] || {
-      totalInQueue: 0,
-      pending: 0,
-      processing: 0,
-      completed: 0,
-      failed: 0,
-      totalCost: "0",
-      avgProgress: 0,
-    };
-
-    // Calculate estimated wait time (simplified)
-    const avgProcessingTime = 180; // 3 minutes default
-    const estimatedWaitTime = result.pending * avgProcessingTime;
-
-    return {
-      ...result,
-      currentlyProcessing: result.processing,
-      averageProcessingTime: avgProcessingTime,
-      estimatedWaitTime,
-      successRate:
-        result.totalInQueue > 0
-          ? result.completed / (result.completed + result.failed) || 0
-          : 0,
-      totalCostToday: parseFloat(result.totalCost || "0"),
-    };
-  }),
 
   // Add item to queue
   add: publicProcedure
+    .meta({
+      description: "Add a new item to the generation queue.",
+    })
     .input(createQueueItemSchema)
-    .mutation(async ({ ctx, input }) => {
-      const [newQueueItem] = await ctx.db
-        .insert(queue)
-        .values(input)
-        .returning();
+    .mutation(async ({ input }) => {
+      const [newQueueItem] = await db.insert(queue).values(input).returning();
 
       return newQueueItem;
     }),
 
   // Update queue item
   update: publicProcedure
+    .meta({
+      description: "Update queue item status, progress, or other details.",
+    })
     .input(updateQueueItemSchema)
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ input }) => {
       const { id, ...updateData } = input;
 
-      const [updatedQueueItem] = await ctx.db
+      const [updatedItem] = await db
         .update(queue)
         .set({
           ...updateData,
@@ -237,109 +215,127 @@ export const queueRouter = createTRPCRouter({
         .where(eq(queue.id, id))
         .returning();
 
-      if (!updatedQueueItem) {
+      if (!updatedItem) {
         throw new Error("Queue item not found");
       }
 
-      return updatedQueueItem;
+      return updatedItem;
     }),
 
-  // Start processing a queue item
-  startProcessing: publicProcedure
+  // Update progress
+  updateProgress: publicProcedure
+    .meta({
+      description: "Update progress and estimated time for a queue item.",
+    })
     .input(
       z.object({
         id: z.string().min(1),
-        status: z.enum([
-          "scraping",
-          "summarizing",
-          "generating-audio",
-          "uploading",
-        ]),
+        progress: z.number().int().min(0).max(100),
+        estimatedTimeRemaining: z.number().int().positive().optional(),
       })
     )
-    .mutation(async ({ ctx, input }) => {
-      const [updatedQueueItem] = await ctx.db
+    .mutation(async ({ input }) => {
+      const { id, progress, estimatedTimeRemaining } = input;
+
+      const [updatedItem] = await db
         .update(queue)
         .set({
-          status: input.status,
-          startedAt: new Date(),
+          progress,
+          estimatedTimeRemaining,
           updatedAt: new Date(),
         })
-        .where(eq(queue.id, input.id))
-        .returning();
+        .where(eq(queue.id, id))
+        .returning({
+          id: queue.id,
+          progress: queue.progress,
+          estimatedTimeRemaining: queue.estimatedTimeRemaining,
+        });
 
-      if (!updatedQueueItem) {
+      if (!updatedItem) {
         throw new Error("Queue item not found");
       }
 
-      return updatedQueueItem;
+      return updatedItem;
     }),
 
-  // Complete a queue item
+  // Complete queue item
   complete: publicProcedure
+    .meta({
+      description: "Mark a queue item as completed.",
+    })
     .input(
       z.object({
         id: z.string().min(1),
         cost: z.string().optional(),
       })
     )
-    .mutation(async ({ ctx, input }) => {
-      const [updatedQueueItem] = await ctx.db
+    .mutation(async ({ input }) => {
+      const { id, cost } = input;
+
+      const [completedItem] = await db
         .update(queue)
         .set({
           status: "completed",
           progress: 100,
           completedAt: new Date(),
-          cost: input.cost,
+          cost,
           updatedAt: new Date(),
         })
-        .where(eq(queue.id, input.id))
+        .where(eq(queue.id, id))
         .returning();
 
-      if (!updatedQueueItem) {
+      if (!completedItem) {
         throw new Error("Queue item not found");
       }
 
-      return updatedQueueItem;
+      return completedItem;
     }),
 
-  // Fail a queue item
+  // Fail queue item
   fail: publicProcedure
+    .meta({
+      description: "Mark a queue item as failed with error message.",
+    })
     .input(
       z.object({
         id: z.string().min(1),
-        errorMessage: z.string(),
+        errorMessage: z.string().min(1),
       })
     )
-    .mutation(async ({ ctx, input }) => {
-      const [updatedQueueItem] = await ctx.db
+    .mutation(async ({ input }) => {
+      const { id, errorMessage } = input;
+
+      const [failedItem] = await db
         .update(queue)
         .set({
           status: "failed",
-          errorMessage: input.errorMessage,
+          errorMessage,
           completedAt: new Date(),
           updatedAt: new Date(),
         })
-        .where(eq(queue.id, input.id))
+        .where(eq(queue.id, id))
         .returning();
 
-      if (!updatedQueueItem) {
+      if (!failedItem) {
         throw new Error("Queue item not found");
       }
 
-      return updatedQueueItem;
+      return failedItem;
     }),
 
   // Remove item from queue
   remove: publicProcedure
+    .meta({
+      description: "Remove an item from the queue.",
+    })
     .input(z.object({ id: z.string().min(1) }))
-    .mutation(async ({ ctx, input }) => {
-      const [deletedQueueItem] = await ctx.db
+    .mutation(async ({ input }) => {
+      const [deletedItem] = await db
         .delete(queue)
         .where(eq(queue.id, input.id))
         .returning();
 
-      if (!deletedQueueItem) {
+      if (!deletedItem) {
         throw new Error("Queue item not found");
       }
 
@@ -347,15 +343,103 @@ export const queueRouter = createTRPCRouter({
     }),
 
   // Clear completed items
-  clearCompleted: publicProcedure.mutation(async ({ ctx }) => {
-    const deletedItems = await ctx.db
-      .delete(queue)
-      .where(eq(queue.status, "completed"))
-      .returning();
+  clearCompleted: publicProcedure
+    .meta({
+      description: "Remove all completed items from the queue.",
+    })
+    .mutation(async () => {
+      const deletedItems = await db
+        .delete(queue)
+        .where(eq(queue.status, "completed"))
+        .returning({ id: queue.id });
 
-    return {
-      success: true,
-      deletedCount: deletedItems.length,
-    };
-  }),
+      return {
+        success: true,
+        deletedCount: deletedItems.length,
+      };
+    }),
+
+  // Get queue statistics
+  getStats: publicProcedure
+    .meta({
+      description: "Get queue statistics and counts by status.",
+    })
+    .query(async () => {
+      const [
+        totalResult,
+        pendingResult,
+        activeResult,
+        completedResult,
+        failedResult,
+      ] = await Promise.all([
+        db.select({ count: count() }).from(queue),
+        db
+          .select({ count: count() })
+          .from(queue)
+          .where(eq(queue.status, "pending")),
+        db
+          .select({ count: count() })
+          .from(queue)
+          .where(
+            sql`${queue.status} IN ('scraping', 'summarizing', 'generating-audio', 'uploading')`
+          ),
+        db
+          .select({ count: count() })
+          .from(queue)
+          .where(eq(queue.status, "completed")),
+        db
+          .select({ count: count() })
+          .from(queue)
+          .where(eq(queue.status, "failed")),
+      ]);
+
+      // Calculate total cost
+      const costResult = await db
+        .select({ cost: queue.cost })
+        .from(queue)
+        .where(eq(queue.status, "completed"));
+
+      const totalCost = costResult.reduce(
+        (sum, item) => sum + Number(item.cost || 0),
+        0
+      );
+
+      return {
+        total: totalResult[0]?.count ?? 0,
+        pending: pendingResult[0]?.count ?? 0,
+        active: activeResult[0]?.count ?? 0,
+        completed: completedResult[0]?.count ?? 0,
+        failed: failedResult[0]?.count ?? 0,
+        totalCost: totalCost.toFixed(2),
+      };
+    }),
+
+  // Reorder queue positions
+  reorder: publicProcedure
+    .meta({
+      description: "Reorder queue items by updating their positions.",
+    })
+    .input(
+      z.object({
+        itemIds: z.array(z.string()).min(1),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const { itemIds } = input;
+
+      // Update positions in a transaction
+      const updates = itemIds.map((id, index) =>
+        db
+          .update(queue)
+          .set({
+            position: index,
+            updatedAt: new Date(),
+          })
+          .where(eq(queue.id, id))
+      );
+
+      await Promise.all(updates);
+
+      return { success: true };
+    }),
 });
