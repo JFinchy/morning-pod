@@ -1,5 +1,6 @@
 import { initTRPC } from "@trpc/server";
 import superjson from "superjson";
+import { TRPCPanelMeta } from "trpc-ui";
 
 // Create context for tRPC (mock version without database)
 export const createTRPCMockContext = async () => {
@@ -10,13 +11,16 @@ export const createTRPCMockContext = async () => {
 
 export type MockContext = Awaited<ReturnType<typeof createTRPCMockContext>>;
 
-// Initialize tRPC
-const t = initTRPC.context<MockContext>().create({
-  transformer: superjson,
-  errorFormatter({ shape }) {
-    return shape;
-  },
-});
+// Initialize tRPC with meta support for documentation
+const t = initTRPC
+  .meta<TRPCPanelMeta>()
+  .context<MockContext>()
+  .create({
+    transformer: superjson,
+    errorFormatter({ shape }) {
+      return shape;
+    },
+  });
 
 // Export reusable router and procedure helpers
 export const createTRPCRouter = t.router;

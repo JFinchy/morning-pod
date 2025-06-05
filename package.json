@@ -86,6 +86,7 @@
     "lint-staged": "^16.1.0",
     "prettier": "^3.5.3",
     "tailwindcss": "^4",
+    "trpc-ui": "^1.0.15",
     "typescript": "^5"
   }
 }

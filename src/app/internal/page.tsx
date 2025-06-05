@@ -90,6 +90,49 @@ export default function InternalPage() {
           </div>
         </div>
 
+        {/* Development Tools */}
+        <div className="card bg-base-100 shadow-sm border border-base-300">
+          <div className="card-body p-6">
+            <h2 className="text-xl font-semibold mb-4">Development Tools</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Link
+                href="/api/trpc-ui"
+                target="_blank"
+                className="block p-4 border border-base-300 rounded-lg hover:bg-base-200/50 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                    <Code className="w-5 h-5 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-medium text-base-content">tRPC UI</h3>
+                    <p className="text-sm text-base-content/60">
+                      Interactive API testing interface
+                    </p>
+                  </div>
+                  <ExternalLink className="w-4 h-4 text-base-content/40 ml-auto" />
+                </div>
+              </Link>
+
+              <div className="p-4 border border-base-300 rounded-lg opacity-50">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-base-300 rounded-lg flex items-center justify-center">
+                    <Eye className="w-5 h-5 text-base-content/50" />
+                  </div>
+                  <div>
+                    <h3 className="font-medium text-base-content/50">
+                      Performance Monitor
+                    </h3>
+                    <p className="text-sm text-base-content/40">
+                      Coming soon - Real-time performance metrics
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Component Variants */}
         <div>
           <h2 className="text-xl font-semibold mb-6">Component Variants</h2>

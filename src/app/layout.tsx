@@ -5,6 +5,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "react-hot-toast";
 
 import "./globals.css";
+import { PerformanceMonitor } from "@/components/ui/performance-monitor";
+
 import { TRPCProvider } from "../lib/trpc/provider";
 
 import { StagewiseToolbar } from "@stagewise/toolbar-next";
@@ -42,6 +44,7 @@ export default function RootLayout({
           }}
         />
         <TRPCProvider>{children}</TRPCProvider>
+        <PerformanceMonitor />
         <Toaster
           position="top-right"
           toastOptions={{

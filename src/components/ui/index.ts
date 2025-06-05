@@ -26,3 +26,5 @@ export {
   ToastAction,
 } from "./toast";
 export { ThemeSwitcher } from "./theme-switcher";
+export { default as ErrorBoundary } from "./error-boundary";
+export * from "./loading-skeleton";
