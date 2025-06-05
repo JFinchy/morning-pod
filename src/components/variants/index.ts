@@ -7,6 +7,11 @@ export { EpisodePlayerV1 } from "./episode-player-v1";
 export { EpisodePlayerV2 } from "./episode-player-v2";
 export { EpisodePlayerV3 } from "./episode-player-v3";
 
+// Queue Status Variants
+export { QueueStatusV1 } from "./queue-status-v1";
+export { QueueStatusV2 } from "./queue-status-v2";
+export { QueueStatusV3 } from "./queue-status-v3";
+
 // Variant configuration for easy switching
 export const episodeCardVariants = {
   v1: "minimal",
