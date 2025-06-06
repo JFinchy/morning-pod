@@ -11,6 +11,7 @@ import { FeatureFlagProvider } from "../lib/feature-flags/provider";
 import { TRPCProvider } from "../lib/trpc/provider";
 
 import { StagewiseToolbar } from "@stagewise/toolbar-next";
+import { PostHogProvider } from "../components/providers/PostHogProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -39,24 +40,26 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <StagewiseToolbar
-          config={{
-            plugins: [], // Add custom plugins here when needed
-          }}
-        />
-        <FeatureFlagProvider>
-          <TRPCProvider>{children}</TRPCProvider>
-        </FeatureFlagProvider>
-        <PerformanceMonitor />
-        <Toaster
-          position="top-right"
-          toastOptions={{
-            duration: 5000,
-            className: "toast-custom",
-          }}
-        />
-        <Analytics />
-        <SpeedInsights />
+        <PostHogProvider>
+          <StagewiseToolbar
+            config={{
+              plugins: [], // Add custom plugins here when needed
+            }}
+          />
+          <FeatureFlagProvider>
+            <TRPCProvider>{children}</TRPCProvider>
+          </FeatureFlagProvider>
+          <PerformanceMonitor />
+          <Toaster
+            position="top-right"
+            toastOptions={{
+              duration: 5000,
+              className: "toast-custom",
+            }}
+          />
+          <Analytics />
+          <SpeedInsights />
+        </PostHogProvider>
       </body>
     </html>
   );
