@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 
-import { QueueStatusV2 } from "@/components/internal/variants";
+import { QueueStatus } from "@/components/features";
 import { MainLayout } from "@/components/layouts";
 import { Button } from "@/components/ui";
 import { api } from "@/lib/trpc/client";
@@ -88,7 +88,7 @@ export default function QueuePage() {
         </div>
 
         {/* Queue Status Component */}
-        <QueueStatusV2
+        <QueueStatus
           queueItems={
             queueItems?.queueItems?.map((item) => ({
               ...item,

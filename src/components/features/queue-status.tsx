@@ -25,6 +25,7 @@ interface QueueStatusProps {
   stats: GenerationStats;
   showDetails?: boolean;
   maxVisible?: number;
+  variant?: "dashboard" | "timeline";
 }
 
 const CircularProgress = ({
@@ -113,6 +114,7 @@ export function QueueStatus({
   stats,
   showDetails = true,
   maxVisible = 4,
+  variant = "dashboard",
 }: QueueStatusProps) {
   const [currentTime, setCurrentTime] = useState(new Date());
 
@@ -131,6 +133,103 @@ export function QueueStatus({
   const visibleItems = queueItems.slice(0, maxVisible);
   const remainingCount = Math.max(0, queueItems.length - maxVisible);
 
+  // Timeline variant - vertical flow
+  if (variant === "timeline") {
+    return (
+      <div className="space-y-4">
+        {/* Compact Header */}
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold text-base-content">
+            Queue Status
+          </h3>
+          <div className="flex items-center gap-2 text-sm text-base-content/60">
+            <div className="w-2 h-2 bg-success rounded-full animate-pulse"></div>
+            {stats.currentlyProcessing} processing
+          </div>
+        </div>
+
+        {/* Timeline Items */}
+        <div className="space-y-3">
+          {visibleItems.map((item, _index) => {
+            const isActive = activeItems.includes(item);
+            return (
+              <div key={item.id} className="flex items-start gap-3">
+                {/* Timeline indicator */}
+                <div className="flex flex-col items-center">
+                  <div
+                    className={`w-4 h-4 rounded-full border-2 ${
+                      isActive
+                        ? "bg-primary border-primary"
+                        : item.status === "completed"
+                          ? "bg-success border-success"
+                          : item.status === "failed"
+                            ? "bg-error border-error"
+                            : "bg-base-300 border-base-300"
+                    }`}
+                  />
+                  {_index < visibleItems.length - 1 && (
+                    <div className="w-0.5 h-8 bg-base-300 mt-1" />
+                  )}
+                </div>
+
+                {/* Item content */}
+                <div className="flex-1 min-w-0 pb-2">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h4 className="font-medium text-sm text-base-content truncate">
+                      {item.episodeTitle}
+                    </h4>
+                    {isActive && (
+                      <div className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+                        {Math.round(item.progress)}%
+                      </div>
+                    )}
+                  </div>
+                  <p className="text-xs text-base-content/60 mb-1">
+                    {item.sourceName}
+                  </p>
+                  <div className="flex items-center gap-2 text-xs">
+                    <span
+                      className={`font-medium ${
+                        isActive
+                          ? "text-primary"
+                          : item.status === "completed"
+                            ? "text-success"
+                            : item.status === "failed"
+                              ? "text-error"
+                              : "text-base-content/60"
+                      }`}
+                    >
+                      {getStatusLabel(item.status)}
+                    </span>
+                    {item.estimatedTimeRemaining && (
+                      <span className="text-base-content/50">
+                        {formatTimeRemaining(item.estimatedTimeRemaining)}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {remainingCount > 0 && (
+          <div className="text-center py-2 text-sm text-base-content/60">
+            + {remainingCount} more items
+          </div>
+        )}
+
+        {queueItems.length === 0 && (
+          <div className="text-center py-8">
+            <CheckCircle className="w-8 h-8 mx-auto mb-2 text-success" />
+            <p className="text-sm text-base-content/60">Queue is empty</p>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Default dashboard variant
   return (
     <div className="card bg-gradient-to-br from-base-100 to-base-200/50 border border-base-300 shadow-lg">
       <div className="card-body p-6">
