@@ -8,6 +8,9 @@ import {
   Play,
   Clock,
   CheckCircle,
+  Plus,
+  Loader2,
+  AlertCircle,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -22,10 +25,170 @@ import {
 import { api, handleTRPCError } from "@/lib/trpc/client";
 import { usePerformanceTracking } from "@/lib/utils/performance";
 
+// Generation Modal Component
+function GenerateEpisodeModal({
+  isOpen,
+  onClose,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+}) {
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [selectedSource, setSelectedSource] = useState("tldr");
+  const [customTitle, setCustomTitle] = useState("");
+  const [generationStatus, setGenerationStatus] = useState<{
+    step: string;
+    progress: number;
+  } | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const { data: sourcesData } = api.sources.getAll.useQuery({});
+  const sources = sourcesData?.sources || [];
+  const utils = api.useUtils();
+
+  const handleGenerate = async () => {
+    if (!selectedSource) return;
+
+    setIsGenerating(true);
+    setError(null);
+    setGenerationStatus({ step: "Starting generation...", progress: 5 });
+
+    try {
+      const response = await fetch("/api/episodes/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sourceId: selectedSource,
+          title: customTitle || undefined,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to generate episode");
+      }
+
+      const result = await response.json();
+
+      // Update the episodes list
+      utils.episodes.getAll.invalidate();
+
+      // Close modal and reset state
+      onClose();
+      setCustomTitle("");
+      setSelectedSource("tldr");
+      setGenerationStatus(null);
+
+      // Show success message
+      alert(`Episode "${result.episode.title}" generated successfully!`);
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Failed to generate episode"
+      );
+    } finally {
+      setIsGenerating(false);
+      setGenerationStatus(null);
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="modal modal-open">
+      <div className="modal-box max-w-md">
+        <h3 className="font-bold text-lg mb-4">Generate New Episode</h3>
+
+        {error && (
+          <div className="alert alert-error mb-4">
+            <AlertCircle className="w-4 h-4" />
+            <span>{error}</span>
+          </div>
+        )}
+
+        {generationStatus && (
+          <div className="mb-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Loader2 className="w-4 h-4 animate-spin" />
+              <span className="text-sm">{generationStatus.step}</span>
+            </div>
+            <progress
+              className="progress progress-primary w-full"
+              value={generationStatus.progress}
+              max="100"
+            />
+          </div>
+        )}
+
+        <div className="space-y-4">
+          {/* Source Selection */}
+          <div className="form-control">
+            <label className="label">
+              <span className="label-text">Content Source</span>
+            </label>
+            <select
+              className="select select-bordered w-full"
+              value={selectedSource}
+              onChange={(e) => setSelectedSource(e.target.value)}
+              disabled={isGenerating}
+            >
+              <option value="">Select a source</option>
+              {sources.map((source) => (
+                <option key={source.id} value={source.id}>
+                  {source.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Custom Title */}
+          <div className="form-control">
+            <label className="label">
+              <span className="label-text">Custom Title (Optional)</span>
+            </label>
+            <input
+              type="text"
+              className="input input-bordered w-full"
+              placeholder="Leave empty to use source title"
+              value={customTitle}
+              onChange={(e) => setCustomTitle(e.target.value)}
+              disabled={isGenerating}
+            />
+          </div>
+        </div>
+
+        <div className="modal-action">
+          <Button variant="neutral" onClick={onClose} disabled={isGenerating}>
+            Cancel
+          </Button>
+          <Button
+            variant="primary"
+            onClick={handleGenerate}
+            disabled={!selectedSource || isGenerating}
+            className="gap-2"
+          >
+            {isGenerating ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Generating...
+              </>
+            ) : (
+              <>
+                <Plus className="w-4 h-4" />
+                Generate Episode
+              </>
+            )}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function EpisodesPage() {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [showGenerateModal, setShowGenerateModal] = useState(false);
   const { trackInteraction } = usePerformanceTracking();
 
   const {
@@ -104,6 +267,15 @@ export default function EpisodesPage() {
             </div>
 
             <div className="flex items-center gap-2">
+              <Button
+                variant="secondary"
+                size="sm"
+                className="gap-2"
+                onClick={() => setShowGenerateModal(true)}
+              >
+                <Plus className="w-4 h-4" />
+                Generate Episode
+              </Button>
               <Button variant="primary" size="sm" className="gap-2">
                 <Play className="w-4 h-4" />
                 Play Latest
@@ -260,6 +432,12 @@ export default function EpisodesPage() {
             </div>
           )}
         </div>
+
+        {/* Generation Modal */}
+        <GenerateEpisodeModal
+          isOpen={showGenerateModal}
+          onClose={() => setShowGenerateModal(false)}
+        />
       </ErrorBoundary>
     </MainLayout>
   );

@@ -1,6 +1,7 @@
 // Text-to-Speech Service for podcast audio generation
-import { put, del, list } from "@vercel/blob";
 import { createHash } from "crypto";
+
+import { put, del, list } from "@vercel/blob";
 import OpenAI from "openai";
 
 import {
@@ -10,7 +11,6 @@ import {
   TTSMetrics,
   TTSHistory,
   AudioCacheEntry,
-  TTSError,
   VoiceType,
   AudioFormat,
   AudioQuality,

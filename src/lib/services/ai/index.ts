@@ -1,5 +1,28 @@
 // AI services for content summarization and text-to-speech
-export * from "./summarization-service";
-export * from "./tts-service";
-export * from "./types";
-export * from "./tts-types";
+
+// AI Services Exports
+export { SummarizationService } from "./summarization";
+export { TTSService } from "./tts";
+
+// Types
+export type {
+  SummarizationRequest,
+  SummarizationResult,
+  SummarizationOptions,
+  TTSRequest,
+  TTSResult,
+  TTSOptions,
+  GenerationRequest,
+  GenerationResult,
+  ScrapedContentItem,
+  CostTracking,
+  AIServiceConfig,
+} from "./types";
+
+// Error classes
+export {
+  AIServiceError,
+  RateLimitError,
+  QuotaExceededError,
+  InvalidInputError,
+} from "./types";

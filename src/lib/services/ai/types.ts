@@ -1,15 +1,176 @@
 // AI service types for summarization and content processing
 
 export interface SummarizationRequest {
-  content: string;
-  source: string;
+  content: ScrapedContentItem[];
+  source?: string;
   title?: string;
-  url?: string;
-  contentType: "news" | "tech" | "business" | "general";
-  summaryStyle?: "brief" | "detailed" | "conversational";
-  targetLength?: "short" | "medium" | "long"; // ~100, ~200, ~300 words
+  targetLength?: "short" | "medium" | "long";
+  summaryStyle?: string;
   includeKeyPoints?: boolean;
   includeTakeaways?: boolean;
+  options?: SummarizationOptions;
+}
+
+export interface SummarizationOptions {
+  maxTokens?: number;
+  temperature?: number;
+  style?: "conversational" | "formal" | "casual";
+  targetLength?: "short" | "medium" | "long";
+  includeIntro?: boolean;
+  includeOutro?: boolean;
+  includeSpeakerNotes?: boolean;
+}
+
+export interface SummarizationResult {
+  success: boolean;
+  summary?: string;
+  keyPoints?: string[];
+  takeaways?: string[];
+  wordCount?: number;
+  estimatedDuration?: number; // in seconds
+  cost?: number;
+  tokensUsed?: number;
+  error?: string;
+  metadata?: {
+    model: string;
+    processingTime: number;
+    sourceCount: number;
+  };
+}
+
+export interface ScrapedContentItem {
+  id: string;
+  title: string;
+  content: string;
+  source: string;
+  category?: string;
+  url?: string;
+  publishedAt?: Date;
+  contentHash: string;
+}
+
+export interface TTSRequest {
+  text: string;
+  options?: TTSOptions;
+}
+
+export interface TTSOptions {
+  voice?: "alloy" | "echo" | "fable" | "onyx" | "nova" | "shimmer";
+  model?: "tts-1" | "tts-1-hd";
+  speed?: number; // 0.25 to 4.0
+  responseFormat?: "mp3" | "opus" | "aac" | "flac";
+}
+
+export interface TTSResult {
+  success: boolean;
+  audioBuffer?: Buffer;
+  audioUrl?: string;
+  duration?: number; // in seconds
+  fileSize?: number; // in bytes
+  cost?: number;
+  error?: string;
+  metadata?: {
+    model: string;
+    voice: string;
+    processingTime: number;
+    charactersProcessed: number;
+  };
+}
+
+export interface GenerationRequest {
+  sourceId: string;
+  options?: {
+    summarization?: SummarizationOptions;
+    tts?: TTSOptions;
+    title?: string;
+    description?: string;
+  };
+}
+
+export interface GenerationResult {
+  success: boolean;
+  episodeId?: string;
+  audioUrl?: string;
+  summary?: string;
+  totalCost: number; // Remove optional to fix undefined issues
+  processingTime?: number;
+  error?: string;
+  steps?: {
+    scraping: { success: boolean; itemCount?: number; error?: string };
+    summarization: {
+      success: boolean;
+      wordCount?: number;
+      cost?: number;
+      error?: string;
+    };
+    tts: { success: boolean; duration?: number; cost?: number; error?: string };
+    storage: { success: boolean; fileSize?: number; error?: string };
+    database: { success: boolean; episodeId?: string; error?: string };
+  };
+}
+
+export interface CostTracking {
+  service: "openai-gpt" | "openai-tts";
+  model: string;
+  tokensUsed?: number;
+  charactersProcessed?: number;
+  cost: number;
+  timestamp: Date;
+  requestId: string;
+}
+
+export interface AIServiceConfig {
+  openai: {
+    apiKey: string;
+    organization?: string;
+    defaultModel?: string;
+    maxRetries?: number;
+    timeout?: number;
+  };
+  costTracking: {
+    enabled: boolean;
+    logToDatabase?: boolean;
+    alertThreshold?: number;
+  };
+}
+
+// Error types for better error handling
+export class AIServiceError extends Error {
+  constructor(
+    message: string,
+    public service: "summarization" | "tts",
+    public code?: string,
+    public retryable: boolean = false
+  ) {
+    super(message);
+    this.name = "AIServiceError";
+  }
+}
+
+export class RateLimitError extends AIServiceError {
+  constructor(service: "summarization" | "tts", retryAfter?: number) {
+    super(`Rate limit exceeded for ${service}`, service, "RATE_LIMIT", true);
+    this.retryAfter = retryAfter;
+  }
+
+  retryAfter?: number;
+}
+
+export class QuotaExceededError extends AIServiceError {
+  constructor(service: "summarization" | "tts") {
+    super(`Quota exceeded for ${service}`, service, "QUOTA_EXCEEDED", false);
+  }
+}
+
+export class InvalidInputError extends AIServiceError {
+  constructor(service: "summarization" | "tts", details: string) {
+    super(
+      `Invalid input for ${service}: ${details}`,
+      service,
+      "INVALID_INPUT",
+      false
+    );
+  }
 }
 
 export interface SummarizationResponse {

@@ -1,24 +1,42 @@
 // tRPC router for AI summarization service
 import { z } from "zod";
 
-import { summarizationService } from "../../services/ai/summarization-service";
-import type {
-  SummarizationRequest,
-  SummarizationHistory,
-} from "../../services/ai/types";
+import { SummarizationService } from "../../services/ai";
 import { createTRPCRouter, publicProcedure } from "../server";
 
+const summarizationService = new SummarizationService();
+
+// Temporarily disabled - needs refactoring to match new API
 export const summarizationRouter = createTRPCRouter({
-  // Summarize content
+  // Placeholder for when we refactor to match new API
+  placeholder: publicProcedure.query(() => {
+    return {
+      success: false,
+      message:
+        "Summarization router temporarily disabled - use /api/episodes/generate",
+    };
+  }),
+});
+
+// Original implementation below - needs refactoring
+/*
+import type {
+  SummarizationRequest,
+  SummarizationResponse,
+  SummarizationHistory,
+} from "../../services/ai";
+
+export const summarizationRouter = createTRPCRouter({
+  // Summarize content with AI
   summarizeContent: publicProcedure
     .input(
       z.object({
         content: z.string().min(1, "Content is required"),
-        source: z.string().min(1, "Source is required"),
+        source: z.string().optional(),
         title: z.string().optional(),
         url: z.string().url().optional(),
         contentType: z
-          .enum(["news", "tech", "business", "general"])
+          .enum(["tech", "news", "business", "general"])
           .default("general"),
         summaryStyle: z
           .enum(["brief", "detailed", "conversational"])
@@ -218,3 +236,4 @@ export const summarizationRouter = createTRPCRouter({
       }
     }),
 });
+*/
