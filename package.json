@@ -38,6 +38,9 @@
     "update": "bun update",
     "update:interactive": "bun update --interactive",
     "outdated": "bun outdated",
+    "audit": "npm audit --audit-level moderate",
+    "audit:fix": "npm audit fix",
+    "security:check": "npm audit --audit-level moderate && bun run type-check",
     "clean": "rm -rf node_modules bun.lockb && bun install",
     "prepare": "husky"
   },
