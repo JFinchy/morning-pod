@@ -11,11 +11,14 @@ import {
   Music,
   Loader2,
   AlertCircle,
+  Heart,
+  MoreHorizontal,
 } from "lucide-react";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import type { Episode } from "@/lib/db/schema";
+import { useFavorites } from "@/lib/hooks/use-favorites";
 
 interface EpisodeCardProps {
   episode: Episode;
@@ -33,6 +36,7 @@ export function EpisodeCard({
   className = "",
 }: EpisodeCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const { toggleFavorite, isFavorite } = useFavorites();
 
   const formatDuration = (seconds: number) => {
     if (!seconds || seconds === 0) return "0:00";
@@ -246,35 +250,58 @@ export function EpisodeCard({
           </div>
 
           {/* Secondary Actions */}
-          {canPlay && (
-            <div className="flex gap-1">
-              <Button
-                size="sm"
-                btnStyle="ghost"
-                className="w-8 h-8 p-0"
-                title="Download"
-                onClick={() => {
-                  if (episode.audioUrl) {
-                    window.open(episode.audioUrl, "_blank");
-                  }
-                }}
-              >
-                <Download className="w-3 h-3" />
-              </Button>
-              <Button
-                size="sm"
-                btnStyle="ghost"
-                className="w-8 h-8 p-0"
-                title="Share"
-                onClick={() => {
-                  navigator.clipboard.writeText(window.location.href);
-                  // TODO: Add toast notification
-                }}
-              >
-                <Share2 className="w-3 h-3" />
-              </Button>
-            </div>
-          )}
+          <div className="flex gap-1">
+            <Button
+              size="sm"
+              btnStyle="ghost"
+              className={`w-8 h-8 p-0 ${
+                isFavorite(episode.id)
+                  ? "text-error hover:text-error-focus"
+                  : "text-base-content/50 hover:text-base-content"
+              }`}
+              title={
+                isFavorite(episode.id)
+                  ? "Remove from favorites"
+                  : "Add to favorites"
+              }
+              onClick={() => toggleFavorite(episode.id)}
+            >
+              <Heart
+                className={`w-3 h-3 ${
+                  isFavorite(episode.id) ? "fill-current" : ""
+                }`}
+              />
+            </Button>
+            {canPlay && (
+              <>
+                <Button
+                  size="sm"
+                  btnStyle="ghost"
+                  className="w-8 h-8 p-0"
+                  title="Download"
+                  onClick={() => {
+                    if (episode.audioUrl) {
+                      window.open(episode.audioUrl, "_blank");
+                    }
+                  }}
+                >
+                  <Download className="w-3 h-3" />
+                </Button>
+                <Button
+                  size="sm"
+                  btnStyle="ghost"
+                  className="w-8 h-8 p-0"
+                  title="Share"
+                  onClick={() => {
+                    navigator.clipboard.writeText(window.location.href);
+                    // TODO: Add toast notification
+                  }}
+                >
+                  <Share2 className="w-3 h-3" />
+                </Button>
+              </>
+            )}
+          </div>
         </div>
 
         {/* Cost Information (for debugging/admin) */}
