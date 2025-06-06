@@ -2,22 +2,26 @@
 
 ## Current Status
 
-**Active Branch**: `main` (ready for next feature branch)  
-**Last Completed**: PostHog Integration (Complete Analytics & Feature Flag System)  
-**Next Task**: Phase 4.2 - MVP Audio Generation (On-Demand)  
-**Overall Progress**: PostHog complete, moving to MVP generation pipeline
+**Active Branch**: `feat/component-selection-refinement` (Task 6.1 completed)
+**Last Completed**: Task 6.1 - Component Selection & Refinement (Branch: feat/component-selection-refinement)
+**Next Task**: Task 6.2 - Audio Player Enhancement OR Task 4.2 - MVP Audio Generation (On-Demand)  
+**Overall Progress**: UI/UX refinements complete, ready for audio features or generation pipeline
+
+**📋 REMINDER FOR CLAUDE:** Always update this file when completing tasks!
 
 ## Development Process
 
 1. Check this file to understand current position
 2. Create new branch from main: `git checkout -b feat/task-name`
 3. Complete the task/subtasks
-4. Present changes for review
-5. Once approved, update folder/file structure in rules if changed
-6. Commit after approval
-7. Merge to main
-8. Mark task as complete in this file
+4. **🚨 REQUIRED: Update this TASKS.md file to mark task as completed**
+5. Present changes for review
+6. Once approved, update folder/file structure in rules if changed
+7. Commit after approval (including TASKS.md updates)
+8. Merge to main
 9. Create new branch for next task
+
+**⚠️ IMPORTANT:** Always update task status in TASKS.md before committing - this is critical for tracking progress!
 
 ## Task Tracking
 
