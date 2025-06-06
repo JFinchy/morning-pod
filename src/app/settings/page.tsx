@@ -22,7 +22,7 @@ import { MainLayout } from "@/components/layouts";
 import { Button } from "@/components/ui";
 import {
   getPreferences,
-  updatePreferences,
+  savePreferences,
   type UserPreferences,
 } from "@/lib/utils/local-storage";
 
@@ -70,7 +70,7 @@ export default function SettingsPage() {
         },
       };
 
-      updatePreferences(updatedPrefs);
+      savePreferences(updatedPrefs);
       setHasChanges(false);
 
       // TODO: Show success toast
