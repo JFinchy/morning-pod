@@ -1,6 +1,6 @@
 "use client";
 
-import { ExternalLink, Palette, Code, Eye } from "lucide-react";
+import { ExternalLink, Palette, Code, Eye, BarChart3 } from "lucide-react";
 import Link from "next/link";
 
 import { MainLayout } from "@/components/layouts";
@@ -46,6 +46,14 @@ export default function InternalPage() {
         "Compare content sources and scraping strategies for optimal results",
       href: "/internal/scraping/comparison",
       category: "Content Pipeline",
+      status: "Active",
+    },
+    {
+      name: "Analytics Dashboard",
+      description:
+        "Test PostHog integration and monitor analytics events in real-time",
+      href: "/internal/analytics",
+      category: "Analytics",
       status: "Active",
     },
   ];
