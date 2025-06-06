@@ -90,9 +90,29 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Map database source names to scraper identifiers
+    const sourceNameToScraperId: Record<string, string> = {
+      "TLDR Tech": "tldr",
+      "Hacker News": "hackernews",
+      "Morning Brew": "morningbrew",
+    };
+
+    const scraperId = sourceNameToScraperId[sourceResult.name];
+    if (!scraperId) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: `No scraper available for source '${sourceResult.name}'`,
+        },
+        { status: 400 }
+      );
+    }
+
     // Step 2: Scrape content
-    console.log(`[${requestId}] Scraping content from source: ${sourceId}`);
-    const scrapingResult = await scraperManager.scrapeSource(sourceId);
+    console.log(
+      `[${requestId}] Scraping content from source: ${sourceResult.name} (${scraperId})`
+    );
+    const scrapingResult = await scraperManager.scrapeSource(scraperId);
 
     result.steps!.scraping = {
       success: scrapingResult.success,

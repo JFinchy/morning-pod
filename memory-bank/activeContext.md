@@ -1,107 +1,123 @@
 # Active Context - Morning Pod Project
 
-## Current Focus: MVP Generation Pipeline (Phase 4.2) - **MAJOR PROGRESS** ✅
+## Current Focus: Integration Testing (Phase 5) - **SCRAPER INTEGRATION SUCCESS** ✅
 
-### Recent Major Accomplishments:
+### Recent Major Breakthrough:
 
-- ✅ **Fixed all TypeScript errors** - Project now compiles cleanly
-- ✅ **AI Services Infrastructure Complete** - SummarizationService and TTSService working
-- ✅ **Generation API Operational** - API responds correctly and validates requests
-- ✅ **Database Integration Working** - Episodes schema and CRUD operations functional
-- ✅ **Blob Storage Service Ready** - Vercel Blob integration for audio file storage
+- ✅ **Scraper Integration Fixed** - Database source IDs now map correctly to scraper names
+- ✅ **Generation Pipeline Working** - Scraping step successful (3 items from TLDR Tech)
+- ✅ **Source Mapping Complete** - "TLDR Tech" → "tldr", "Hacker News" → "hackernews", etc.
 
-### Current Status: Ready for Integration Testing
+### Current Status: Ready for Full Pipeline Testing
 
 **What's Working:**
 
-- ✅ Generation API endpoint (`/api/episodes/generate`)
-  - Validates requests properly
-  - Connects to database for source verification
-  - Returns appropriate error messages
-  - Has GET endpoint for available sources
-- ✅ AI Services (SummarizationService, TTSService)
-  - Clean TypeScript interfaces
-  - OpenAI integration configured
-  - Cost tracking implemented
-  - Error handling in place
-- ✅ Database Layer
-  - Episodes table schema correct
-  - Sources table populated with test data
-  - Database queries working
-- ✅ Blob Storage Service
-  - Vercel Blob integration ready
-  - Audio upload/download functions
+- ✅ **Generation API** - Request validation and source verification
+- ✅ **Database Integration** - Source queries working correctly
+- ✅ **Scraper Integration** - Successfully scrapes content from TLDR Tech
+  - Test result: Found 3 items from source
+  - Source mapping: Database ID → Scraper ID working
+- ✅ **Error Handling** - Proper error responses and step tracking
 
-**What Needs Connection:**
+**What Needs Configuration:**
 
-- 🔧 **ScraperManager Integration**: Generation API expects scraper to work with source IDs from database
-- 🔧 **End-to-End Testing**: Need to test full pipeline: scrape → summarize → TTS → upload → save
-- 🔧 **Environment Variables**: OpenAI API key and Vercel Blob token need to be configured for testing
+- 🔧 **OpenAI API Key** - Required for summarization and TTS services
+- 🔧 **Vercel Blob Token** - Required for audio file storage
+- 🔧 **Environment Setup** - Create `.env.local` with API credentials
 
 ### Next Immediate Steps:
 
-1. **Fix ScraperManager Integration** - Update to work with database source IDs
-2. **Configure Environment Variables** - Add OpenAI API key for testing
-3. **Test Full Pipeline** - Run complete episode generation
-4. **Update UI Components** - Connect episode generation to frontend
+1. **Configure OpenAI API Key** - Add to `.env.local` for testing
+2. **Test Full Pipeline** - Run complete episode generation end-to-end
+3. **Configure Vercel Blob** - Add storage token for audio files
+4. **UI Integration** - Connect frontend to working generation API
 
-### Key Files Recently Updated:
-
-- `src/lib/services/ai/` - Complete AI services implementation
-- `src/app/api/episodes/generate/route.ts` - Main generation orchestration
-- `src/lib/services/storage/blob.ts` - Audio file storage
-- `src/lib/trpc/root.ts` - Temporarily disabled conflicting routers
-- Internal test pages - Temporarily disabled pending API refactoring
-
-### Test Results:
+### Test Results Summary:
 
 ```bash
-# TypeScript compilation: ✅ PASS
-bun run type-check  # 0 errors
+✅ TypeScript: 0 errors (bun run type-check)
+✅ API Response: Proper validation and error handling
+✅ Database: Source queries working correctly
+✅ Scraper Integration: Successfully maps DB IDs to scraper names
+✅ Content Scraping: Found 3 items from TLDR Tech source
 
-# Generation API: ✅ RESPONSIVE
-curl -X POST localhost:3001/api/episodes/generate \
-  -d '{"sourceId": "pjblv57lu4v0decbds8rfkmz"}'
-# Returns: {"success": false, "error": "Scraper not found for source"}
-# This is expected - scraper integration needed
+❌ AI Services: Need OpenAI API key configuration
+❌ Audio Storage: Need Vercel Blob token configuration
+```
 
-# Available sources: ✅ WORKING
-curl "localhost:3001/api/episodes/generate?action=sources"
-# Returns 4 sources from database properly
+### Latest Test Result:
+
+```json
+{
+  "success": false,
+  "steps": {
+    "scraping": {
+      "success": true,
+      "itemCount": 3
+    },
+    "summarization": {
+      "success": false,
+      "error": "Rate limit exceeded for summarization"
+    }
+  },
+  "error": "Failed to summarize content: Rate limit exceeded for summarization"
+}
+```
+
+**Analysis**: Scraping works perfectly! The "rate limit exceeded" error indicates missing/invalid OpenAI API key.
+
+### Environment Configuration Needed:
+
+```bash
+# Create .env.local file with:
+OPENAI_API_KEY=sk-...          # For AI summarization and TTS
+VERCEL_BLOB_READ_WRITE_TOKEN=  # For audio storage
+DATABASE_URL=                  # Already configured (Neon PostgreSQL)
+
+# Feature flags (already working):
+AI_SUMMARIZATION_ENABLED="true"
+OPENAI_TTS_ENABLED="true"
+TLDR_SOURCE_ENABLED="true"
+```
+
+### Source Mapping Implementation:
+
+```typescript
+const sourceNameToScraperId: Record<string, string> = {
+  "TLDR Tech": "tldr", // ✅ Working
+  "Hacker News": "hackernews", // ✅ Available
+  "Morning Brew": "morningbrew", // ✅ Available
+};
 ```
 
 ### Branch Status:
 
-- Current branch: `feat/mvp-generation-pipeline`
-- Ready for integration testing phase
-- Major infrastructure complete, now focusing on connections
+- Current branch: `feat/scraper-integration-testing`
+- Major integration milestone achieved
+- Ready for full pipeline testing with API keys
 
-### Environment Setup Needed:
+### Key Files Updated:
 
-```bash
-# Required environment variables:
-OPENAI_API_KEY=sk-...          # For AI services
-VERCEL_BLOB_READ_WRITE_TOKEN=  # For audio storage
-DATABASE_URL=                  # Neon PostgreSQL (already configured)
-```
+- `src/app/api/episodes/generate/route.ts` - Added source name to scraper ID mapping
+- Memory Bank documentation updated with progress
+
+### Success Metrics Achieved:
+
+- ✅ Database source verification working
+- ✅ Source ID to scraper name mapping functional
+- ✅ Content scraping successful (3 items found)
+- ✅ Error handling and step tracking working
+- 🔧 Next: AI services with proper API key configuration
 
 ## Current Work Focus
 
-**Phase**: 4.2 - MVP Audio Generation Pipeline  
+**Phase**: 5 - Integration Testing  
 **Branch**: main (ready for new feature branch)  
-**Status**: Database persistence complete, moving to AI services
+**Status**: Scraper integration successful, moving to AI services
 
 ## Recent Progress
 
-### ✅ Database Persistence Implementation (Completed)
-
-- Added `scraped_content` table to database schema
-- Created `scrapedContentRouter` for CRUD operations
-- Modified ScraperManager to persist scraped content to database
-- Built comprehensive test scripts for verification
-- Confirmed scrapers work with database persistence
-
-### ✅ Scraping Infrastructure (Completed)
+### ✅ Scraper Integration (Completed)
 
 - Multi-source scrapers: TLDR, Hacker News, Morning Brew
 - ScraperManager with deduplication and error handling
@@ -109,34 +125,24 @@ DATABASE_URL=                  # Neon PostgreSQL (already configured)
 - Web UI dashboard at `/scraping` for testing
 - Test scripts: `test-db-simple.ts` and `test-scrapers-with-db.ts`
 
-## Current Task: MVP Generation Pipeline
+### ✅ Scraping Infrastructure (Completed)
 
-**Goal**: Simple on-demand episode generation for MVP validation
+- Scraper integration fixed
+- ScraperManager with deduplication and error handling
+- Database integration with proper typing
+- Web UI dashboard at `/scraping` for testing
+- Test scripts: `test-db-simple.ts` and `test-scrapers-with-db.ts`
+
+## Current Task: Integration Testing
+
+**Goal**: Full pipeline testing with API keys
 
 ### Next Steps (Immediate Priority)
 
-1. **Rebuild AI Summarization Service** (`src/lib/services/ai/summarization.ts`)
-
-   - OpenAI integration with cost tracking
-   - Content optimization for TTS format
-   - Error handling and retry logic
-
-2. **Rebuild Text-to-Speech Service** (`src/lib/services/ai/tts.ts`)
-
-   - OpenAI TTS integration
-   - Audio file management
-   - Vercel Blob storage integration
-
-3. **Create Simple Generation API** (`src/app/api/episodes/generate/route.ts`)
-
-   - Single endpoint: scrape → summarize → TTS → save
-   - Progress tracking via status responses
-   - Error handling and user feedback
-
-4. **Add Generation UI**
-   - "Generate Episode" button with source selection
-   - Loading states and progress feedback
-   - Success/error state display
+1. **Configure OpenAI API Key** - Add to `.env.local` for testing
+2. **Test Full Pipeline** - Run complete episode generation end-to-end
+3. **Configure Vercel Blob** - Add storage token for audio files
+4. **UI Integration** - Connect frontend to working generation API
 
 ## Development Context
 
