@@ -6,6 +6,7 @@ export {
   GenerateButton,
 } from "./generation-trigger";
 export { AudioPlayer } from "./audio-player";
+export { AIProviderSelector } from "./ai-provider-selector";
 
 // Production components - chosen from the best variants
 export { EpisodeCard } from "./episode-card";
