@@ -10,7 +10,11 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
-import { EpisodeCard } from "@/components/features";
+import {
+  EpisodeCard,
+  GenerateEpisodeButton,
+  GenerateButton,
+} from "@/components/features";
 import { ApiTest } from "@/components/features/api-test";
 import { MainLayout } from "@/components/layouts";
 import { Button } from "@/components/ui";
@@ -140,10 +144,7 @@ export default async function Home() {
               <Play className="w-5 h-5" />
               Play Latest Episode
             </Button>
-            <Button btnStyle="outline" size="lg" className="gap-2">
-              <Plus className="w-5 h-5" />
-              Generate New Episode
-            </Button>
+            <GenerateEpisodeButton />
           </div>
         </div>
 
@@ -211,7 +212,7 @@ export default async function Home() {
                 <p className="text-base-content/60 mb-4">
                   Generate your first episode from one of your news sources
                 </p>
-                <Button variant="primary">Generate Episode</Button>
+                <GenerateButton />
               </div>
             )}
           </div>
