@@ -20,6 +20,7 @@ import {
   StatsCardSkeleton,
 } from "@/components/ui/loading-skeleton";
 import { api, handleTRPCError } from "@/lib/trpc/client";
+import { sanitizeString } from "@/lib/utils/api-middleware";
 import { usePerformanceTracking } from "@/lib/utils/performance";
 
 export default function EpisodesPage() {
@@ -123,7 +124,9 @@ export default function EpisodesPage() {
                     placeholder="Search episodes..."
                     className="input input-bordered w-full pl-10"
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onChange={(e) =>
+                      setSearchQuery(sanitizeString(e.target.value))
+                    }
                   />
                 </div>
 
