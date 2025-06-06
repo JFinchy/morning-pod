@@ -1,23 +1,23 @@
 # Morning Pod - Task Management
 
-## Current Status
+## Overview
 
-**Active Branch**: `main` (ready for next feature branch)  
-**Last Completed**: PostHog Integration (Complete Analytics & Feature Flag System)  
-**Next Task**: Phase 4.2 - MVP Audio Generation (On-Demand)  
-**Overall Progress**: PostHog complete, moving to MVP generation pipeline
+This file tracks **completed work** and **overall project phases**. For current development status across worktrees, see `STATUS.json`.
 
 ## Development Process
 
-1. Check this file to understand current position
-2. Create new branch from main: `git checkout -b feat/task-name`
-3. Complete the task/subtasks
-4. Present changes for review
-5. Once approved, update folder/file structure in rules if changed
-6. Commit after approval
-7. Merge to main
-8. Mark task as complete in this file
-9. Create new branch for next task
+1. Check `STATUS.json` for current component status
+2. Check current branch context: `git branch --show-current`
+3. Create new branch for component work: `git checkout -b feat/component-name`
+4. Update `STATUS.json` when starting/completing component work
+5. Complete the task/subtasks
+6. Present changes for review
+7. Update folder/file structure in .cursorrules if changed
+8. Commit after approval
+9. Merge to main and update `STATUS.json`
+10. Mark task as complete in this file
+
+**Note**: Multiple worktrees can work on different components simultaneously by updating their respective component status in `STATUS.json`.
 
 ## Task Tracking
 
@@ -154,10 +154,16 @@
 - ✅ Implement Morning Brew scraper
 - ✅ Add content deduplication logic
 - ✅ Add business logic documentation
+- ✅ **Database Persistence Integration** (NEW)
+  - ✅ Added `scraped_content` table to schema
+  - ✅ Created `scrapedContentRouter` for CRUD operations
+  - ✅ Modified ScraperManager to persist content
+  - ✅ Verified persistence functionality working
 
 ##### 🔄 Task 4.2: MVP Generation Pipeline - **CURRENT TASK**
 
 **Goal: Simple on-demand episode generation for MVP**
+**Foundation: Built on complete scraping + persistence system**
 
 - [ ] Rebuild AI Summarization Service (`src/lib/services/ai/summarization.ts`)
   - [ ] OpenAI integration with cost tracking

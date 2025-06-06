@@ -3,6 +3,19 @@
 ## Project Overview
 This is a podcast generation app that automatically creates podcast episodes from news sources using AI summarization and text-to-speech. The app is built with a component-first development approach optimized for AI agent collaboration, using Bun for enhanced development speed.
 
+## Status Tracking System
+
+**For current development status, check:**
+- `STATUS.json` - Component-based status tracking (worktree-friendly)
+- `TASKS.md` - Overall task management and completed work
+- `git branch --show-current` - Current worktree branch context
+
+**Status files are designed to:**
+- Avoid worktree conflicts through component-based tracking
+- Provide quick context for AI agents
+- Support parallel development workflows
+- Maintain history without merge conflicts
+
 ## Current Codebase Structure
 
 **IMPORTANT: Always update this structure when creating/modifying files or folders**

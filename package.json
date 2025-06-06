@@ -10,6 +10,8 @@
     "db:generate": "bun run drizzle-kit generate",
     "db:migrate": "bun run drizzle-kit push",
     "db:seed": "bun run scripts/seed.ts",
+    "status:update": "node scripts/update-status.js",
+    "status:show": "cat STATUS.json | jq '.components'",
     "test": "vitest",
     "test:watch": "vitest --watch",
     "test:ui": "vitest --ui",

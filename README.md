@@ -31,6 +31,12 @@
 
 Morning Pod is an AI-powered podcast generation platform that transforms news sources into personalized audio content. Built with modern web technologies and comprehensive testing infrastructure.
 
+## 🚀 Development Status
+
+**Current Phase**: MVP Audio Generation Pipeline  
+**Foundation Complete**: ✅ Web scraping system with full database persistence  
+**Next**: AI summarization and text-to-speech integration for on-demand episode generation
+
 ## 🌟 Key Features
 
 - **AI Content Generation**: Automated podcast creation from news sources (TLDR, Hacker News, Morning Brew)
