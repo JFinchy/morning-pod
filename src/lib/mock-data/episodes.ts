@@ -8,7 +8,7 @@ export interface Episode {
   audioSize: number | null;
   duration: number; // in seconds
   playCount: number;
-  generationCost: number;
+  generationCost: string;
   ttsService: "openai" | "google";
   status: "pending" | "generating" | "ready" | "failed";
   source?: {
@@ -34,7 +34,7 @@ export const mockEpisodes: Episode[] = [
     audioSize: 2547683,
     duration: 185, // 3:05
     playCount: 42,
-    generationCost: 0.15,
+    generationCost: "0.15",
     ttsService: "openai",
     status: "ready",
     source: {
@@ -58,7 +58,7 @@ export const mockEpisodes: Episode[] = [
     audioSize: 1892456,
     duration: 142, // 2:22
     playCount: 28,
-    generationCost: 0.12,
+    generationCost: "0.12",
     ttsService: "openai",
     status: "ready",
     source: {
@@ -82,7 +82,7 @@ export const mockEpisodes: Episode[] = [
     audioSize: null,
     duration: 0,
     playCount: 0,
-    generationCost: 0,
+    generationCost: "0",
     ttsService: "openai",
     status: "generating",
     source: {
@@ -106,7 +106,7 @@ export const mockEpisodes: Episode[] = [
     audioSize: 3124789,
     duration: 234, // 3:54
     playCount: 156,
-    generationCost: 0.18,
+    generationCost: "0.18",
     ttsService: "google",
     status: "ready",
     source: {
@@ -130,7 +130,7 @@ export const mockEpisodes: Episode[] = [
     audioSize: null,
     duration: 0,
     playCount: 0,
-    generationCost: 0,
+    generationCost: "0",
     ttsService: "openai",
     status: "failed",
     source: {

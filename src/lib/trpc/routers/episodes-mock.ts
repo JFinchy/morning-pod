@@ -105,7 +105,7 @@ export const episodesMockRouter = createTRPCRouter({
         failed: mockEpisodes.filter((ep) => ep.status === "failed").length,
         totalPlays: mockEpisodes.reduce((sum, ep) => sum + ep.playCount, 0),
         totalCost: mockEpisodes
-          .reduce((sum, ep) => sum + ep.generationCost, 0)
+          .reduce((sum, ep) => sum + Number(ep.generationCost), 0)
           .toFixed(2),
       };
 

@@ -1,4 +1,7 @@
-// Feature flags main exports
+// Client-only feature flag exports
+// This file avoids importing server-side dependencies
+
+// Feature flags configuration
 export {
   FEATURE_FLAGS,
   DEFAULT_FLAG_VALUES,
@@ -6,7 +9,7 @@ export {
 } from "./config";
 export type { FeatureFlagKey, FeatureFlagValue } from "./config";
 
-// Client-side hooks and utilities
+// Client-side hooks and utilities only
 export {
   useFeatureFlag,
   useFeatureFlags,
@@ -18,29 +21,23 @@ export {
   usePremiumFlags,
 } from "./client";
 
-// Server-side utilities
-export {
-  evaluateFeatureFlag,
-  evaluateFeatureFlags,
-  evaluateFeatureFlagSync,
-  getAllFeatureFlagsSync,
-  getSourceFlags,
-  getPremiumFlags,
-  getEnabledSources,
-  isPremiumContentEnabled,
-  isAIEnabled,
-  getAllowedTTSServices,
-  closePostHogClient,
-  getPostHogClient,
-} from "./server";
-
-// Provider and utilities
+// Provider and utilities (client-safe)
 export { FeatureFlagProvider, identifyUser, resetUser } from "./provider";
 export { PostHogClient } from "./posthog-client";
 
-// Analytics and tracking
-export * from "./analytics";
+// Analytics and tracking (client-only)
 export * from "./analytics-hooks";
+
+// Client-side analytics service factory
+export { createAnalyticsService } from "./analytics";
+export type {
+  AnalyticsEvents,
+  EventName,
+  EventProperties,
+  UserProperties,
+  AnalyticsService,
+  AnalyticsUser,
+} from "./analytics";
 
 // Common utilities used by both client and server
 export const FeatureFlagUtils = {

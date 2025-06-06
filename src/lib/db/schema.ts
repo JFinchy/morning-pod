@@ -57,7 +57,7 @@ export const episodes = pgTable("episodes", {
   contentHash: varchar("content_hash", { length: 128 }).notNull().unique(),
   audioUrl: text("audio_url"),
   audioSize: integer("audio_size"), // in bytes
-  duration: integer("duration").default(0), // in seconds
+  duration: integer("duration").default(0).notNull(), // in seconds
   playCount: integer("play_count").default(0).notNull(),
   generationCost: decimal("generation_cost", { precision: 8, scale: 4 })
     .default("0")

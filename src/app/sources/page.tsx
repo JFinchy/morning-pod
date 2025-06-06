@@ -14,26 +14,32 @@ export default function SourcesPage() {
   const { data: activeSources } = api.sources.getActive.useQuery();
 
   const categories = [
-    { value: "all", label: "All Sources", count: sources?.length || 0 },
+    {
+      value: "all",
+      label: "All Sources",
+      count: sources?.sources?.length || 0,
+    },
     {
       value: "tech",
       label: "Technology",
-      count: sources?.filter((s) => s.category === "tech").length || 0,
+      count: sources?.sources?.filter((s) => s.category === "tech").length || 0,
     },
     {
       value: "business",
       label: "Business",
-      count: sources?.filter((s) => s.category === "business").length || 0,
+      count:
+        sources?.sources?.filter((s) => s.category === "business").length || 0,
     },
     {
       value: "general",
       label: "General News",
-      count: sources?.filter((s) => s.category === "general").length || 0,
+      count:
+        sources?.sources?.filter((s) => s.category === "general").length || 0,
     },
   ];
 
   const filteredSources =
-    sources?.filter(
+    sources?.sources?.filter(
       (source) =>
         selectedCategory === "all" || source.category === selectedCategory
     ) || [];
@@ -61,8 +67,8 @@ export default function SourcesPage() {
               News Sources
             </h1>
             <p className="text-base-content/60">
-              {activeSources?.length || 0} of {sources?.length || 0} sources
-              active
+              {activeSources?.length || 0} of {sources?.sources?.length || 0}{" "}
+              sources active
             </p>
           </div>
 
@@ -97,7 +103,7 @@ export default function SourcesPage() {
             </div>
             <div className="stat-title">Total Sources</div>
             <div className="stat-value text-primary">
-              {sources?.length || 0}
+              {sources?.sources?.length || 0}
             </div>
             <div className="stat-desc">All configured</div>
           </div>
@@ -108,7 +114,10 @@ export default function SourcesPage() {
             </div>
             <div className="stat-title">Daily Limit</div>
             <div className="stat-value text-warning">
-              {sources?.reduce((sum, s) => sum + s.dailyLimit, 0) || 0}
+              {sources?.sources?.reduce(
+                (sum, s) => sum + (s.dailyLimit || 0),
+                0
+              ) || 0}
             </div>
             <div className="stat-desc">Episodes per day</div>
           </div>
@@ -119,7 +128,8 @@ export default function SourcesPage() {
             </div>
             <div className="stat-title">Premium</div>
             <div className="stat-value text-info">
-              {sources?.filter((s) => s.contentTier === "premium").length || 0}
+              {sources?.sources?.filter((s) => s.contentTier === "premium")
+                .length || 0}
             </div>
             <div className="stat-desc">High-quality sources</div>
           </div>
@@ -187,9 +197,9 @@ export default function SourcesPage() {
                     </div>
                     <div className="flex items-center gap-2">
                       <div
-                        className={`badge ${getTierBadge(source.contentTier)}`}
+                        className={`badge ${getTierBadge(source.contentTier || "free")}`}
                       >
-                        {source.contentTier}
+                        {source.contentTier || "free"}
                       </div>
                       <div
                         className={`w-3 h-3 rounded-full ${
