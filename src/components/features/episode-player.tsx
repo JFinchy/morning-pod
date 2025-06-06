@@ -14,6 +14,7 @@ interface EpisodePlayerProps {
   onSeek?: (time: number) => void;
   volume?: number;
   onVolumeChange?: (volume: number) => void;
+  variant?: "full" | "compact";
 }
 
 export function EpisodePlayer({
@@ -25,6 +26,7 @@ export function EpisodePlayer({
   onSeek,
   volume = 0.8,
   onVolumeChange,
+  variant = "full",
 }: EpisodePlayerProps) {
   const [isLiked, setIsLiked] = useState(false);
   const [isRepeat, setIsRepeat] = useState(false);
@@ -61,6 +63,107 @@ export function EpisodePlayer({
 
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
 
+  // Compact variant - waveform visualization
+  if (variant === "compact") {
+    const waveformBars = Array.from({ length: 60 }, (_, i) => {
+      const height = Math.sin(i * 0.2) * 0.4 + 0.6;
+      const isActive = i < (progress / 100) * 60;
+      return { height, isActive };
+    });
+
+    if (episode.status !== "ready" || !episode.audioUrl) {
+      return (
+        <div className="bg-base-100 border border-base-300 rounded-lg p-4">
+          <div className="flex items-center gap-3">
+            <div className="btn btn-circle btn-sm btn-disabled">
+              <Play className="w-4 h-4" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h3 className="font-medium text-sm text-base-content/70 truncate">
+                {episode.title}
+              </h3>
+              <p className="text-xs text-base-content/50">
+                {episode.status === "generating"
+                  ? "Generating..."
+                  : "Unavailable"}
+              </p>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="bg-base-100 border border-base-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow">
+        <div className="flex items-center justify-between p-4 pb-2">
+          <div className="flex-1 min-w-0">
+            <h3 className="font-semibold text-sm text-base-content truncate">
+              {episode.title}
+            </h3>
+            <p className="text-xs text-base-content/60">
+              {episode.source?.name || `Source ${episode.sourceId}`}
+            </p>
+          </div>
+        </div>
+
+        {/* Waveform Visualization */}
+        <div className="px-4 py-2">
+          <div
+            ref={progressBarRef}
+            className="flex items-end gap-0.5 h-12 cursor-pointer"
+            onClick={handleProgressClick}
+          >
+            {waveformBars.map((bar, index) => (
+              <div
+                key={index}
+                className={`flex-1 rounded-sm transition-colors duration-75 ${
+                  bar.isActive ? "bg-primary" : "bg-base-300 hover:bg-base-400"
+                }`}
+                style={{
+                  height: `${bar.height * 100}%`,
+                  minHeight: "2px",
+                }}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* Compact Controls */}
+        <div className="flex items-center justify-between px-4 py-3 bg-base-50">
+          <div className="flex items-center gap-3">
+            <button
+              className="btn btn-circle btn-sm btn-primary"
+              onClick={onPlayPause}
+            >
+              {isPlaying ? (
+                <Pause className="w-4 h-4" />
+              ) : (
+                <Play className="w-4 h-4 ml-0.5" />
+              )}
+            </button>
+            <div className="text-xs text-base-content/60">
+              {formatTime(currentTime)} / {formatTime(duration)}
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <Volume2 className="w-4 h-4 text-base-content/60" />
+            <div
+              ref={volumeBarRef}
+              className="w-16 h-1 bg-base-300 rounded-full cursor-pointer relative"
+              onClick={handleVolumeClick}
+            >
+              <div
+                className="h-full bg-primary rounded-full"
+                style={{ width: `${volume * 100}%` }}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Full variant - Spotify-inspired player
   if (episode.status !== "ready" || !episode.audioUrl) {
     return (
       <div className="bg-gradient-to-r from-base-200 to-base-300 rounded-xl p-6">

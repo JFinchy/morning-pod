@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 
-import { EpisodeCardV2 } from "@/components/internal/variants";
+import { EpisodeCard } from "@/components/features";
 import { MainLayout } from "@/components/layouts";
 import { Button } from "@/components/ui";
 import ErrorBoundary from "@/components/ui/error-boundary";
@@ -246,7 +246,11 @@ export default function EpisodesPage() {
               }
             >
               {filteredEpisodes.map((episode) => (
-                <EpisodeCardV2 key={episode.id} episode={episode} />
+                <EpisodeCard
+                  key={episode.id}
+                  episode={episode}
+                  variant={viewMode === "list" ? "compact" : "default"}
+                />
               ))}
             </div>
           )}
