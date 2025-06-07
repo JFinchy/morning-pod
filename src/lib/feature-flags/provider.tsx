@@ -21,7 +21,10 @@ export function FeatureFlagProvider({ children }: FeatureFlagProviderProps) {
 }
 
 // Utility to identify users for feature flag targeting
-export function identifyUser(userId: string, properties?: Record<string, any>) {
+export function identifyUser(
+  userId: string,
+  properties?: Record<string, unknown>
+) {
   const client = PostHogClient.getInstance();
   if (client) {
     client.identify(userId, properties);

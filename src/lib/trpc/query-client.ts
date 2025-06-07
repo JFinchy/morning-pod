@@ -18,9 +18,14 @@ export function makeQueryClient() {
         refetchOnMount: true, // Refetch when component mounts if data is stale
 
         // Retry Strategy
-        retry: (failureCount, error: any) => {
+        retry: (failureCount, error: unknown) => {
           // Don't retry on 4xx errors (client errors)
-          if (error?.status >= 400 && error?.status < 500) {
+          const httpError = error as { status?: number };
+          if (
+            httpError?.status &&
+            httpError.status >= 400 &&
+            httpError.status < 500
+          ) {
             return false;
           }
           // Retry up to 3 times for server errors and network issues
@@ -31,9 +36,14 @@ export function makeQueryClient() {
 
       mutations: {
         // Retry strategy for mutations (more conservative)
-        retry: (failureCount, error: any) => {
+        retry: (failureCount, error: unknown) => {
           // Don't retry mutations on client errors
-          if (error?.status >= 400 && error?.status < 500) {
+          const httpError = error as { status?: number };
+          if (
+            httpError?.status &&
+            httpError.status >= 400 &&
+            httpError.status < 500
+          ) {
             return false;
           }
           // Only retry once for server errors

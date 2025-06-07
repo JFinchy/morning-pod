@@ -22,13 +22,18 @@ export default function AnalyticsPage() {
     track,
     trackPageView,
     trackInteraction,
-    trackError: _trackError,
-    trackPerformance: _trackPerformance,
+    // TODO: Implement error tracking functionality
+    // trackError: _trackError,
+    // TODO: Implement performance tracking functionality
+    // trackPerformance: _trackPerformance,
   } = useEventTracking();
   const {
-    trackFeatureFlag: _trackFeatureFlag,
-    trackExperimentView: _trackExperimentView,
-    trackExperimentConversion: _trackExperimentConversion,
+    // TODO: Implement feature flag tracking functionality
+    // trackFeatureFlag: _trackFeatureFlag,
+    // TODO: Implement experiment view tracking functionality
+    // trackExperimentView: _trackExperimentView,
+    // TODO: Implement experiment conversion tracking functionality
+    // trackExperimentConversion: _trackExperimentConversion,
   } = useFeatureFlagAnalytics();
   const {
     trackGenerationStarted,
@@ -38,10 +43,14 @@ export default function AnalyticsPage() {
     trackAudioGenerated,
   } = usePodcastAnalytics();
   const {
-    trackEpisodePlayed: _trackEpisodePlayed,
-    trackEpisodePaused: _trackEpisodePaused,
-    trackEpisodeCompleted: _trackEpisodeCompleted,
-    trackEpisodeDownloaded: _trackEpisodeDownloaded,
+    // TODO: Implement episode played tracking functionality
+    // trackEpisodePlayed: _trackEpisodePlayed,
+    // TODO: Implement episode paused tracking functionality
+    // trackEpisodePaused: _trackEpisodePaused,
+    // TODO: Implement episode completed tracking functionality
+    // trackEpisodeCompleted: _trackEpisodeCompleted,
+    // TODO: Implement episode downloaded tracking functionality
+    // trackEpisodeDownloaded: _trackEpisodeDownloaded,
   } = usePlayerAnalytics();
 
   // Test functions

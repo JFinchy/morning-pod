@@ -1,4 +1,4 @@
-import { eq, desc, asc, sql, and, count } from "drizzle-orm";
+import { eq, desc, sql, and, count } from "drizzle-orm";
 import { z } from "zod";
 
 import { db, queue, episodes, sources } from "../../db";

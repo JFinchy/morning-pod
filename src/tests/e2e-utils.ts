@@ -1,4 +1,4 @@
-import { test as base, expect, Page, BrowserContext } from "@playwright/test";
+import { test as base, expect, Page } from "@playwright/test";
 
 // Extended test interface with custom fixtures
 export const test = base.extend<{
@@ -6,7 +6,7 @@ export const test = base.extend<{
   mockAPI: void;
   performanceMetrics: void;
   accessibilityUtils: {
-    scanPage: () => Promise<any>;
+    scanPage: () => Promise<unknown>;
     checkFocusManagement: () => Promise<boolean>;
     verifyKeyboardNavigation: () => Promise<boolean>;
   };
@@ -51,10 +51,13 @@ export const test = base.extend<{
     // Start performance monitoring
     await page.addInitScript(() => {
       // Track Core Web Vitals
-      (window as any).__performance = {
+      (window as unknown as { __performance: unknown }).__performance = {
         metrics: [],
         addMetric: (name: string, value: number) => {
-          (window as any).__performance.metrics.push({
+          (
+            (window as unknown as { __performance: { metrics: unknown[] } })
+              .__performance.metrics as unknown[]
+          ).push({
             name,
             value,
             timestamp: Date.now(),
@@ -67,10 +70,18 @@ export const test = base.extend<{
       const observer = new PerformanceObserver((list) => {
         for (const entry of list.getEntries()) {
           if (entry.entryType === "layout-shift") {
-            clsValue += (entry as any).value;
+            clsValue += (entry as unknown as { value: number }).value;
           }
         }
-        (window as any).__performance.addMetric("CLS", clsValue);
+        (
+          (
+            window as unknown as {
+              __performance: {
+                addMetric: (name: string, value: number) => void;
+              };
+            }
+          ).__performance.addMetric as (name: string, value: number) => void
+        )("CLS", clsValue);
       });
       observer.observe({ type: "layout-shift", buffered: true });
     });
@@ -80,7 +91,9 @@ export const test = base.extend<{
 
     // Collect performance metrics at the end
     const metrics = await page.evaluate(
-      () => (window as any).__performance?.metrics || []
+      () =>
+        (window as unknown as { __performance?: { metrics?: unknown[] } })
+          .__performance?.metrics || []
     );
     console.log("📊 Performance Metrics:", metrics);
   },

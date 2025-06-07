@@ -57,7 +57,7 @@ describe("ScriptRunner", () => {
   });
 
   afterAll(() => {
-    (process.exit as any) = originalExit;
+    (process.exit as unknown as typeof originalExit) = originalExit;
   });
 
   describe("parseArgs", () => {
@@ -229,6 +229,14 @@ describe("ScriptRunner", () => {
             expected: { category: "quality", action: "lint:fix" },
           },
           {
+            args: ["quality", "--quiet"],
+            expected: { category: "quality", action: "lint:quiet" },
+          },
+          {
+            args: ["quality", "--strict"],
+            expected: { category: "quality", action: "lint:strict" },
+          },
+          {
             args: ["quality", "--format"],
             expected: { category: "quality", action: "format" },
           },
@@ -391,6 +399,87 @@ describe("ScriptRunner", () => {
         expect(result.category).toBe("unknown-category");
         expect(result.flags).toContain("--flag");
       });
+    });
+  });
+
+  describe("getArgumentExamples", () => {
+    it("should return context-specific examples for test commands", () => {
+      expect(runner.getArgumentExamples("test", "unit")).toBe(
+        "--watch --coverage"
+      );
+      expect(runner.getArgumentExamples("test", "e2e")).toBe(
+        "--headed --debug"
+      );
+      expect(runner.getArgumentExamples("test", "performance")).toBe(
+        "--repeat-each=3"
+      );
+    });
+
+    it("should return context-specific examples for quality commands", () => {
+      expect(runner.getArgumentExamples("quality", "lint")).toBe(
+        "src/ --max-warnings 0"
+      );
+      expect(runner.getArgumentExamples("quality", "lint:fix")).toBe(
+        "src/components --quiet"
+      );
+      expect(runner.getArgumentExamples("quality", "format")).toBe(
+        "src/ --check"
+      );
+    });
+
+    it("should return context-specific examples for dev commands", () => {
+      expect(runner.getArgumentExamples("dev", "start")).toBe("--port 3001");
+      expect(runner.getArgumentExamples("dev", "build")).toBe("--debug");
+    });
+
+    it("should return default examples for unknown commands", () => {
+      expect(runner.getArgumentExamples("test", "unknown")).toBe(
+        "--timeout 30000"
+      );
+      expect(runner.getArgumentExamples("quality", "unknown")).toBe(
+        "src/ --verbose"
+      );
+    });
+
+    it("should return default examples for unknown categories", () => {
+      expect(runner.getArgumentExamples("unknown", "command")).toBe("--help");
+    });
+  });
+
+  describe("executeCommandWithArgs", () => {
+    it("should execute command with additional arguments", () => {
+      mockExecSync.mockReturnValue("success");
+
+      runner.executeCommandWithArgs("test", "unit", "--watch --coverage");
+
+      expect(consoleSpy.log).toHaveBeenCalledWith(
+        "🔧 Command: bun vitest --config config/testing/vitest.config.ts --watch --coverage\\n"
+      );
+      expect(mockExecSync).toHaveBeenCalledWith(
+        "bun vitest --config config/testing/vitest.config.ts --watch --coverage",
+        expect.any(Object)
+      );
+    });
+
+    it("should execute command without additional arguments when empty", () => {
+      mockExecSync.mockReturnValue("success");
+
+      runner.executeCommandWithArgs("test", "unit", "");
+
+      expect(mockExecSync).toHaveBeenCalledWith(
+        "bun vitest --config config/testing/vitest.config.ts",
+        expect.any(Object)
+      );
+    });
+
+    it("should handle --all flag properly", () => {
+      mockExecSync.mockReturnValue("success");
+
+      runner.executeCommandWithArgs("test", "--all", "");
+
+      expect(consoleSpy.log).toHaveBeenCalledWith(
+        "\\n▶️  🧪 Run all tests (unit + E2E)\\n"
+      );
     });
   });
 
@@ -660,9 +749,10 @@ describe("ScriptRunner", () => {
       const showHelpSpy = vi
         .spyOn(runner, "showHelp")
         .mockImplementation(() => {});
-      const parseArgsSpy = vi
-        .spyOn(runner, "parseArgs")
-        .mockReturnValue({ mode: "help", flags: [] });
+      vi.spyOn(runner, "parseArgs").mockReturnValue({
+        mode: "help",
+        flags: [],
+      });
 
       runner.run();
 
@@ -673,9 +763,10 @@ describe("ScriptRunner", () => {
       const listAllCommandsSpy = vi
         .spyOn(runner, "listAllCommands")
         .mockImplementation(() => {});
-      const parseArgsSpy = vi
-        .spyOn(runner, "parseArgs")
-        .mockReturnValue({ mode: "list", flags: [] });
+      vi.spyOn(runner, "parseArgs").mockReturnValue({
+        mode: "list",
+        flags: [],
+      });
 
       runner.run();
 
@@ -686,9 +777,10 @@ describe("ScriptRunner", () => {
       const showInteractiveMenuSpy = vi
         .spyOn(runner, "showInteractiveMenu")
         .mockImplementation(async () => {});
-      const parseArgsSpy = vi
-        .spyOn(runner, "parseArgs")
-        .mockReturnValue({ mode: "interactive", flags: [] });
+      vi.spyOn(runner, "parseArgs").mockReturnValue({
+        mode: "interactive",
+        flags: [],
+      });
 
       runner.run();
 
@@ -699,7 +791,7 @@ describe("ScriptRunner", () => {
       const showCategorySpy = vi
         .spyOn(runner, "showCategory")
         .mockImplementation(async () => {});
-      const parseArgsSpy = vi.spyOn(runner, "parseArgs").mockReturnValue({
+      vi.spyOn(runner, "parseArgs").mockReturnValue({
         mode: "category",
         category: "test",
         flags: [],
@@ -714,7 +806,7 @@ describe("ScriptRunner", () => {
       const executeCommandSpy = vi
         .spyOn(runner, "executeCommand")
         .mockImplementation(() => {});
-      const parseArgsSpy = vi.spyOn(runner, "parseArgs").mockReturnValue({
+      vi.spyOn(runner, "parseArgs").mockReturnValue({
         mode: "direct",
         category: "test",
         action: "unit",
@@ -730,8 +822,13 @@ describe("ScriptRunner", () => {
       const showHelpSpy = vi
         .spyOn(runner, "showHelp")
         .mockImplementation(() => {});
-      const parseArgsSpy = vi.spyOn(runner, "parseArgs").mockReturnValue({
-        mode: "unknown" as any,
+      vi.spyOn(runner, "parseArgs").mockReturnValue({
+        mode: "unknown" as unknown as
+          | "help"
+          | "list"
+          | "interactive"
+          | "category"
+          | "direct",
         flags: [],
       });
 
@@ -785,7 +882,7 @@ describe("ScriptRunner", () => {
     it("should gracefully handle empty category list", () => {
       // Create runner with empty categories for this test
       const emptyRunner = new ScriptRunner();
-      (emptyRunner as any).categories = [];
+      (emptyRunner as unknown as { categories: unknown[] }).categories = [];
 
       expect(() => {
         emptyRunner.showCategory("test");

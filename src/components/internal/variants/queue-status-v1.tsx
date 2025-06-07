@@ -72,13 +72,14 @@ export function QueueStatusV1({
     return () => clearTimeout(timer);
   }, [queueItems]);
 
-  const activeItems = queueItems.filter((item) =>
-    ["scraping", "summarizing", "generating-audio", "uploading"].includes(
-      item.status
-    )
-  );
+  // TODO: Use activeItems and pendingItems for separate sections
+  // const activeItems = queueItems.filter((item) =>
+  //   ["scraping", "summarizing", "generating-audio", "uploading"].includes(
+  //     item.status
+  //   )
+  // );
 
-  const pendingItems = queueItems.filter((item) => item.status === "pending");
+  // const pendingItems = queueItems.filter((item) => item.status === "pending");
   const visibleItems = queueItems.slice(0, maxVisible);
   const remainingCount = Math.max(0, queueItems.length - maxVisible);
 

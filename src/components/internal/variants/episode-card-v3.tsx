@@ -1,21 +1,8 @@
 "use client";
 
-import {
-  Play,
-  Pause,
-  Clock,
-  Headphones,
-  MoreHorizontal,
-  Circle,
-} from "lucide-react";
+import { Play } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
-import {
-  Episode,
-  formatDuration,
-  getStatusColor,
-  getStatusText,
-} from "@/lib/mock-data/episodes";
+import { Episode } from "@/lib/mock-data/episodes";
 
 interface EpisodeCardV3Props {
   episode?: Episode;

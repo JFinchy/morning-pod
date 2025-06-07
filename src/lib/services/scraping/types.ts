@@ -68,9 +68,9 @@ export abstract class BaseScraper {
 
   abstract scrape(): Promise<ScrapingResult>;
 
-  abstract validateContent(content: any): boolean;
+  abstract validateContent(content: unknown): boolean;
 
-  abstract transformContent(rawContent: any): ScrapedContent[];
+  abstract transformContent(rawContent: unknown): ScrapedContent[];
 
   // Rate limiting helper
   protected async rateLimit(): Promise<void> {
