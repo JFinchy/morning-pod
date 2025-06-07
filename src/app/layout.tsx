@@ -1,17 +1,16 @@
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
-import type { Metadata } from "next";
+import { type Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "react-hot-toast";
 
+import { StagewiseToolbar } from "@stagewise/toolbar-next";
+
 import "./globals.css";
 import { PerformanceMonitor } from "@/components/ui/performance-monitor";
-
+import { PostHogProvider } from "../components/providers/PostHogProvider";
 import { FeatureFlagProvider } from "../lib/feature-flags/provider";
 import { TRPCProvider } from "../lib/trpc/provider";
-
-import { StagewiseToolbar } from "@stagewise/toolbar-next";
-import { PostHogProvider } from "../components/providers/PostHogProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

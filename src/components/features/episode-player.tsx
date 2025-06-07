@@ -3,7 +3,7 @@
 import { Play, Pause, Volume2, Shuffle, Repeat, Heart } from "lucide-react";
 import { useState, useRef } from "react";
 
-import { Episode } from "@/lib/mock-data/episodes";
+import { type Episode } from "@/lib/mock-data/episodes";
 
 interface EpisodePlayerProps {
   episode: Episode;

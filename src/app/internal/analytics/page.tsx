@@ -22,11 +22,14 @@ export default function AnalyticsPage() {
     track,
     trackPageView,
     trackInteraction,
-    trackError,
-    trackPerformance,
+    trackError: _trackError,
+    trackPerformance: _trackPerformance,
   } = useEventTracking();
-  const { trackFeatureFlag, trackExperimentView, trackExperimentConversion } =
-    useFeatureFlagAnalytics();
+  const {
+    trackFeatureFlag: _trackFeatureFlag,
+    trackExperimentView: _trackExperimentView,
+    trackExperimentConversion: _trackExperimentConversion,
+  } = useFeatureFlagAnalytics();
   const {
     trackGenerationStarted,
     trackGenerationCompleted,
@@ -35,10 +38,10 @@ export default function AnalyticsPage() {
     trackAudioGenerated,
   } = usePodcastAnalytics();
   const {
-    trackEpisodePlayed,
-    trackEpisodePaused,
-    trackEpisodeCompleted,
-    trackEpisodeDownloaded,
+    trackEpisodePlayed: _trackEpisodePlayed,
+    trackEpisodePaused: _trackEpisodePaused,
+    trackEpisodeCompleted: _trackEpisodeCompleted,
+    trackEpisodeDownloaded: _trackEpisodeDownloaded,
   } = usePlayerAnalytics();
 
   // Test functions

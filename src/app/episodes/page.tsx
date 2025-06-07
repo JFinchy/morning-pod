@@ -15,10 +15,7 @@ import { EpisodeCard } from "@/components/features";
 import { MainLayout } from "@/components/layouts";
 import { Button } from "@/components/ui";
 import ErrorBoundary from "@/components/ui/error-boundary";
-import {
-  EpisodeListSkeleton,
-  StatsCardSkeleton,
-} from "@/components/ui/loading-skeleton";
+import { EpisodeListSkeleton } from "@/components/ui/loading-skeleton";
 import { api, handleTRPCError } from "@/lib/trpc/client";
 import { sanitizeString } from "@/lib/utils/api-middleware";
 import { usePerformanceTracking } from "@/lib/utils/performance";
@@ -224,9 +221,9 @@ export default function EpisodesPage() {
           </div>
 
           {/* Episodes Grid/List */}
-          {isLoading ? (
-            <EpisodeListSkeleton count={6} />
-          ) : filteredEpisodes.length === 0 ? (
+          {isLoading && <EpisodeListSkeleton count={6} />}
+
+          {!isLoading && filteredEpisodes.length === 0 && (
             <div className="text-center py-12">
               <div className="text-base-content/50 mb-2">
                 <Search className="w-12 h-12 mx-auto mb-4" />
@@ -240,7 +237,9 @@ export default function EpisodesPage() {
                   : "No episodes have been generated yet"}
               </p>
             </div>
-          ) : (
+          )}
+
+          {!isLoading && filteredEpisodes.length > 0 && (
             <div
               className={
                 viewMode === "grid"

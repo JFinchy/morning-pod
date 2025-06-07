@@ -11,6 +11,8 @@ const compat = new FlatCompat({
 
 const eslintConfig = [
   ...compat.extends("next/core-web-vitals", "next/typescript"),
+  
+  // Main configuration for all files
   {
     files: ["**/*.{js,mjs,cjs,ts,jsx,tsx}"],
     languageOptions: {
@@ -18,20 +20,40 @@ const eslintConfig = [
       sourceType: "module",
     },
     rules: {
-      // TypeScript specific rules
+      // Enhanced TypeScript rules
       "@typescript-eslint/no-unused-vars": [
         "warn",
-        { argsIgnorePattern: "^_" },
+        { 
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          caughtErrorsIgnorePattern: "^_",
+        },
       ],
       "@typescript-eslint/no-explicit-any": "warn",
+      "@typescript-eslint/consistent-type-definitions": ["warn", "interface"],
+      "@typescript-eslint/consistent-type-imports": [
+        "warn",
+        { prefer: "type-imports", fixStyle: "inline-type-imports" },
+      ],
 
-      // React specific rules
+      // Enhanced React rules
       "react/prop-types": "off", // We use TypeScript for prop validation
       "react/react-in-jsx-scope": "off", // Not needed in Next.js
       "react-hooks/rules-of-hooks": "error",
       "react-hooks/exhaustive-deps": "warn",
+      "react/self-closing-comp": "warn",
+      "react/jsx-curly-brace-presence": ["warn", "never"],
+      "react/jsx-boolean-value": ["warn", "never"],
+      "react/jsx-fragments": ["warn", "syntax"],
+      "react/jsx-no-useless-fragment": "warn",
 
-      // Import/Export rules
+      // Enhanced import rules
+      "import/no-unused-modules": "off", // Can be noisy during development
+      "import/no-duplicates": "error",
+      "import/no-self-import": "error",
+      "import/no-cycle": "warn",
+      "import/no-useless-path-segments": "warn",
+      "import/consistent-type-specifier-style": ["warn", "prefer-inline"],
       "import/order": [
         "warn",
         {
@@ -50,27 +72,66 @@ const eslintConfig = [
           },
         },
       ],
-      "import/no-unused-modules": "off", // Can be noisy during development
 
-      // General code quality
+      // Enhanced general code quality rules
       "no-console": "warn",
       "no-debugger": "warn",
       "prefer-const": "error",
       "no-var": "error",
+      "object-shorthand": "warn",
+      "prefer-template": "warn",
+      "prefer-arrow-callback": "warn",
+      "prefer-destructuring": [
+        "warn",
+        {
+          array: true,
+          object: true,
+        },
+        {
+          enforceForRenamedProperties: false,
+        },
+      ],
+      "no-nested-ternary": "warn",
+      "no-unneeded-ternary": "warn",
+      "no-else-return": "warn",
+      "prefer-exponentiation-operator": "warn",
+      "prefer-numeric-literals": "warn",
+      "prefer-object-spread": "warn",
+      "prefer-rest-params": "warn",
+      "prefer-spread": "warn",
+      "yoda": "warn",
 
-      // Accessibility (basic checks)
+
+      // Enhanced accessibility rules
       "jsx-a11y/alt-text": "warn",
       "jsx-a11y/anchor-is-valid": "warn",
+      "jsx-a11y/aria-props": "error",
+      "jsx-a11y/aria-proptypes": "error",
+      "jsx-a11y/aria-unsupported-elements": "error",
+      "jsx-a11y/role-has-required-aria-props": "error",
+      "jsx-a11y/role-supports-aria-props": "error",
     },
   },
+
+  // File-specific overrides
   {
     files: [
       "**/*.config.{js,mjs,ts}",
       "**/scripts/**",
       "**/*.test.{js,ts,tsx}",
+      "**/*.spec.{js,ts,tsx}",
     ],
     rules: {
       "no-console": "off", // Allow console in config files and tests
+      "@typescript-eslint/no-explicit-any": "off", // Tests might need any for mocking
+    },
+  },
+
+  // API routes specific rules
+  {
+    files: ["src/app/api/**/*.{js,ts}"],
+    rules: {
+      "no-console": "off", // API routes might need console for logging
     },
   },
 ];

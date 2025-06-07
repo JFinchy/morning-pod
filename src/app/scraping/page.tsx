@@ -11,14 +11,15 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 
-import type { ScrapedContent } from "../../lib/services/scraping/types";
 import { api } from "../../lib/trpc/client";
+
+import { type ScrapedContent } from "../../lib/services/scraping/types";
 
 export default function ScrapingPage() {
   const [selectedSource, setSelectedSource] = useState<string>("");
 
   // Queries
-  const { data: availableScrapers, refetch: refetchScrapers } =
+  const { data: availableScrapers, refetch: _refetchScrapers } =
     api.scraping.getAvailableScrapers.useQuery();
   const { data: cachedContent, refetch: refetchCached } =
     api.scraping.getCachedContent.useQuery();

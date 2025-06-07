@@ -14,8 +14,8 @@ import { EpisodeCard } from "@/components/features";
 import { ApiTest } from "@/components/features/api-test";
 import { MainLayout } from "@/components/layouts";
 import { Button } from "@/components/ui";
+import { type Episode } from "@/lib/mock-data";
 import {
-  Episode,
   mockEpisodes,
   mockSources,
   mockGenerationStats,
@@ -70,6 +70,34 @@ export default async function Home() {
   // Convert to UI format (episodes are already in correct format if from mock data)
   const episodes = rawEpisodes as Episode[];
 
+  // Helper functions for cleaner conditional logic
+  const getQueueItemsValue = () => {
+    if (!queueStats) return 0;
+    if ("total" in queueStats) return queueStats.total;
+    return queueStats.totalInQueue;
+  };
+
+  const getQueueItemsChange = () => {
+    if (!queueStats) return null;
+    if ("active" in queueStats) {
+      return queueStats.active ? `${queueStats.active} processing` : null;
+    }
+    return queueStats.currentlyProcessing
+      ? `${queueStats.currentlyProcessing} processing`
+      : null;
+  };
+
+  const getSuccessRateValue = () => {
+    if (!queueStats) return "0%";
+    if ("successRate" in queueStats) {
+      return `${Math.round((queueStats.successRate || 0) * 100)}%`;
+    }
+    if (queueStats.total > 0) {
+      return `${Math.round((queueStats.completed / queueStats.total) * 100)}%`;
+    }
+    return "0%";
+  };
+
   const quickStats = [
     {
       label: "Episodes Today",
@@ -91,32 +119,14 @@ export default async function Home() {
     },
     {
       label: "Queue Items",
-      value: queueStats
-        ? "total" in queueStats
-          ? queueStats.total
-          : queueStats.totalInQueue
-        : 0,
+      value: getQueueItemsValue(),
       icon: Clock,
       color: "text-warning",
-      change: queueStats
-        ? "active" in queueStats
-          ? queueStats.active
-            ? `${queueStats.active} processing`
-            : null
-          : queueStats.currentlyProcessing
-            ? `${queueStats.currentlyProcessing} processing`
-            : null
-        : null,
+      change: getQueueItemsChange(),
     },
     {
       label: "Success Rate",
-      value: queueStats
-        ? "successRate" in queueStats
-          ? `${Math.round((queueStats.successRate || 0) * 100)}%`
-          : queueStats.total > 0
-            ? `${Math.round((queueStats.completed / queueStats.total) * 100)}%`
-            : "0%"
-        : "0%",
+      value: getSuccessRateValue(),
       icon: CheckCircle,
       color: "text-info",
       change: "Last 7 days",

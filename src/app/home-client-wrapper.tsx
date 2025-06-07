@@ -1,7 +1,7 @@
 "use client";
 
-import { Episode } from "@/lib/mock-data/episodes";
-import { GenerationStats } from "@/lib/mock-data/queue";
+import { type Episode } from "@/lib/mock-data/episodes";
+import { type GenerationStats } from "@/lib/mock-data/queue";
 
 interface HomeClientWrapperProps {
   children?: React.ReactNode;
@@ -20,5 +20,5 @@ export function HomeClientWrapper({
   // For now, it's just a placeholder for future interactive features
   // like real-time updates, notifications, etc.
 
-  return <>{children}</>;
+  return children;
 }
