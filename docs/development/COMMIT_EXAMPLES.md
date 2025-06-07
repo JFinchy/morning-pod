@@ -82,7 +82,7 @@ build: configure Vercel deployment settings
 ## Rules Enforced by Commitlint
 
 - **Required**: type and description
-- **Max length**: 100 characters for header
+- **Max length**: 200 characters for header
 - **No period**: at end of subject line
 - **Case**: subject should be lowercase (except proper nouns)
 - **Types allowed**: feat, fix, docs, style, refactor, perf, test, chore, ci, build, revert

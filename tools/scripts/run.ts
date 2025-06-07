@@ -50,7 +50,7 @@ export class ScriptRunner {
         {
           name: "start",
           description: "Start development server with Turbopack",
-          command: "bun run next dev --turbopack",
+          command: "bun run next dev --turbo",
         },
         {
           name: "build",
@@ -343,6 +343,9 @@ export class ScriptRunner {
           "--debug": "e2e:debug",
           "--headed": "e2e:headed",
           "--visual": "e2e:visual",
+          "--e2e-ui": "e2e:ui",
+          "--e2e-perf": "e2e:perf",
+          "--e2e-visual": "e2e:visual",
           "--performance": "performance",
           "--all": "--all",
         },
@@ -480,7 +483,7 @@ Examples:
 
     const categoryOptions = this.categories.map((category) => ({
       value: category.name,
-      label: `${category.icon} ${category.description}`,
+      name: `${category.icon} ${category.description}`,
     }));
 
     let selectedCategory;
@@ -491,7 +494,7 @@ Examples:
           const filtered = categoryOptions.filter((option) => {
             const searchTerm = (input || "").toLowerCase();
             return (
-              option.label.toLowerCase().includes(searchTerm) ||
+              option.name.toLowerCase().includes(searchTerm) ||
               option.value.toLowerCase().includes(searchTerm)
             );
           });
@@ -528,9 +531,9 @@ Examples:
     const options = [
       ...category.commands.map((cmd) => ({
         value: cmd.name,
-        label: `${cmd.name} - ${cmd.description}`,
+        name: `${cmd.name} - ${cmd.description}`,
       })),
-      { value: "--all", label: "Run all commands in this category" },
+      { value: "--all", name: "Run all commands in this category" },
     ];
 
     let selected;
@@ -541,7 +544,7 @@ Examples:
           const filtered = options.filter((option) => {
             const searchTerm = (input || "").toLowerCase();
             return (
-              option.label.toLowerCase().includes(searchTerm) ||
+              option.name.toLowerCase().includes(searchTerm) ||
               option.value.toLowerCase().includes(searchTerm)
             );
           });

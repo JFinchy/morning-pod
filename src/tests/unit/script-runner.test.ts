@@ -1,4 +1,12 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import {
+  describe,
+  it,
+  expect,
+  vi,
+  beforeEach,
+  afterEach,
+  afterAll,
+} from "vitest";
 
 // Mock child_process module
 vi.mock("child_process", async (importOriginal) => {
@@ -22,6 +30,7 @@ const consoleSpy = {
 };
 
 // Mock process.exit
+const originalExit = process.exit;
 const processExitSpy = vi.spyOn(process, "exit").mockImplementation(() => {
   throw new Error("process.exit unexpectedly called");
 });
@@ -45,6 +54,10 @@ describe("ScriptRunner", () => {
   afterEach(() => {
     process.argv = originalArgv;
     vi.clearAllMocks();
+  });
+
+  afterAll(() => {
+    (process.exit as any) = originalExit;
   });
 
   describe("parseArgs", () => {

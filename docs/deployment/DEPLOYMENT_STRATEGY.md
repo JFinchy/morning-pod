@@ -152,12 +152,13 @@ jobs:
 
 ```typescript
 // Example monitoring logic
-const errorRate = await getErrorRate('last-10-minutes')
-const performanceScore = await getCoreWebVitals()
+const errorRate = await getErrorRate("last-10-minutes");
+const performanceScore = await getCoreWebVitals();
 
-if (errorRate > 5% || performanceScore.fcp > 2000) {
-  await rollbackFeatureFlag('new-feature')
-  await sendAlert('Feature rolled back due to metrics threshold')
+// Error rate threshold: 5% (0.05), FCP threshold: 2000ms
+if (errorRate > 0.05 || performanceScore.fcpMs > 2000) {
+  await rollbackFeatureFlag("new-feature");
+  await sendAlert("Feature rolled back due to metrics threshold");
 }
 ```
 

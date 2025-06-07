@@ -1,16 +1,17 @@
 import { defineConfig, devices } from "@playwright/test";
+import path from "path";
 
 /**
  * See https://playwright.dev/docs/test-configuration.
  */
 export default defineConfig({
-  testDir: "../../src/tests/e2e",
+  testDir: path.resolve(__dirname, "../../src/tests/e2e"),
 
   /* Output directories */
-  outputDir: "./test-results",
+  outputDir: path.resolve(__dirname, "./test-results"),
 
   /* Run tests in files in parallel - reduced for Mac M1X performance */
-  fullyParallel: true,
+  fullyParallel: !process.env.CI,
 
   /* Fail the build on CI if you accidentally left test.only in the source code. */
   forbidOnly: !!process.env.CI,
