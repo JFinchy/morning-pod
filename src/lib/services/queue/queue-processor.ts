@@ -225,23 +225,25 @@ export class QueueProcessor extends EventEmitter {
       // Step 2: Summarize content
       await this.updateProgress(job.queueItem.id, "summarizing", 40);
 
+      const firstContent = scrapedContent[0];
       const summarizationResult =
         await this.summarizationService.generateSummary({
-          content: scrapedContent,
-          options: {
-            targetLength: "medium",
-            includeSpeakerNotes: true,
-            style: "conversational",
-          },
+          title: firstContent.title,
+          content: firstContent.content,
+          source: firstContent.source,
+          url: firstContent.url,
         });
 
-      totalCost += summarizationResult.cost || 0;
+      totalCost += summarizationResult.cost.totalCost || 0;
 
       // Step 3: Generate audio
       await this.updateProgress(job.queueItem.id, "generating-audio", 70);
 
       const ttsResult = await this.ttsService.generateSpeech({
-        text: summarizationResult.summary || "",
+        text:
+          summarizationResult.summary.ttsOptimizedContent ||
+          summarizationResult.summary.summary ||
+          "",
         options: {
           voice: "alloy",
           model: "tts-1",

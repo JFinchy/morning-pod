@@ -1,365 +1,528 @@
 "use client";
 
+import { useState } from "react";
 import {
-  X,
-  Plus,
-  Play,
-  Clock,
-  CheckCircle,
-  AlertCircle,
-  Globe,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  Button,
+  Progress,
+} from "@/components/ui";
+import {
   Loader2,
+  Play,
+  Download,
+  Share,
+  AlertCircle,
+  CheckCircle,
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { z } from "zod";
 
-import { Button, Dialog, DialogContent, DialogTrigger } from "@/components/ui";
+/**
+ * Generation request validation
+ */
+const GenerationRequestSchema = z.object({
+  sourceUrl: z.string().url("Please enter a valid URL"),
+  voice: z
+    .enum(["alloy", "echo", "fable", "onyx", "nova", "shimmer"])
+    .default("alloy"),
+  model: z.enum(["tts-1", "tts-1-hd"]).default("tts-1"),
+  title: z.string().optional(),
+});
 
-interface Source {
-  id: string;
-  name: string;
-  url: string;
-  category: string;
+type GenerationRequest = z.infer<typeof GenerationRequestSchema>;
+
+/**
+ * Voice options with descriptions
+ */
+const VOICE_OPTIONS = [
+  { value: "alloy", label: "Alloy - Neutral, professional" },
+  { value: "echo", label: "Echo - Warm, conversational" },
+  { value: "fable", label: "Fable - Expressive, storytelling" },
+  { value: "onyx", label: "Onyx - Deep, authoritative" },
+  { value: "nova", label: "Nova - Bright, energetic" },
+  { value: "shimmer", label: "Shimmer - Soft, gentle" },
+] as const;
+
+/**
+ * Model options
+ */
+const MODEL_OPTIONS = [
+  { value: "tts-1", label: "Standard Quality - Faster, lower cost" },
+  { value: "tts-1-hd", label: "HD Quality - Higher quality, 2x cost" },
+] as const;
+
+/**
+ * Generation progress stages
+ */
+interface GenerationProgress {
+  stage:
+    | "scraping"
+    | "summarizing"
+    | "generating_audio"
+    | "saving"
+    | "complete"
+    | "error";
+  progress: number;
+  message: string;
+  details?: string;
+  cost?: number;
 }
 
-interface GenerationStep {
-  name: string;
-  status: "pending" | "active" | "completed" | "failed";
-  message?: string;
+/**
+ * Generated episode result
+ */
+interface GeneratedEpisode {
+  id: string;
+  title: string;
+  summary: string;
+  audioUrl: string;
+  duration: number;
+  cost: number;
 }
 
 interface GenerationModalProps {
-  isOpen: boolean;
-  onClose: () => void;
+  onEpisodeGenerated?: (episode: GeneratedEpisode) => void;
+  trigger?: React.ReactNode;
 }
 
-export function GenerationModal({ isOpen, onClose }: GenerationModalProps) {
-  const [sources, setSources] = useState<Source[]>([]);
-  const [selectedSource, setSelectedSource] = useState<string>("");
+/**
+ * Generation Modal Component
+ */
+export function GenerationModal({
+  onEpisodeGenerated,
+  trigger,
+}: GenerationModalProps) {
+  const [isOpen, setIsOpen] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [generationSteps, setGenerationSteps] = useState<GenerationStep[]>([]);
-  const [generationResult, setGenerationResult] = useState<any>(null);
-  const [error, setError] = useState<string>("");
+  const [formData, setFormData] = useState<GenerationRequest>({
+    sourceUrl: "",
+    voice: "alloy",
+    model: "tts-1",
+    title: "",
+  });
+  const [progress, setProgress] = useState<GenerationProgress | null>(null);
+  const [generatedEpisode, setGeneratedEpisode] =
+    useState<GeneratedEpisode | null>(null);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [estimatedCost, setEstimatedCost] = useState<number | null>(null);
 
-  // Initial generation steps
-  const initialSteps: GenerationStep[] = [
-    { name: "Source Verification", status: "pending" },
-    { name: "Content Scraping", status: "pending" },
-    { name: "AI Summarization", status: "pending" },
-    { name: "Text-to-Speech", status: "pending" },
-    { name: "Audio Storage", status: "pending" },
-    { name: "Database Save", status: "pending" },
-  ];
-
-  // Fetch available sources when modal opens
-  useEffect(() => {
-    if (isOpen) {
-      fetchSources();
-      resetState();
-    }
-  }, [isOpen]);
-
-  const resetState = () => {
-    setSelectedSource("");
-    setIsGenerating(false);
-    setGenerationSteps(initialSteps);
-    setGenerationResult(null);
-    setError("");
-  };
-
-  const fetchSources = async () => {
+  /**
+   * Validate form data
+   */
+  const validateForm = (): boolean => {
     try {
-      const response = await fetch("/api/episodes/generate?action=sources");
-      const data = await response.json();
-
-      if (data.success) {
-        setSources(data.sources);
-        // Auto-select first source if available
-        if (data.sources.length > 0) {
-          setSelectedSource(data.sources[0].id);
-        }
-      } else {
-        setError("Failed to load sources");
+      GenerationRequestSchema.parse(formData);
+      setErrors({});
+      return true;
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const newErrors: Record<string, string> = {};
+        error.errors.forEach((err) => {
+          if (err.path[0]) {
+            newErrors[err.path[0] as string] = err.message;
+          }
+        });
+        setErrors(newErrors);
       }
-    } catch (err) {
-      setError("Network error loading sources");
-      console.error("Error fetching sources:", err);
+      return false;
     }
   };
 
+  /**
+   * Estimate generation cost
+   */
+  const estimateCost = (url: string) => {
+    if (!url) {
+      setEstimatedCost(null);
+      return;
+    }
+
+    const baseEstimate = formData.model === "tts-1-hd" ? 0.06 : 0.03;
+    setEstimatedCost(baseEstimate);
+  };
+
+  /**
+   * Handle form input changes
+   */
+  const handleInputChange = (field: keyof GenerationRequest, value: string) => {
+    const newFormData = { ...formData, [field]: value };
+    setFormData(newFormData);
+
+    if (errors[field]) {
+      setErrors((prev) => ({ ...prev, [field]: "" }));
+    }
+
+    if (field === "sourceUrl" || field === "model") {
+      estimateCost(field === "sourceUrl" ? value : newFormData.sourceUrl);
+    }
+  };
+
+  /**
+   * Start episode generation
+   */
   const startGeneration = async () => {
-    if (!selectedSource) {
-      setError("Please select a news source");
+    if (!validateForm()) {
       return;
     }
 
     setIsGenerating(true);
-    setError("");
-    setGenerationResult(null);
-
-    // Reset steps to pending
-    setGenerationSteps(initialSteps);
+    setProgress({
+      stage: "scraping",
+      progress: 0,
+      message: "Starting generation...",
+    });
+    setGeneratedEpisode(null);
 
     try {
       const response = await fetch("/api/episodes/generate", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          sourceId: selectedSource,
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
       });
 
-      const result = await response.json();
-      setGenerationResult(result);
-
-      if (result.success) {
-        // Mark all steps as completed on success
-        setGenerationSteps((steps) =>
-          steps.map((step) => ({
-            ...step,
-            status: "completed",
-            message: "Step completed successfully",
-          }))
-        );
-      } else {
-        // Handle partial completion and errors
-        if (result.steps) {
-          updateStepsFromResult(result.steps);
-        }
-        setError(result.error || "Generation failed");
+      if (!response.ok) {
+        throw new Error(`Generation failed: ${response.statusText}`);
       }
-    } catch (err) {
-      setError("Network error during generation");
-      console.error("Generation error:", err);
 
-      // Mark first step as failed
-      setGenerationSteps((steps) =>
-        steps.map((step, index) =>
-          index === 0
-            ? { ...step, status: "failed", message: "Network error" }
-            : step
-        )
-      );
+      const reader = response.body?.getReader();
+      if (!reader) {
+        throw new Error("No response stream available");
+      }
+
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() || "";
+
+        for (const line of lines) {
+          if (line.startsWith("data: ")) {
+            try {
+              const data = JSON.parse(line.slice(6));
+
+              if (data.type === "progress") {
+                setProgress({
+                  stage: data.stage,
+                  progress: data.progress,
+                  message: data.message,
+                  details: data.details,
+                  cost: data.cost,
+                });
+              } else if (data.type === "complete") {
+                setGeneratedEpisode(data.episode);
+                setProgress({
+                  stage: "complete",
+                  progress: 100,
+                  message: "Episode generated successfully!",
+                  cost: data.episode.cost,
+                });
+
+                if (onEpisodeGenerated) {
+                  onEpisodeGenerated(data.episode);
+                }
+              } else if (data.type === "error") {
+                throw new Error(data.message);
+              }
+            } catch (parseError) {
+              console.error("Failed to parse SSE data:", parseError);
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Generation failed:", error);
+      setProgress({
+        stage: "error",
+        progress: 0,
+        message: "Generation failed",
+        details: error instanceof Error ? error.message : "Unknown error",
+      });
     } finally {
       setIsGenerating(false);
     }
   };
 
-  const updateStepsFromResult = (resultSteps: any) => {
-    const stepMapping = {
-      scraping: 0,
-      summarization: 1,
-      tts: 2,
-      storage: 3,
-      database: 4,
-    };
-
-    setGenerationSteps((steps) => {
-      const newSteps = [...steps];
-
-      Object.entries(resultSteps).forEach(
-        ([stepName, stepResult]: [string, any]) => {
-          const stepIndex = stepMapping[stepName as keyof typeof stepMapping];
-          if (stepIndex !== undefined) {
-            newSteps[stepIndex] = {
-              ...newSteps[stepIndex],
-              status: stepResult.success ? "completed" : "failed",
-              message:
-                stepResult.error ||
-                (stepResult.success ? "Completed" : "Failed"),
-            };
-          }
-        }
-      );
-
-      return newSteps;
+  /**
+   * Reset modal state
+   */
+  const resetModal = () => {
+    setFormData({
+      sourceUrl: "",
+      voice: "alloy",
+      model: "tts-1",
+      title: "",
     });
+    setProgress(null);
+    setGeneratedEpisode(null);
+    setErrors({});
+    setEstimatedCost(null);
+    setIsGenerating(false);
   };
 
-  const getStepIcon = (step: GenerationStep) => {
-    switch (step.status) {
-      case "completed":
-        return <CheckCircle className="w-5 h-5 text-success" />;
-      case "failed":
-        return <AlertCircle className="w-5 h-5 text-error" />;
-      case "active":
-        return <Loader2 className="w-5 h-5 text-primary animate-spin" />;
+  /**
+   * Handle modal close
+   */
+  const handleClose = () => {
+    if (!isGenerating) {
+      setIsOpen(false);
+      resetModal();
+    }
+  };
+
+  /**
+   * Get progress stage display info
+   */
+  const getStageInfo = (stage: GenerationProgress["stage"]) => {
+    switch (stage) {
+      case "scraping":
+        return { label: "Scraping Content", color: "text-blue-600" };
+      case "summarizing":
+        return { label: "AI Summarization", color: "text-purple-600" };
+      case "generating_audio":
+        return { label: "Generating Audio", color: "text-green-600" };
+      case "saving":
+        return { label: "Saving Episode", color: "text-orange-600" };
+      case "complete":
+        return { label: "Complete", color: "text-green-700" };
+      case "error":
+        return { label: "Error", color: "text-red-600" };
       default:
-        return <Clock className="w-5 h-5 text-base-content/40" />;
+        return { label: "Processing", color: "text-gray-600" };
     }
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent size="lg" className="max-w-2xl">
-        <div className="p-6">
-          {/* Header */}
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h2 className="text-2xl font-bold text-base-content">
-                Generate New Episode
-              </h2>
-              <p className="text-base-content/70">
-                Create an AI-powered podcast episode from your news sources
-              </p>
-            </div>
-            <Button
-              btnStyle="ghost"
-              size="sm"
-              onClick={onClose}
-              className="btn-circle"
-            >
-              <X className="w-5 h-5" />
-            </Button>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogTrigger asChild>
+        {trigger || (
+          <Button className="btn btn-primary">Generate Episode</Button>
+        )}
+      </DialogTrigger>
+
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="text-2xl font-bold">
+            Generate New Episode
+          </DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-6">
+          {/* URL Input */}
+          <div className="space-y-2">
+            <label className="label">
+              <span className="label-text font-medium">Article URL</span>
+            </label>
+            <input
+              type="url"
+              placeholder="https://example.com/article"
+              className={`input input-bordered w-full ${
+                errors.sourceUrl ? "input-error" : ""
+              }`}
+              value={formData.sourceUrl}
+              onChange={(e) => handleInputChange("sourceUrl", e.target.value)}
+              disabled={isGenerating}
+            />
+            {errors.sourceUrl && (
+              <p className="text-error text-sm">{errors.sourceUrl}</p>
+            )}
           </div>
 
-          {/* Source Selection */}
-          {!isGenerating && !generationResult && (
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-base-content mb-2">
-                  Select News Source
-                </label>
-                <select
-                  className="select select-bordered w-full"
-                  value={selectedSource}
-                  onChange={(e) => setSelectedSource(e.target.value)}
-                >
-                  <option value="">Choose a news source...</option>
-                  {sources.map((source) => (
-                    <option key={source.id} value={source.id}>
-                      {source.name} ({source.category})
-                    </option>
-                  ))}
-                </select>
-              </div>
+          {/* Title Input */}
+          <div className="space-y-2">
+            <label className="label">
+              <span className="label-text font-medium">
+                Custom Title (Optional)
+              </span>
+            </label>
+            <input
+              type="text"
+              placeholder="Leave empty to auto-generate"
+              className="input input-bordered w-full"
+              value={formData.title}
+              onChange={(e) => handleInputChange("title", e.target.value)}
+              disabled={isGenerating}
+            />
+          </div>
 
-              {error && (
-                <div className="alert alert-error">
-                  <AlertCircle className="w-5 h-5" />
-                  <span>{error}</span>
-                </div>
-              )}
+          {/* Voice Selection */}
+          <div className="space-y-2">
+            <label className="label">
+              <span className="label-text font-medium">Voice</span>
+            </label>
+            <select
+              className="select select-bordered w-full"
+              value={formData.voice}
+              onChange={(e) => handleInputChange("voice", e.target.value)}
+              disabled={isGenerating}
+            >
+              {VOICE_OPTIONS.map((voice) => (
+                <option key={voice.value} value={voice.value}>
+                  {voice.label}
+                </option>
+              ))}
+            </select>
+          </div>
 
-              <div className="flex gap-3 pt-4">
-                <Button
-                  variant="primary"
-                  onClick={startGeneration}
-                  disabled={!selectedSource}
-                  className="gap-2"
-                >
-                  <Play className="w-4 h-4" />
-                  Generate Episode
-                </Button>
-                <Button btnStyle="ghost" onClick={onClose}>
-                  Cancel
-                </Button>
-              </div>
+          {/* Model Selection */}
+          <div className="space-y-2">
+            <label className="label">
+              <span className="label-text font-medium">Quality</span>
+            </label>
+            <select
+              className="select select-bordered w-full"
+              value={formData.model}
+              onChange={(e) => handleInputChange("model", e.target.value)}
+              disabled={isGenerating}
+            >
+              {MODEL_OPTIONS.map((model) => (
+                <option key={model.value} value={model.value}>
+                  {model.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Cost Estimation */}
+          {estimatedCost && (
+            <div className="alert alert-info">
+              <span className="text-sm">
+                Estimated cost: <strong>${estimatedCost.toFixed(3)}</strong>
+              </span>
             </div>
           )}
 
-          {/* Generation Progress */}
-          {(isGenerating || generationResult) && (
-            <div className="space-y-4">
-              <div className="mb-4">
-                <h3 className="text-lg font-semibold text-base-content mb-2">
-                  Generation Progress
-                </h3>
-                <p className="text-sm text-base-content/70">
-                  {isGenerating
-                    ? "Processing your episode..."
-                    : generationResult?.success
-                      ? "Episode generated successfully!"
-                      : "Generation completed with errors"}
-                </p>
-              </div>
-
-              {/* Steps */}
-              <div className="space-y-3">
-                {generationSteps.map((step, index) => (
-                  <div
-                    key={index}
-                    className={`flex items-center gap-3 p-3 rounded-lg ${
-                      step.status === "completed"
-                        ? "bg-success/10"
-                        : step.status === "failed"
-                          ? "bg-error/10"
-                          : step.status === "active"
-                            ? "bg-primary/10"
-                            : "bg-base-200/50"
-                    }`}
+          {/* Progress Display */}
+          {progress && (
+            <div className="space-y-4 p-4 bg-base-200 rounded-lg">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  {progress.stage === "error" ? (
+                    <AlertCircle className="w-5 h-5 text-error" />
+                  ) : progress.stage === "complete" ? (
+                    <CheckCircle className="w-5 h-5 text-success" />
+                  ) : (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  )}
+                  <span
+                    className={`font-medium ${getStageInfo(progress.stage).color}`}
                   >
-                    {getStepIcon(step)}
-                    <div className="flex-1">
-                      <p className="font-medium text-base-content">
-                        {step.name}
-                      </p>
-                      {step.message && (
-                        <p className="text-sm text-base-content/70">
-                          {step.message}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                ))}
+                    {getStageInfo(progress.stage).label}
+                  </span>
+                </div>
+                <span className="text-sm text-gray-500">
+                  {progress.progress}%
+                </span>
               </div>
 
-              {/* Results */}
-              {generationResult && (
-                <div className="mt-6 p-4 bg-base-200/50 rounded-lg">
-                  <h4 className="font-semibold text-base-content mb-2">
-                    Generation Summary
-                  </h4>
-                  <div className="text-sm text-base-content/70 space-y-1">
-                    {generationResult.success ? (
-                      <>
-                        <p>✅ Episode created successfully</p>
-                        <p>
-                          💰 Total cost: ${generationResult.totalCost || "0.00"}
-                        </p>
-                        {generationResult.episode && (
-                          <p>🎧 Episode ID: {generationResult.episode.id}</p>
-                        )}
-                      </>
-                    ) : (
-                      <>
-                        <p>❌ Generation failed: {generationResult.error}</p>
-                        {generationResult.totalCost && (
-                          <p>💰 Partial cost: ${generationResult.totalCost}</p>
-                        )}
-                      </>
-                    )}
-                  </div>
-                </div>
-              )}
+              <Progress value={progress.progress} className="w-full" />
 
-              {/* Action Buttons */}
-              <div className="flex gap-3 pt-4">
-                {!isGenerating && (
-                  <>
-                    {generationResult?.success ? (
-                      <Button variant="primary" onClick={onClose}>
-                        View Episode
-                      </Button>
-                    ) : (
-                      <Button
-                        variant="primary"
-                        onClick={() => {
-                          resetState();
-                        }}
-                      >
-                        Try Again
-                      </Button>
-                    )}
-                    <Button btnStyle="ghost" onClick={onClose}>
-                      Close
-                    </Button>
-                  </>
+              <div className="text-sm">
+                <p>{progress.message}</p>
+                {progress.details && (
+                  <p className="text-gray-500 mt-1">{progress.details}</p>
+                )}
+                {progress.cost && (
+                  <p className="text-gray-500 mt-1">
+                    Cost so far: ${progress.cost.toFixed(3)}
+                  </p>
                 )}
               </div>
             </div>
           )}
+
+          {/* Generated Episode Display */}
+          {generatedEpisode && (
+            <div className="space-y-4 p-4 bg-success/10 border border-success/20 rounded-lg">
+              <div className="flex items-center gap-2 text-success">
+                <CheckCircle className="w-5 h-5" />
+                <span className="font-medium">
+                  Episode Generated Successfully!
+                </span>
+              </div>
+
+              <div className="space-y-3">
+                <div>
+                  <h3 className="font-bold text-lg">
+                    {generatedEpisode.title}
+                  </h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    {generatedEpisode.summary.slice(0, 150)}...
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-4 text-sm text-gray-500">
+                  <span>
+                    Duration: {Math.round(generatedEpisode.duration / 60)}m
+                  </span>
+                  <span>Cost: ${generatedEpisode.cost.toFixed(3)}</span>
+                </div>
+
+                <div className="flex gap-2">
+                  <Button size="sm" className="btn btn-primary btn-sm">
+                    <Play className="w-4 h-4 mr-1" />
+                    Play
+                  </Button>
+                  <Button size="sm" className="btn btn-outline btn-sm">
+                    <Download className="w-4 h-4 mr-1" />
+                    Download
+                  </Button>
+                  <Button size="sm" className="btn btn-outline btn-sm">
+                    <Share className="w-4 h-4 mr-1" />
+                    Share
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Action Buttons */}
+          <div className="flex justify-end gap-3 pt-4">
+            <Button
+              onClick={handleClose}
+              disabled={isGenerating}
+              className="btn btn-outline"
+            >
+              {isGenerating ? "Generating..." : "Cancel"}
+            </Button>
+
+            {!generatedEpisode && (
+              <Button
+                onClick={startGeneration}
+                disabled={isGenerating || !formData.sourceUrl}
+                className="btn btn-primary"
+              >
+                {isGenerating ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Generating...
+                  </>
+                ) : (
+                  "Generate Episode"
+                )}
+              </Button>
+            )}
+
+            {generatedEpisode && (
+              <Button
+                onClick={() => {
+                  resetModal();
+                  setIsOpen(false);
+                }}
+                className="btn btn-primary"
+              >
+                Generate Another
+              </Button>
+            )}
+          </div>
         </div>
       </DialogContent>
     </Dialog>

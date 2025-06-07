@@ -22,26 +22,23 @@ export function GenerationTrigger({
   className = "",
   children,
 }: GenerationTriggerProps) {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
   return (
-    <>
-      <Button
-        variant={variant}
-        btnStyle={btnStyle}
-        size={size}
-        onClick={() => setIsModalOpen(true)}
-        className={`gap-2 ${className}`}
-      >
-        <Plus className="w-5 h-5" />
-        {children || "Generate New Episode"}
-      </Button>
-
-      <GenerationModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-      />
-    </>
+    <GenerationModal
+      trigger={
+        <Button
+          variant={variant}
+          btnStyle={btnStyle}
+          size={size}
+          className={`gap-2 ${className}`}
+        >
+          <Plus className="w-5 h-5" />
+          {children || "Generate New Episode"}
+        </Button>
+      }
+      onEpisodeGenerated={() => {
+        // Handle episode generation completion
+      }}
+    />
   );
 }
 

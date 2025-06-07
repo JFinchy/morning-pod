@@ -672,7 +672,7 @@ describe("ScriptRunner", () => {
     it("should call listAllCommands for list mode", () => {
       const listAllCommandsSpy = vi
         .spyOn(runner, "listAllCommands")
-        .mockImplementation(() => {});
+        .mockImplementation(async () => {});
       const parseArgsSpy = vi
         .spyOn(runner, "parseArgs")
         .mockReturnValue({ mode: "list", flags: [] });
@@ -685,7 +685,7 @@ describe("ScriptRunner", () => {
     it("should call showInteractiveMenu for interactive mode", () => {
       const showInteractiveMenuSpy = vi
         .spyOn(runner, "showInteractiveMenu")
-        .mockImplementation(() => {});
+        .mockImplementation(async () => {});
       const parseArgsSpy = vi
         .spyOn(runner, "parseArgs")
         .mockReturnValue({ mode: "interactive", flags: [] });
@@ -698,7 +698,7 @@ describe("ScriptRunner", () => {
     it("should call showCategory for category mode", () => {
       const showCategorySpy = vi
         .spyOn(runner, "showCategory")
-        .mockImplementation(() => {});
+        .mockImplementation(async () => {});
       const parseArgsSpy = vi.spyOn(runner, "parseArgs").mockReturnValue({
         mode: "category",
         category: "test",

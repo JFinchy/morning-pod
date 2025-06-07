@@ -279,22 +279,7 @@ export interface AIProvider {
 }
 
 // Error types
-export class SummarizationError extends Error {
-  constructor(
-    message: string,
-    public code:
-      | "RATE_LIMIT"
-      | "INVALID_INPUT"
-      | "API_ERROR"
-      | "QUALITY_THRESHOLD"
-      | "UNKNOWN",
-    public provider?: string,
-    public cost?: number
-  ) {
-    super(message);
-    this.name = "SummarizationError";
-  }
-}
+// SummarizationError is now defined in ./summarization.ts
 
 // Constants
 export const DEFAULT_CONFIG: SummarizationConfig = {
