@@ -31,6 +31,8 @@
     "test:performance": "playwright test src/tests/performance",
     "test:all": "bun test && bun test:e2e",
     "test:ci": "bun test:unit && bun test:e2e --workers=1",
+    "test:tts": "bun run scripts/test-google-tts.ts",
+    "test:tts:dry": "bun run scripts/test-google-tts-dry-run.ts",
     "lint:check": "bun run lint",
     "lint:fix": "bun run lint --fix",
     "format:check": "prettier --check .",
