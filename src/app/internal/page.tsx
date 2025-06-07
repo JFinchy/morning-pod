@@ -1,6 +1,6 @@
 "use client";
 
-import { ExternalLink, Palette, Code, Eye, BarChart3 } from "lucide-react";
+import { ExternalLink, Palette, Code, Eye } from "lucide-react";
 import Link from "next/link";
 
 import { MainLayout } from "@/components/layouts";

@@ -11,8 +11,8 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { type Episode } from "@/lib/mock-data/episodes";
 import {
-  Episode,
   formatDuration,
   getStatusColor,
   getStatusText,

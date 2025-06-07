@@ -19,11 +19,11 @@ export default function EpisodeComparisonPage() {
 
   const episode = mockEpisodes[selectedEpisode];
 
-  const handlePlay = () => {
+  const _handlePlay = () => {
     console.log("Play episode:", episode.id);
   };
 
-  const handlePause = () => {
+  const _handlePause = () => {
     console.log("Pause episode:", episode.id);
   };
 

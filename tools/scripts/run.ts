@@ -228,6 +228,22 @@ export class ScriptRunner {
           description: "Show outdated packages (Bun native)",
           command: "bun outdated",
         },
+        {
+          name: "audit",
+          description: "Check for security vulnerabilities",
+          command: "bun audit --audit-level moderate",
+        },
+        {
+          name: "audit:fix",
+          description: "Fix security vulnerabilities",
+          command: "bun audit fix",
+        },
+        {
+          name: "security:check",
+          description: "Run comprehensive security checks",
+          command:
+            "bun audit --audit-level moderate && bun run tools/scripts/run.ts quality type-check",
+        },
       ],
     },
     {
@@ -377,6 +393,9 @@ export class ScriptRunner {
           "--safe": "update:safe",
           "--doctor": "doctor",
           "--outdated": "outdated",
+          "--audit": "audit",
+          "--audit-fix": "audit:fix",
+          "--security": "security:check",
         },
         release: {
           "--changeset": "changeset",
@@ -443,6 +462,11 @@ Category Flags:
     bun run quality --format        # Format code
     bun run quality --type          # Type checking
     bun run quality --all           # All quality checks
+    
+  Dependencies & Security:
+    bun run deps --audit            # Check security vulnerabilities
+    bun run deps --security         # Comprehensive security checks
+    bun run deps --outdated         # Show outdated packages
 
 Categories:
 ${this.categories.map((cat) => `  ${cat.name.padEnd(10)} ${cat.icon} ${cat.description}`).join("\\n")}
