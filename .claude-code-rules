@@ -1,0 +1,1022 @@
+# Claude Code Development Rules - Morning Pod
+
+## Project Overview
+This is a podcast generation app that automatically creates podcast episodes from news sources using AI summarization and text-to-speech. Built with a component-first development approach optimized for AI agent collaboration, using Bun for enhanced development speed and modern production-ready practices.
+
+**CRITICAL**: These rules are synchronized with `.cursorrules`. Any updates must be made to BOTH files.
+
+## Task Management Protocol
+
+### Session Start Requirements
+**MANDATORY**: At the start of EVERY session, you must:
+1. **Read TASKS.md** completely to understand:
+   - Current active task and specific subtask
+   - What was last completed
+   - What comes next in the queue
+   - Overall project progress
+   - Any mentioned backlog items
+
+2. **Verify git status** and branch alignment:
+```bash
+git status
+# Ensure on correct feature branch matching current task
+```
+
+3. **Context awareness**: Maintain understanding of where we are in the development journey throughout the session
+
+### Task Execution Workflow
+```bash
+# 1. Start of new task (after previous merged)
+git checkout main
+git pull origin main
+git checkout -b feat/[task-name-from-TASKS.md]
+
+# 2. Work through subtasks systematically
+# 3. After completing work, prepare comprehensive review
+# 4. Wait for user approval before committing
+# 5. After approval:
+git add .
+git commit -m "feat: [specific task description]"
+
+# 6. Update TASKS.md marking items complete
+# 7. Push changes
+git push origin feat/current-branch
+```
+
+## Technology Stack
+
+### Core Framework
+- **Next.js 15** with App Router and TypeScript
+- **Tailwind CSS 4** for styling
+- **DaisyUI** for component primitives (forest theme default)
+- **Radix UI** for advanced interactive components
+- **Framer Motion** for animations
+- **Lucide React** for icons
+- **Bun** as package manager, runtime, and test runner
+
+### Backend & Database
+- **tRPC** for type-safe APIs with auto-versioning
+- **Drizzle ORM** with **Neon PostgreSQL** (serverless, branch-based)
+- **Zod 4** for schema validation
+- **BetterAuth** for authentication (if needed)
+
+### External Services
+- **OpenAI and Claude** for AI services
+- **Vercel Blob** for audio storage
+- **PostHog** for feature flags and analytics
+
+### Observability & Monitoring (Production)
+- **OpenTelemetry** for instrumentation
+- **New Relic** (free tier: 100GB/month)
+- **Pino** for structured logging
+- **Sentry** for error tracking (free tier)
+
+## Project Structure
+
+```
+morning-pod/
+├── .cursorrules                    # AI development rules and workflow
+├── .husky/                         # Git hooks for code quality
+├── .nvmrc                          # Node.js version (22)
+├── bun.config.ts                   # Bun configuration
+├── bun.lockb                       # Bun lockfile
+├── commitlint.config.js            # Commit message linting
+├── docker-compose.yml              # Local PostgreSQL for development
+├── drizzle.config.ts               # Drizzle ORM configuration
+├── eslint.config.mjs               # ESLint configuration
+├── next.config.js                  # Next.js configuration (JavaScript)
+├── package.json                    # Dependencies and scripts
+├── playwright.config.ts            # Playwright E2E testing config
+├── postcss.config.mjs              # PostCSS configuration
+├── .prettierrc & .prettierignore   # Code formatting config
+├── tsconfig.json                   # TypeScript configuration
+├── vitest.config.ts                # Vitest unit testing config
+├── README.md                       # Project documentation
+├── ENV_TEMPLATE.md                 # Environment variables template
+├── env.local.example               # Local environment example
+├── FEATURE_FLAGS.md                # Feature flag documentation
+├── VISUAL_REGRESSION_STRATEGY.md   # Visual testing strategy
+├── COMMIT_EXAMPLES.md              # Commit message examples
+├── public/                         # Static assets
+├── scripts/                        # Build and utility scripts
+├── tests/                          # Test files (E2E and unit)
+├── docs/                           # Project documentation
+├── drizzle/                        # Database migrations
+└── src/
+    ├── app/                        # Next.js App Router
+    │   ├── globals.css             # Global styles + daisyUI config
+    │   ├── layout.tsx              # Root layout with tRPC provider
+    │   ├── page.tsx                # Homepage dashboard
+    │   ├── favicon.ico             # App icon
+    │   ├── global-error.tsx        # Global error boundary
+    │   ├── not-found.tsx           # 404 page
+    │   ├── home-client-wrapper.tsx # Client-side homepage wrapper
+    │   ├── api/                    # API routes
+    │   │   └── trpc/[trpc]/route.ts # tRPC API handler
+    │   ├── episodes/               # Episode pages
+    │   │   ├── page.tsx            # Episodes listing page
+    │   │   └── comparison/         # Component variant comparison
+    │   │       └── page.tsx        # Episode card variants showcase
+    │   ├── sources/                # Sources management
+    │   │   └── page.tsx            # Sources management page
+    │   ├── queue/                  # Queue management
+    │   │   ├── page.tsx            # Queue status page
+    │   │   └── comparison/         # Queue variants comparison
+    │   │       └── page.tsx        # Queue status variants showcase
+    │   ├── internal/               # Development hub
+    │   │   ├── page.tsx            # Component development overview
+    │   │   ├── analytics/          # PostHog analytics dashboard
+    │   │   │   └── page.tsx        # Analytics testing and integration guide
+    │   │   ├── feature-flags/      # Feature flag admin interface
+    │   │   │   └── page.tsx        # Feature flag management
+    │   │   ├── scraping/           # Content scraping tools
+    │   │   │   ├── page.tsx        # Scraping development dashboard
+    │   │   │   └── comparison/     # Scraping strategy comparison
+    │   │   │       └── page.tsx    # Source comparison and metrics
+    │   │   └── comparison/         # Component comparison pages
+    │   │       ├── episode-cards/  # Episode card variants comparison
+    │   │       │   └── page.tsx
+    │   │       ├── episode-players/ # Episode player variants comparison
+    │   │       │   └── page.tsx
+    │   │       └── queue-status/   # Queue status variants comparison
+    │   │           └── page.tsx
+    │   └── players/                # Player comparison pages
+    │       └── comparison/         # Player variants comparison
+    │           └── page.tsx        # Episode player variants showcase
+    ├── components/
+    │   ├── ui/                     # Base UI components
+    │   │   ├── index.ts            # Component exports
+    │   │   ├── button.tsx          # Button component
+    │   │   ├── dialog.tsx          # Dialog/Modal component
+    │   │   ├── progress.tsx        # Progress bar component
+    │   │   ├── select.tsx          # Select dropdown component
+    │   │   ├── slider.tsx          # Slider component
+    │   │   ├── theme-switcher.tsx  # Theme selection component (forest default)
+    │   │   ├── theme-switcher-compact.tsx # Compact theme switcher
+    │   │   └── toast.tsx           # Toast notifications
+    │   ├── layouts/                # Page layouts
+    │   │   ├── index.ts            # Layout exports
+    │   │   ├── main-layout.tsx     # Main app layout with sidebar nav
+    │   │   └── player-layout.tsx   # Episode player layout
+    │   ├── features/               # App-specific components
+    │   │   ├── index.ts            # Feature component exports
+    │   │   ├── api-test.tsx        # API connection test component
+    │   │   ├── episode-card.tsx    # Main episode card component
+    │   │   ├── episode-player.tsx  # Main episode player component
+    │   │   ├── generation-modal.tsx # Generation trigger modal
+    │   │   ├── queue-status.tsx    # Main queue status component
+    │   │   └── feature-flag-admin.tsx # Feature flag admin panel
+    │   └── internal/               # Internal development components
+    │       ├── variants/           # Component variants for A/B testing
+    │       │   ├── index.ts        # Variant exports
+    │       │   ├── episode-card-v1.tsx # Minimal episode card
+    │       │   ├── episode-card-v2.tsx # Visual episode card
+    │       │   ├── episode-card-v3.tsx # Compact episode card
+    │       │   ├── episode-player-v1.tsx # Traditional audio player
+    │       │   ├── episode-player-v2.tsx # Spotify-inspired player
+    │       │   ├── episode-player-v3.tsx # Minimalist waveform player
+    │       │   ├── queue-status-v1.tsx # Progress bar layout
+    │       │   ├── queue-status-v2.tsx # Real-time dashboard
+    │       │   └── queue-status-v3.tsx # Timeline visualization
+    │       └── comparisons/        # Component comparison utilities
+    ├── lib/
+    │   ├── utils.ts                # Utility functions
+    │   ├── db/                     # Database schema & connection
+    │   │   ├── index.ts            # Database exports
+    │   │   ├── schema.ts           # Drizzle schema definitions
+    │   │   └── connection.ts       # Neon database connection
+    │   ├── feature-flags/          # Feature flag system
+    │   │   ├── index.ts            # Feature flag exports
+    │   │   ├── config.ts           # Feature flag configuration
+    │   │   ├── client.ts           # Client-side feature flag hooks
+    │   │   ├── server.ts           # Server-side feature flag utilities
+    │   │   ├── provider.tsx        # PostHog React provider
+    │   │   ├── posthog-client.ts   # PostHog client singleton
+    │   │   ├── analytics.ts        # Analytics service core implementation
+    │   │   └── analytics-hooks.ts  # React hooks for analytics integration
+    │   ├── trpc/                   # API layer
+    │   │   ├── client.ts           # tRPC client configuration
+    │   │   ├── server.ts           # tRPC server configuration
+    │   │   ├── provider.tsx        # React Query provider
+    │   │   ├── query-client.ts     # React Query client setup
+    │   │   ├── server-api.ts       # Server API utilities
+    │   │   ├── root.ts             # Main router (production)
+    │   │   └── routers/            # Individual routers
+    │   │       ├── episodes.ts     # Episodes database router
+    │   │       ├── sources.ts      # Sources database router
+    │   │       ├── queue.ts        # Queue database router
+    │   │       ├── episodes-mock.ts # Episodes mock fallback
+    │   │       ├── sources-mock.ts # Sources mock fallback
+    │   │       └── queue-mock.ts   # Queue mock fallback
+    │   ├── mock-data/              # Development mock data
+    │   │   ├── index.ts            # Mock data exports
+    │   │   ├── episodes.ts         # Episode mock data and interfaces
+    │   │   ├── sources.ts          # Sources mock data
+    │   │   └── queue.ts            # Queue mock data
+    │   ├── schemas/                # Zod validation schemas
+    │   ├── services/               # Business logic services
+    │   └── utils/                  # Additional utilities
+    ├── tests/                      # Test utilities
+│   ├── e2e-utils.ts           # Playwright testing utilities
+│   ├── unit/                  # Unit tests with Vitest
+│   │   └── analytics.test.tsx # Analytics service unit tests
+│   └── e2e/                   # End-to-end tests with Playwright
+│       └── analytics.spec.ts  # Analytics dashboard E2E tests
+├── POSTHOG_INTEGRATION.md     # PostHog integration documentation
+└── types/                      # TypeScript type definitions
+``
+
+## Component Development Standards
+
+### 1. Component-First with Variants (MANDATORY)
+
+#### Always Create Multiple Variants
+For any significant UI component, create 2-3 variants:
+
+```typescript
+// components/internal/variants/episode-card-v1.tsx - Minimal design
+export function EpisodeCardV1({ episode }: EpisodeCardProps) {
+  return (
+    <div className="card bg-base-100 shadow-sm">
+      <div className="card-body p-4">
+        <h3 className="card-title text-sm">{episode.title}</h3>
+        <p className="text-xs text-base-content/70">{episode.summary}</p>
+      </div>
+    </div>
+  );
+}
+
+// components/internal/variants/episode-card-v2.tsx - Visual-heavy
+export function EpisodeCardV2({ episode }: EpisodeCardProps) {
+  return (
+    <div className="card bg-gradient-to-br from-base-100 to-base-200">
+      <div className="card-body p-6">
+        <div className="flex items-center gap-3">
+          <Mic className="w-6 h-6 text-primary" />
+          <h3 className="card-title">{episode.title}</h3>
+        </div>
+        <p className="text-sm text-base-content/80">{episode.summary}</p>
+      </div>
+    </div>
+  );
+}
+
+// components/internal/variants/episode-card-v3.tsx - Compact list
+export function EpisodeCardV3({ episode }: EpisodeCardProps) {
+  return (
+    <div className="flex items-center gap-4 p-4 hover:bg-base-200/50">
+      <div className="w-2 h-12 bg-primary rounded-full" />
+      <div className="flex-1">
+        <h3 className="font-medium text-sm">{episode.title}</h3>
+        <p className="text-xs text-base-content/60">{episode.summary}</p>
+      </div>
+    </div>
+  );
+}
+```
+
+#### Create Comparison Pages
+```typescript
+// app/internal/comparison/episode-cards/page.tsx
+export default function EpisodeCardComparison() {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div>
+        <h3>Variant 1: Minimal</h3>
+        <EpisodeCardV1 episode={mockEpisode} />
+      </div>
+      {/* Show all variants side by side */}
+    </div>
+  );
+}
+```
+
+### 2. JSDoc Business Documentation (REQUIRED)
+
+Every significant function MUST include comprehensive JSDoc:
+
+```typescript
+/**
+ * Calculates the cost for podcast generation including all services
+ * 
+ * @description Determines total cost for AI summarization and TTS generation
+ * @business-context We use OpenAI for TTS despite higher cost ($15/1M chars 
+ *                   vs $2.50 for alternatives) due to superior voice quality.
+ *                   User retention improved 40% with OpenAI voices in A/B tests.
+ * @decision-date 2024-01-15
+ * @decision-by Product team after 2-week user study
+ * @cost-impact ~$0.15 per average podcast vs $0.04 with alternatives
+ * 
+ * @param {string} content - The text content to be converted to speech
+ * @param {TTSProvider} provider - The TTS provider to use
+ * @param {GenerationOptions} options - Additional generation options
+ * @returns {Promise<GenerationCost>} Detailed cost breakdown
+ * @throws {Error} If content exceeds maximum length (50,000 chars)
+ * @throws {InsufficientCreditsError} If account lacks credits
+ * 
+ * @example
+ * const cost = await calculatePodcastCost(articleText, 'openai', {
+ *   voice: 'nova',
+ *   speed: 1.0
+ * });
+ * console.log(`Total cost: $${cost.total.toFixed(2)}`);
+ * 
+ * @performance Typically completes in 50-200ms
+ * @monitoring Tracked in New Relic as 'podcast.cost.calculation'
+ */
+export async function calculatePodcastCost(
+  content: string,
+  provider: TTSProvider,
+  options: GenerationOptions = {}
+): Promise<GenerationCost> {
+  // Validate input length
+  if (content.length > MAX_CONTENT_LENGTH) {
+    throw new Error(`Content exceeds maximum length of ${MAX_CONTENT_LENGTH}`);
+  }
+
+  // Implementation with proper error handling
+  try {
+    const cost = await calculateCost(content, provider, options);
+    
+    // Track metrics
+    logger.info('Podcast cost calculated', {
+      provider,
+      contentLength: content.length,
+      cost: cost.total
+    });
+    
+    return cost;
+  } catch (error) {
+    logger.error('Failed to calculate podcast cost', { error, provider });
+    throw error;
+  }
+}
+```
+
+### 3. TypeScript Standards
+
+#### Interface-First Development
+```typescript
+// Always define interfaces before implementation
+interface EpisodePlayerProps {
+  episode: Episode;
+  variant?: 'minimal' | 'detailed' | 'compact';
+  onPlay?: () => void;
+  onError?: (error: Error) => void;
+  className?: string;
+  // Document optional props
+  autoPlay?: boolean; // Default: false
+  showTranscript?: boolean; // Default: true
+}
+
+// Use type guards
+function isEpisode(data: unknown): data is Episode {
+  return (
+    typeof data === 'object' &&
+    data !== null &&
+    'id' in data &&
+    'title' in data
+  );
+}
+```
+
+### 4. Styling Standards
+
+#### Tailwind-First Approach
+```tsx
+// ✅ GOOD: Use Tailwind classes
+<div className="bg-base-100 text-base-content rounded-lg shadow-md p-4">
+
+// ❌ AVOID: Inline styles
+<div style={{ backgroundColor: '#fff', padding: '16px' }}>
+
+// ✅ GOOD: Use DaisyUI theme-aware classes
+<button className="btn btn-primary">
+
+// ✅ GOOD: Responsive design
+<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+```
+
+## Code Quality Standards
+
+### Error Handling Patterns
+```typescript
+// Always implement comprehensive error handling
+try {
+  const result = await riskyOperation();
+  return result;
+} catch (error) {
+  // Log with context
+  logger.error('Operation failed', {
+    operation: 'riskyOperation',
+    userId: user.id,
+    error: error instanceof Error ? error.message : 'Unknown error'
+  });
+  
+  // User-friendly error
+  throw new UserFacingError('Something went wrong. Please try again.');
+}
+```
+
+### State Management
+```typescript
+// Include all states in components
+export function DataDisplay({ dataId }: Props) {
+  const { data, isLoading, error } = useData(dataId);
+  
+  // Always handle loading
+  if (isLoading) {
+    return <SkeletonLoader className="h-40" />;
+  }
+  
+  // Always handle errors
+  if (error) {
+    return <ErrorDisplay error={error} retry={() => refetch()} />;
+  }
+  
+  // Always handle empty state
+  if (!data || data.length === 0) {
+    return <EmptyState message="No data available" />;
+  }
+  
+  // Success state
+  return <DataGrid data={data} />;
+}
+```
+
+## Production Standards
+
+### Performance Requirements
+- **LCP** (Largest Contentful Paint): < 2.5s
+- **INP** (Interaction to Next Paint): < 200ms
+- **CLS** (Cumulative Layout Shift): < 0.1
+- **Initial JS Bundle**: < 200KB
+- **Total Page Size**: < 1MB
+
+### Security Implementation
+```typescript
+// next.config.js security headers
+const securityHeaders = [
+  {
+    key: 'X-Frame-Options',
+    value: 'DENY'
+  },
+  {
+    key: 'Content-Security-Policy',
+    value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline';"
+  },
+  {
+    key: 'X-Content-Type-Options',
+    value: 'nosniff'
+  },
+  {
+    key: 'Referrer-Policy',
+    value: 'strict-origin-when-cross-origin'
+  },
+  {
+    key: 'Strict-Transport-Security',
+    value: 'max-age=63072000; includeSubDomains; preload'
+  }
+];
+```
+
+### Monitoring & Observability
+```typescript
+// lib/observability/tracing.ts
+import { NodeSDK } from '@opentelemetry/sdk-node';
+import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node';
+import { PeriodicExportingMetricReader } from '@opentelemetry/sdk-metrics';
+
+export const initTelemetry = () => {
+  const sdk = new NodeSDK({
+    instrumentations: [
+      getNodeAutoInstrumentations({
+        '@opentelemetry/instrumentation-fs': {
+          enabled: false, // Reduce noise
+        },
+      }),
+    ],
+    // 100% error sampling, 10% success sampling
+    traceExporter: new OTLPTraceExporter({
+      url: process.env.OTEL_EXPORTER_OTLP_ENDPOINT,
+    }),
+  });
+  
+  sdk.start();
+};
+```
+
+## Testing Requirements
+
+### Coverage Targets
+- **Branches**: 80%
+- **Functions**: 80%
+- **Lines**: 80%
+- **Statements**: 80%
+
+### Test Structure
+```typescript
+// Component test example
+describe('EpisodeCard', () => {
+  it('should render all variants without errors', () => {
+    const variants = ['v1', 'v2', 'v3'] as const;
+    
+    variants.forEach(variant => {
+      const { container } = render(
+        <EpisodeCard episode={mockEpisode} variant={variant} />
+      );
+      expect(container).toBeInTheDocument();
+    });
+  });
+  
+  it('should handle loading state', () => {
+    const { getByTestId } = render(
+      <EpisodeCard episode={mockEpisode} isLoading />
+    );
+    expect(getByTestId('skeleton-loader')).toBeInTheDocument();
+  });
+});
+```
+
+## Bun-Specific Commands
+
+### Development Commands
+```bash
+# Package management
+bun install                 # Install all dependencies
+bun add [package]          # Add production dependency
+bun add -d [package]       # Add dev dependency
+bun remove [package]       # Remove dependency
+bun update                 # Update all dependencies
+bun outdated              # Check for updates
+
+# Development workflow
+bun run dev               # Start development server
+bun run build            # Build for production
+bun run start            # Start production server
+bun test                 # Run all tests
+bun test --watch         # Run tests in watch mode
+bun run type-check       # TypeScript validation
+
+# Database operations
+bun run db:generate      # Generate Drizzle migrations
+bun run db:push         # Push migrations to database
+bun run db:seed         # Seed database with test data
+bun run db:studio       # Open Drizzle Studio
+
+# Code quality
+bun run lint            # Run ESLint
+bun run lint:fix        # Fix ESLint issues
+bun run format          # Run Prettier
+bun run format:check    # Check formatting
+
+# Documentation
+bun run docs:structure  # Update FILE_STRUCTURE.md
+```
+
+## Git Workflow
+
+### Branch Naming Convention
+- `feat/` - New features (from TASKS.md)
+- `fix/` - Bug fixes
+- `refactor/` - Code improvements
+- `perf/` - Performance improvements
+- `docs/` - Documentation only
+- `test/` - Test additions
+- `chore/` - Maintenance tasks
+
+### Commit Message Standards
+```bash
+# Feature
+feat: implement episode player with three variants
+
+# Fix with scope
+fix(player): resolve playback issue on mobile devices
+
+# Docs with business context
+docs: add business rationale for TTS provider selection
+
+# Performance
+perf: optimize bundle size by lazy loading heavy components
+
+# Breaking change
+feat!: restructure API endpoints for v2
+
+# Multi-line with details
+feat: add queue management system
+
+- Implement priority-based processing
+- Add retry logic with exponential backoff
+- Create monitoring dashboard
+- Document queue architecture decisions
+```
+
+## Layout Development Phase
+
+### Creating Layout Variants
+When reaching the page composition phase:
+
+```typescript
+// layouts/variants/layout-v1.tsx - Traditional sidebar
+export function LayoutV1({ children }: LayoutProps) {
+  return (
+    <div className="flex h-screen">
+      <Sidebar className="w-64 flex-shrink-0" />
+      <main className="flex-1 overflow-auto">{children}</main>
+    </div>
+  );
+}
+
+// layouts/variants/layout-v2.tsx - Modern floating nav
+export function LayoutV2({ children }: LayoutProps) {
+  return (
+    <div className="min-h-screen">
+      <FloatingNav />
+      <main className="container mx-auto px-4 pt-20">{children}</main>
+    </div>
+  );
+}
+
+// layouts/variants/layout-v3.tsx - Minimal header
+export function LayoutV3({ children }: LayoutProps) {
+  return (
+    <div className="min-h-screen">
+      <MinimalHeader />
+      <main className="max-w-7xl mx-auto">{children}</main>
+    </div>
+  );
+}
+```
+
+## Troubleshooting Guide
+
+### Common Issues & Solutions
+
+#### Bun-related Issues
+```bash
+# Clean install
+rm -rf node_modules bun.lockb
+bun install
+
+# Clear cache
+bun pm cache rm
+```
+
+#### TypeScript Errors
+```bash
+# Full project check
+bun run type-check
+
+# Check specific file
+bunx tsc --noEmit src/path/to/file.ts
+```
+
+#### Build Failures
+```bash
+# Clear Next.js cache
+rm -rf .next
+bun run build
+```
+
+#### Database Issues
+```bash
+# Reset local database
+docker-compose down -v
+docker-compose up -d
+
+# Regenerate types
+bun run db:generate
+```
+
+## Cost Optimization Strategies
+
+### Free Tier Limits
+- **Vercel**: 100GB bandwidth, 100K function invocations
+- **Neon**: 3GB storage, 1 compute hour/day
+- **New Relic**: 100GB data/month
+- **PostHog**: 1M events/month
+- **Sentry**: 10K errors/month
+
+### Optimization Techniques
+1. **Implement caching** aggressively
+2. **Use edge functions** for lightweight ops
+3. **Optimize images** with next/image
+4. **Enable compression** for all responses
+5. **Monitor usage** weekly
+
+## Quick Decision Framework
+
+When making technical decisions, document:
+1. **What** was decided
+2. **Why** this option was chosen
+3. **When** the decision was made
+4. **Who** made the decision
+5. **Cost** implications
+6. **Performance** impact
+
+## Review Checklist
+
+Before presenting changes:
+- [ ] TASKS.md updated with progress
+- [ ] All TypeScript errors resolved
+- [ ] Tests written and passing
+- [ ] JSDoc added with business context
+- [ ] Component variants created (if applicable)
+- [ ] Screenshots prepared for review
+- [ ] Performance impact assessed
+- [ ] Security implications considered
+- [ ] Accessibility checked
+- [ ] Mobile responsiveness verified
+
+## Version Management with Changesets
+
+### Changeset Implementation Workflow
+```bash
+# 1. Create changeset (when implementing new feature/fix)
+bun changeset
+# Interactive CLI prompts for:
+# - Package selection (morning-pod)
+# - Semver bump type (patch/minor/major)
+# - Change summary description
+
+# 2. Version bump (before release)
+bun changeset:version
+# - Updates package.json version
+# - Generates/updates CHANGELOG.md
+# - Removes consumed changeset files
+
+# 3. Release to production
+bun release
+# - Builds application
+# - Creates git tag with version
+# - Triggers deployment pipeline
+```
+
+### When to Create Changesets
+- **New Features**: Use `minor` bump for user-facing features
+- **Bug Fixes**: Use `patch` bump for fixes and improvements
+- **Breaking Changes**: Use `major` bump for API/interface changes
+- **Internal Changes**: No changeset needed (refactoring, tests, docs)
+
+### Canary Deployment Strategy
+#### Cost-Free Facebook-Style Approach
+- **Single Environment**: Vercel production with feature flags
+- **Progressive Rollout**: 10% → 50% → 100% via PostHog flags
+- **Synthetic Users**: Test with fake users before real traffic
+- **Automated Monitoring**: Error rate tracking with auto-rollback
+- **Zero Infrastructure Cost**: Uses only free tiers
+
+#### Synthetic User Testing Implementation
+When Claude Code implements canary features:
+
+1. **Synthetic User Module** (`src/lib/testing/synthetic-users.ts`)
+   - Define SYNTHETIC_USER_IDS array
+   - Implement createSyntheticUser function
+   - Add isCanaryUser detection logic
+
+2. **Canary Test Automation** (`src/tests/synthetic/canary-automation.ts`)
+   - SyntheticUserTesting class
+   - User journey simulation methods
+   - Metrics collection and analysis
+
+3. **Playwright E2E Integration** (`src/tests/e2e/canary-synthetic.spec.ts`)
+   - Test each synthetic user ID
+   - Feature flag verification
+   - Error detection and reporting
+
+4. **Load Testing Setup** (`src/tests/load/canary-load.js`)
+   - K6 synthetic traffic generation
+   - Performance benchmarking
+   - Health check validation
+
+5. **Monitoring Dashboard** (`src/lib/monitoring/synthetic-dashboard.ts`)
+   - Real-time synthetic user metrics
+   - Automated alerting system
+   - Error rate threshold monitoring
+
+### Changeset Commands Reference
+```bash
+bun changeset          # Create new changeset
+bun changeset:version  # Bump version and generate changelog
+bun changeset:status   # Check pending changesets
+bun changeset:tag      # Create git tags
+bun changeset:publish  # Publish release
+bun release           # Build and publish (recommended)
+```
+
+### Integration with Task Management
+- **Check TASKS.md**: See "Next Steps: Changeset Version Management Implementation"
+- **Phased Approach**: Manual setup first, then Claude Code automation phases
+- **Documentation**: Complete implementation guide in `DEPLOYMENT_STRATEGY.md`
+
+## Package Update Management Strategy
+
+### Dependency Pinning Philosophy
+**All package versions are pinned to exact versions** (removing ^ and ~ prefixes):
+- **Reproducible Builds**: Identical dependency versions across all environments
+- **Predictable Deployments**: No surprise updates in production
+- **Controlled Updates**: Explicit version management through our scripts
+- **Security**: Deliberate updates after testing and validation
+
+### Automated Update Workflow
+```bash
+# Daily/Weekly maintenance commands
+bun deps:check                    # Check available updates
+bun deps:update:patch            # Apply safe patch updates
+bun deps:update:minor            # Apply minor version updates
+bun deps:update:safe             # Update + test automatically
+
+# Manual review required
+bun deps:update:major            # Show major updates
+bun run scripts/update-dependencies.ts --interactive
+bun deps:doctor                  # Automated safe updates with testing
+```
+
+### Update Strategy by Severity
+1. **Patch Updates** (1.0.0 → 1.0.1): Auto-apply weekly
+   - Bug fixes and security patches
+   - Minimal risk of breaking changes
+   - Automatic testing validation
+
+2. **Minor Updates** (1.0.0 → 1.1.0): Review monthly
+   - New features, backward compatible
+   - Test thoroughly before applying
+   - Create changeset for tracking
+
+3. **Major Updates** (1.0.0 → 2.0.0): Review quarterly
+   - Potential breaking changes
+   - Requires manual code review
+   - Check migration guides and changelogs
+   - Update code for compatibility
+
+### npm-check-updates (ncu) Integration
+- **Bun Compatibility**: Automatically detected via bun.lockb
+- **Configuration**: `.ncurc.json` with project-specific settings
+- **Excluded Packages**: Next.js and other critical frameworks
+- **Doctor Mode**: Iterative updates with automatic testing
+- **Rollback**: Automatic restoration on test failures
+
+### Automated Testing Pipeline
+Every dependency update automatically runs:
+1. **Package Installation**: `bun install`
+2. **Unit Tests**: `bun test`
+3. **Type Checking**: `bun run type-check`
+4. **Build Verification**: `bun run build` (for major updates)
+5. **Rollback on Failure**: Restore original package.json
+
+### Changeset Integration
+- **Automatic Changeset Creation**: For all successful updates
+- **Semantic Versioning**: Patch changesets for dependency updates
+- **Documentation**: Clear tracking of what was updated and why
+- **Release Notes**: Dependencies included in release changelog
+
+### Weekly Maintenance Routine
+```bash
+# Monday maintenance routine
+bun deps:check                   # See what's available
+bun deps:update:patch           # Apply safe patches immediately
+bun deps:update:minor           # Review and apply minor updates
+
+# Monthly major review
+bun deps:update:major           # Check breaking changes
+# Research each major update individually
+# Apply one at a time with thorough testing
+```
+
+### Emergency Update Process
+For critical security updates:
+```bash
+# Quick security patch
+bun ncu --target patch -f [vulnerable-package] -u
+bun install && bun test && bun run type-check
+
+# Create emergency changeset
+bun changeset  # Document security fix
+```
+
+### Claude Code Instructions for Dependency Management
+When implementing dependency updates:
+1. **Always check current pinned versions** in package.json
+2. **Use our automated scripts** rather than manual ncu commands
+3. **Test thoroughly** with our established test suite
+4. **Create changesets** for all dependency changes
+5. **Document rationale** for major version updates
+6. **Follow our exclusion list** (Next.js, etc.)
+7. **Verify Bun compatibility** for all new packages
+
+## Interactive Script Runner System
+
+### Problem Solved
+Package.json script bloat was becoming overwhelming with 50+ scripts. Our interactive runner organizes commands into logical categories while maintaining both discoverability and direct execution.
+
+### Implementation Strategy
+```bash
+# Core runner script
+scripts/run.ts                   # Main interactive script runner
+
+# Simplified package.json
+{
+  "scripts": {
+    "script": "bun run scripts/run.ts",
+    "dev": "bun run scripts/run.ts dev start",
+    "build": "bun run scripts/run.ts dev build", 
+    "test": "bun run scripts/run.ts test unit",
+    "test:all": "bun run scripts/run.ts test --all"
+  }
+}
+```
+
+### Usage Patterns
+#### Interactive Discovery Mode
+```bash
+bun run script                   # Show all categories
+bun run script test              # Show test commands
+bun run script deps             # Show dependency commands
+```
+
+#### Direct Execution Mode
+```bash
+bun run script test unit        # Run unit tests
+bun run script deps check       # Check for updates
+bun run script quality all      # Run all quality checks
+bun run script [category] --all # Run all in category
+```
+
+#### Help and Discovery
+```bash
+bun run script --help           # Show usage guide
+bun run script -l               # List all available commands
+```
+
+### Command Categories Structure
+Each category contains related commands with consistent naming:
+
+1. **🚀 dev** - Development workflow
+   - start, build, preview, clean
+
+2. **🧪 test** - Testing commands  
+   - unit, unit:watch, unit:ui, unit:coverage
+   - e2e, e2e:ui, e2e:debug, e2e:headed, e2e:visual
+   - performance, all
+
+3. **🗄️ db** - Database operations
+   - generate, migrate, seed, studio
+
+4. **📦 deps** - Dependency management
+   - check, update:patch, update:minor, update:safe
+   - update:major, doctor, outdated
+
+5. **✨ quality** - Code quality tools
+   - lint, lint:fix, format, format:check
+   - type-check, all
+
+6. **🚢 release** - Release management
+   - changeset, version, publish, status, release
+
+### Claude Code Integration Instructions
+When adding new scripts or commands:
+
+1. **Add to appropriate category** in `scripts/run.ts`
+2. **Follow naming conventions** (action, action:modifier)
+3. **Include descriptive text** for discoverability
+4. **Test both direct and category execution**
+5. **Update documentation** if adding new categories
+6. **Maintain backward compatibility** for essential package.json scripts
+
+### Benefits for Development Workflow
+- **Reduced cognitive load**: Organized, discoverable commands
+- **Faster onboarding**: Self-documenting interface
+- **Consistent patterns**: Same execution model across all tools
+- **Flexible usage**: Menu-driven discovery + direct execution
+- **Maintainable**: Single source of truth for all commands
+
+### Migration Strategy for New Commands
+Instead of adding to package.json:
+```bash
+# Old way (package.json bloat)
+"new:command": "complex command with flags"
+
+# New way (organized in runner)
+// Add to scripts/run.ts in appropriate category
+{
+  name: 'command',
+  description: 'Clear description of what it does', 
+  command: 'complex command with flags'
+}
+```
+
+## Important Reminders
+
+1. **ALWAYS check TASKS.md first** - This is your roadmap
+2. **Create variants for key components** - 2-3 versions minimum
+3. **Document business decisions** - Future you will thank you
+4. **Test all states** - Loading, error, empty, success
+5. **Use Tailwind classes** - Avoid inline styles
+6. **Keep rules synchronized** - Update both .cursorrules and .claude-code-rules
+7. **Commit after approval** - Always present changes first
+8. **Update documentation** - Keep README and FILE_STRUCTURE.md current
+9. **Use changesets for version management** - Track all user-facing changes
+10. **Implement synthetic testing** - Test canary features safely
+
+---
+Last Updated: 2024-01-22 | Synchronized with .cursorrules

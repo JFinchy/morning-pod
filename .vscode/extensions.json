@@ -8,6 +8,7 @@
     "Prisma.prisma", // Prisma/Drizzle syntax highlighting
     "ms-azuretools.vscode-docker", // Docker support
     "GitHub.copilot", // GitHub Copilot (optional)
-    "eamodio.gitlens" // GitLens for git insights
+    "eamodio.gitlens", // GitLens for git insights
+    "bierner.markdown-mermaid" // Mermaid diagrams in Markdown
   ]
 }

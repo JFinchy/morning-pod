@@ -57,6 +57,14 @@ export default function InternalPage() {
       category: "Content Pipeline",
       status: "Active",
     },
+    {
+      name: "Analytics Dashboard",
+      description:
+        "Test PostHog integration and monitor analytics events in real-time",
+      href: "/internal/analytics",
+      category: "Analytics",
+      status: "Active",
+    },
   ];
 
   const designPrinciples = [

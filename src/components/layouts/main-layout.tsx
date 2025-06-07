@@ -122,7 +122,7 @@ export function MainLayout({ children }: MainLayoutProps) {
 
       {/* Sidebar */}
       <div
-        className={`fixed inset-y-0 left-0 z-50 w-72 bg-base-200 transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 w-72 bg-base-200 border-r border-base-300 transform transition-all duration-300 ease-in-out lg:translate-x-0 shadow-xl lg:shadow-none ${
           mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -162,10 +162,10 @@ export function MainLayout({ children }: MainLayoutProps) {
                   <Link
                     key={item.name}
                     href={item.href}
-                    className={`group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                    className={`group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 hover:scale-[1.02] ${
                       isActive
-                        ? "bg-primary text-primary-content"
-                        : "text-base-content hover:bg-base-300"
+                        ? "bg-primary text-primary-content shadow-lg"
+                        : "text-base-content hover:bg-base-300 hover:shadow-md"
                     }`}
                     onClick={() => setMobileMenuOpen(false)}
                   >

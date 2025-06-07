@@ -1,16 +1,16 @@
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
-import type { Metadata } from "next";
+import { type Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "react-hot-toast";
 
+import { StagewiseToolbar } from "@stagewise/toolbar-next";
+
 import "./globals.css";
 import { PerformanceMonitor } from "@/components/ui/performance-monitor";
-
+import { PostHogProvider } from "../components/providers/PostHogProvider";
 import { FeatureFlagProvider } from "../lib/feature-flags/provider";
 import { TRPCProvider } from "../lib/trpc/provider";
-
-import { StagewiseToolbar } from "@stagewise/toolbar-next";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -39,24 +39,26 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <StagewiseToolbar
-          config={{
-            plugins: [], // Add custom plugins here when needed
-          }}
-        />
-        <FeatureFlagProvider>
-          <TRPCProvider>{children}</TRPCProvider>
-        </FeatureFlagProvider>
-        <PerformanceMonitor />
-        <Toaster
-          position="top-right"
-          toastOptions={{
-            duration: 5000,
-            className: "toast-custom",
-          }}
-        />
-        <Analytics />
-        <SpeedInsights />
+        <PostHogProvider>
+          <StagewiseToolbar
+            config={{
+              plugins: [], // Add custom plugins here when needed
+            }}
+          />
+          <FeatureFlagProvider>
+            <TRPCProvider>{children}</TRPCProvider>
+          </FeatureFlagProvider>
+          <PerformanceMonitor />
+          <Toaster
+            position="top-right"
+            toastOptions={{
+              duration: 5000,
+              className: "toast-custom",
+            }}
+          />
+          <Analytics />
+          <SpeedInsights />
+        </PostHogProvider>
       </body>
     </html>
   );

@@ -53,3 +53,4 @@ yarn-error.log*
 next-env.d.ts
 
 google-credentials.json
+.env.local

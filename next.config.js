@@ -1,6 +1,2 @@
-/** @type {import('next').NextConfig} */
-const nextConfig = {
-  /* config options here */
-};
-
-module.exports = nextConfig;
+// Configuration moved to config/build/next.config.js
+module.exports = require("./config/build/next.config.js");

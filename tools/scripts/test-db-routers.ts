@@ -5,17 +5,39 @@
  * This will test the router structure and validation without requiring a database connection
  */
 
-import { episodesRouter } from "../src/lib/trpc/routers/episodes";
-import { queueRouter } from "../src/lib/trpc/routers/queue";
-import { sourcesRouter } from "../src/lib/trpc/routers/sources";
+import { episodesRouter } from "../../src/lib/trpc/routers/episodes";
+import { queueRouter } from "../../src/lib/trpc/routers/queue";
+import { sourcesRouter } from "../../src/lib/trpc/routers/sources";
 
 console.log("🧪 Testing Database Router Structure...");
 
 // Test router exports
 console.log("\n📋 Checking router exports:");
-console.log("✅ Episodes router:", typeof episodesRouter);
-console.log("✅ Sources router:", typeof sourcesRouter);
-console.log("✅ Queue router:", typeof queueRouter);
+// Verify routers are properly instantiated
+const isValidRouter = (router: unknown) => {
+  return (
+    router &&
+    typeof router === "object" &&
+    router !== null &&
+    "_def" in router &&
+    typeof (router as { _def?: unknown })._def === "object" &&
+    (router as { _def: { procedures?: unknown } })._def !== null &&
+    "procedures" in (router as { _def: { procedures?: unknown } })._def
+  );
+};
+
+if (
+  !isValidRouter(episodesRouter) ||
+  !isValidRouter(sourcesRouter) ||
+  !isValidRouter(queueRouter)
+) {
+  console.error("❌ Invalid router structure detected");
+  process.exit(1);
+}
+
+console.log("✅ Episodes router:", episodesRouter ? "✓ loaded" : "✗ missing");
+console.log("✅ Sources router:", sourcesRouter ? "✓ loaded" : "✗ missing");
+console.log("✅ Queue router:", queueRouter ? "✓ loaded" : "✗ missing");
 
 // Test router procedures
 console.log("\n🔍 Checking router procedures:");

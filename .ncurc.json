@@ -1,0 +1,12 @@
+{
+  "reject": ["next"],
+  "target": "minor",
+  "upgrade": false,
+  "packageManager": "bun",
+  "interactive": false,
+  "timeout": 15000,
+  "concurrency": 2,
+  "doctorTest": "bun test && bun run type-check",
+  "doctorInstall": "bun install",
+  "registry": "https://registry.npmjs.org/"
+}

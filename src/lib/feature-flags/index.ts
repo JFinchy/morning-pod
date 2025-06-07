@@ -38,6 +38,10 @@ export {
 export { FeatureFlagProvider, identifyUser, resetUser } from "./provider";
 export { PostHogClient } from "./posthog-client";
 
+// Analytics and tracking
+export * from "./analytics";
+export * from "./analytics-hooks";
+
 // Common utilities used by both client and server
 export const FeatureFlagUtils = {
   isSourceEnabled: (
