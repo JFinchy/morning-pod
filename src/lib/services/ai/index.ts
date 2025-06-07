@@ -1,4 +1,28 @@
-// AI services for content summarization
-// TODO: Implement summarization service and types
-// export * from "./summarization-service";
-// export * from "./types";
+// AI services for content summarization and text-to-speech
+
+// AI Services Exports
+export { SummarizationService } from "./summarization";
+export { TTSService } from "./tts";
+
+// Types
+export type {
+  SummarizationRequest,
+  SummarizationResult,
+  SummarizationOptions,
+  TTSRequest,
+  TTSResult,
+  TTSOptions,
+  GenerationRequest,
+  GenerationResult,
+  ScrapedContentItem,
+  CostTracking,
+  AIServiceConfig,
+} from "./types";
+
+// Error classes
+export {
+  AIServiceError,
+  RateLimitError,
+  QuotaExceededError,
+  InvalidInputError,
+} from "./types";

@@ -17,7 +17,6 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 
 import { FeatureFlagAdmin } from "../features/feature-flag-admin";
-import { GenerationModal } from "../features/generation-modal";
 import { ThemeSwitcherCompact } from "../ui/theme-switcher-compact";
 
 interface MainLayoutProps {
@@ -70,6 +69,11 @@ const internalLinks = [
     description: "Development overview",
   },
   {
+    name: "Queue Processor",
+    href: "/queue/processor",
+    description: "Processor management",
+  },
+  {
     name: "Episode Cards",
     href: "/internal/comparison/episode-cards",
     description: "Episode card variants",
@@ -89,7 +93,6 @@ const internalLinks = [
 export function MainLayout({ children }: MainLayoutProps) {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [generationModalOpen, setGenerationModalOpen] = useState(false);
   const [featureFlagDropdownOpen, setFeatureFlagDropdownOpen] = useState(false);
 
   const isActiveRoute = (href: string) => {
@@ -276,27 +279,12 @@ export function MainLayout({ children }: MainLayoutProps) {
                 </div>
               )}
             </div>
-
-            <button
-              className="btn btn-primary btn-sm gap-2"
-              onClick={() => setGenerationModalOpen(true)}
-              aria-label="Generate new podcast episode"
-            >
-              <Plus className="w-4 h-4" />
-              <span className="hidden sm:inline">Generate Episode</span>
-            </button>
           </div>
         </div>
 
         {/* Page content */}
         <main className="p-4 lg:p-6">{children}</main>
       </div>
-
-      {/* Generation Modal */}
-      <GenerationModal
-        isOpen={generationModalOpen}
-        onClose={() => setGenerationModalOpen(false)}
-      />
     </div>
   );
 }

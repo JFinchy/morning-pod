@@ -1,273 +1,365 @@
 "use client";
 
-import { X, Plus, Clock, CheckCircle, AlertCircle, Play } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { toast } from "react-hot-toast";
+import {
+  X,
+  Plus,
+  Play,
+  Clock,
+  CheckCircle,
+  AlertCircle,
+  Globe,
+  Loader2,
+} from "lucide-react";
+import { useState, useEffect } from "react";
 
-import { api } from "@/lib/trpc/client";
+import { Button, Dialog, DialogContent, DialogTrigger } from "@/components/ui";
 
-import { Dialog, DialogContent, DialogTitle } from "../ui/dialog";
+interface Source {
+  id: string;
+  name: string;
+  url: string;
+  category: string;
+}
+
+interface GenerationStep {
+  name: string;
+  status: "pending" | "active" | "completed" | "failed";
+  message?: string;
+}
 
 interface GenerationModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-interface AvailableEpisode {
-  id: string;
-  title: string;
-  source: string;
-  description: string;
-  publishedAt: string;
-  estimatedDuration: string;
-}
-
 export function GenerationModal({ isOpen, onClose }: GenerationModalProps) {
-  const [selectedEpisode, setSelectedEpisode] = useState<string | null>(null);
+  const [sources, setSources] = useState<Source[]>([]);
+  const [selectedSource, setSelectedSource] = useState<string>("");
   const [isGenerating, setIsGenerating] = useState(false);
-  const [generationStarted, setGenerationStarted] = useState(false);
-  const router = useRouter();
+  const [generationSteps, setGenerationSteps] = useState<GenerationStep[]>([]);
+  const [generationResult, setGenerationResult] = useState<any>(null);
+  const [error, setError] = useState<string>("");
 
-  // Get available episodes for generation
-  // TODO: Implement getAvailableForGeneration endpoint
-  // const { data: availableEpisodes, isLoading: loadingAvailable } =
-  //   api.episodes.getAvailableForGeneration.useQuery();
-  const availableEpisodes: AvailableEpisode[] = [];
-  const loadingAvailable = false;
+  // Initial generation steps
+  const initialSteps: GenerationStep[] = [
+    { name: "Source Verification", status: "pending" },
+    { name: "Content Scraping", status: "pending" },
+    { name: "AI Summarization", status: "pending" },
+    { name: "Text-to-Speech", status: "pending" },
+    { name: "Audio Storage", status: "pending" },
+    { name: "Database Save", status: "pending" },
+  ];
 
-  // Generate episode mutation
-  // TODO: Implement generate endpoint
-  // const generateEpisode = api.episodes.generate.useMutation({
-  const generateEpisode = {
-    mutate: (data: any) => console.log("Generate episode:", data),
-    isLoading: false,
-    error: null,
+  // Fetch available sources when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      fetchSources();
+      resetState();
+    }
+  }, [isOpen]);
+
+  const resetState = () => {
+    setSelectedSource("");
+    setIsGenerating(false);
+    setGenerationSteps(initialSteps);
+    setGenerationResult(null);
+    setError("");
   };
-  // Original mutation code (commented out until endpoints are implemented):
-  /*
-  const generateEpisode = api.episodes.generate.useMutation({
-    onSuccess: (data: any) => {
-      setGenerationStarted(true);
-      setIsGenerating(false);
-      // ... rest of success handler
-    },
-    onError: () => {
-      setIsGenerating(false);
-      // ... rest of error handler
-    },
-  });
-  */
 
-  const handleGenerate = () => {
-    if (!selectedEpisode) return;
+  const fetchSources = async () => {
+    try {
+      const response = await fetch("/api/episodes/generate?action=sources");
+      const data = await response.json();
+
+      if (data.success) {
+        setSources(data.sources);
+        // Auto-select first source if available
+        if (data.sources.length > 0) {
+          setSelectedSource(data.sources[0].id);
+        }
+      } else {
+        setError("Failed to load sources");
+      }
+    } catch (err) {
+      setError("Network error loading sources");
+      console.error("Error fetching sources:", err);
+    }
+  };
+
+  const startGeneration = async () => {
+    if (!selectedSource) {
+      setError("Please select a news source");
+      return;
+    }
 
     setIsGenerating(true);
-    generateEpisode.mutate({ episodeId: selectedEpisode });
+    setError("");
+    setGenerationResult(null);
+
+    // Reset steps to pending
+    setGenerationSteps(initialSteps);
+
+    try {
+      const response = await fetch("/api/episodes/generate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          sourceId: selectedSource,
+        }),
+      });
+
+      const result = await response.json();
+      setGenerationResult(result);
+
+      if (result.success) {
+        // Mark all steps as completed on success
+        setGenerationSteps((steps) =>
+          steps.map((step) => ({
+            ...step,
+            status: "completed",
+            message: "Step completed successfully",
+          }))
+        );
+      } else {
+        // Handle partial completion and errors
+        if (result.steps) {
+          updateStepsFromResult(result.steps);
+        }
+        setError(result.error || "Generation failed");
+      }
+    } catch (err) {
+      setError("Network error during generation");
+      console.error("Generation error:", err);
+
+      // Mark first step as failed
+      setGenerationSteps((steps) =>
+        steps.map((step, index) =>
+          index === 0
+            ? { ...step, status: "failed", message: "Network error" }
+            : step
+        )
+      );
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
-  const handleClose = () => {
-    setSelectedEpisode(null);
-    setGenerationStarted(false);
-    setIsGenerating(false);
-    onClose();
+  const updateStepsFromResult = (resultSteps: any) => {
+    const stepMapping = {
+      scraping: 0,
+      summarization: 1,
+      tts: 2,
+      storage: 3,
+      database: 4,
+    };
+
+    setGenerationSteps((steps) => {
+      const newSteps = [...steps];
+
+      Object.entries(resultSteps).forEach(
+        ([stepName, stepResult]: [string, any]) => {
+          const stepIndex = stepMapping[stepName as keyof typeof stepMapping];
+          if (stepIndex !== undefined) {
+            newSteps[stepIndex] = {
+              ...newSteps[stepIndex],
+              status: stepResult.success ? "completed" : "failed",
+              message:
+                stepResult.error ||
+                (stepResult.success ? "Completed" : "Failed"),
+            };
+          }
+        }
+      );
+
+      return newSteps;
+    });
   };
 
-  const goToEpisodes = () => {
-    router.push("/episodes");
-    handleClose();
+  const getStepIcon = (step: GenerationStep) => {
+    switch (step.status) {
+      case "completed":
+        return <CheckCircle className="w-5 h-5 text-success" />;
+      case "failed":
+        return <AlertCircle className="w-5 h-5 text-error" />;
+      case "active":
+        return <Loader2 className="w-5 h-5 text-primary animate-spin" />;
+      default:
+        return <Clock className="w-5 h-5 text-base-content/40" />;
+    }
   };
 
-  // Loading state
-  if (loadingAvailable) {
-    return (
-      <Dialog open={isOpen} onOpenChange={() => handleClose()}>
-        <DialogContent>
-          <DialogTitle className="sr-only">Loading Episodes</DialogTitle>
-          <div className="flex items-center justify-center p-8">
-            <div className="loading loading-spinner loading-lg text-primary"></div>
-            <span className="ml-3 text-base-content">
-              Loading available episodes...
-            </span>
-          </div>
-        </DialogContent>
-      </Dialog>
-    );
-  }
-
-  // No episodes available
-  if (!availableEpisodes || availableEpisodes.length === 0) {
-    return (
-      <Dialog open={isOpen} onOpenChange={() => handleClose()}>
-        <DialogContent>
-          <div className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <DialogTitle className="text-xl font-bold text-base-content">
-                Generate Episode
-              </DialogTitle>
-              <button
-                onClick={handleClose}
-                className="btn btn-ghost btn-sm btn-circle"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <div className="text-center py-8">
-              <CheckCircle className="w-16 h-16 text-success mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-base-content mb-2">
-                All Daily Episodes Created!
-              </h3>
-              <p className="text-base-content/70 mb-6">
-                You&apos;ve generated all available episodes for today. Check
-                back tomorrow for new content, or listen to your existing
-                episodes.
+  return (
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent size="lg" className="max-w-2xl">
+        <div className="p-6">
+          {/* Header */}
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="text-2xl font-bold text-base-content">
+                Generate New Episode
+              </h2>
+              <p className="text-base-content/70">
+                Create an AI-powered podcast episode from your news sources
               </p>
-              <button onClick={goToEpisodes} className="btn btn-primary gap-2">
-                <Play className="w-4 h-4" />
-                Go to Episodes
-              </button>
             </div>
+            <Button
+              btnStyle="ghost"
+              size="sm"
+              onClick={onClose}
+              className="btn-circle"
+            >
+              <X className="w-5 h-5" />
+            </Button>
           </div>
-        </DialogContent>
-      </Dialog>
-    );
-  }
 
-  // Generation started confirmation
-  if (generationStarted) {
-    return (
-      <Dialog open={isOpen} onOpenChange={() => handleClose()}>
-        <DialogContent>
-          <div className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <DialogTitle className="text-xl font-bold text-base-content">
-                Generation Started
-              </DialogTitle>
-              <button
-                onClick={handleClose}
-                className="btn btn-ghost btn-sm btn-circle"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
+          {/* Source Selection */}
+          {!isGenerating && !generationResult && (
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-base-content mb-2">
+                  Select News Source
+                </label>
+                <select
+                  className="select select-bordered w-full"
+                  value={selectedSource}
+                  onChange={(e) => setSelectedSource(e.target.value)}
+                >
+                  <option value="">Choose a news source...</option>
+                  {sources.map((source) => (
+                    <option key={source.id} value={source.id}>
+                      {source.name} ({source.category})
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-            <div className="text-center py-8">
-              <Clock className="w-16 h-16 text-primary mx-auto mb-4 animate-spin" />
-              <h3 className="text-lg font-semibold text-base-content mb-2">
-                Episode Creation Started
-              </h3>
-              <p className="text-base-content/70 mb-6">
-                Your episode is being generated and could take a few minutes.
-                Please check your Episodes section and refresh until it appears.
-              </p>
-              <div className="flex gap-3 justify-center">
-                <button
-                  onClick={goToEpisodes}
-                  className="btn btn-primary gap-2"
+              {error && (
+                <div className="alert alert-error">
+                  <AlertCircle className="w-5 h-5" />
+                  <span>{error}</span>
+                </div>
+              )}
+
+              <div className="flex gap-3 pt-4">
+                <Button
+                  variant="primary"
+                  onClick={startGeneration}
+                  disabled={!selectedSource}
+                  className="gap-2"
                 >
                   <Play className="w-4 h-4" />
-                  Go to Episodes
-                </button>
-                <button onClick={handleClose} className="btn btn-ghost">
-                  Close
-                </button>
+                  Generate Episode
+                </Button>
+                <Button btnStyle="ghost" onClick={onClose}>
+                  Cancel
+                </Button>
               </div>
             </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-    );
-  }
+          )}
 
-  // Episode selection
-  return (
-    <Dialog open={isOpen} onOpenChange={() => handleClose()}>
-      <DialogContent size="xl">
-        <div className="flex items-center justify-between mb-6">
-          <DialogTitle className="text-xl font-bold text-base-content">
-            Generate New Episode
-          </DialogTitle>
-          <button
-            onClick={handleClose}
-            className="btn btn-ghost btn-sm btn-circle"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        </div>
+          {/* Generation Progress */}
+          {(isGenerating || generationResult) && (
+            <div className="space-y-4">
+              <div className="mb-4">
+                <h3 className="text-lg font-semibold text-base-content mb-2">
+                  Generation Progress
+                </h3>
+                <p className="text-sm text-base-content/70">
+                  {isGenerating
+                    ? "Processing your episode..."
+                    : generationResult?.success
+                      ? "Episode generated successfully!"
+                      : "Generation completed with errors"}
+                </p>
+              </div>
 
-        <p className="text-base-content/70 mb-6">
-          Select an episode to generate from today&apos;s available content:
-        </p>
-
-        <div className="space-y-3 max-h-96 overflow-y-auto mb-6">
-          {availableEpisodes.map((episode) => (
-            <div
-              key={episode.id}
-              className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
-                selectedEpisode === episode.id
-                  ? "border-primary bg-primary/10"
-                  : "border-base-300 hover:border-base-400 hover:bg-base-200/50"
-              }`}
-              onClick={() => setSelectedEpisode(episode.id)}
-            >
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <h3 className="font-semibold text-base-content mb-1">
-                    {episode.title}
-                  </h3>
-                  <p className="text-sm text-primary font-medium mb-2">
-                    {episode.source}
-                  </p>
-                  <p className="text-sm text-base-content/70 line-clamp-2 mb-3">
-                    {episode.description}
-                  </p>
-                  <div className="flex items-center gap-4 text-xs text-base-content/60">
-                    <span>Published {episode.publishedAt}</span>
-                    <span>~{episode.estimatedDuration}</span>
-                  </div>
-                </div>
-
-                {selectedEpisode === episode.id && (
-                  <div className="ml-4">
-                    <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center">
-                      <CheckCircle className="w-4 h-4 text-primary-content" />
+              {/* Steps */}
+              <div className="space-y-3">
+                {generationSteps.map((step, index) => (
+                  <div
+                    key={index}
+                    className={`flex items-center gap-3 p-3 rounded-lg ${
+                      step.status === "completed"
+                        ? "bg-success/10"
+                        : step.status === "failed"
+                          ? "bg-error/10"
+                          : step.status === "active"
+                            ? "bg-primary/10"
+                            : "bg-base-200/50"
+                    }`}
+                  >
+                    {getStepIcon(step)}
+                    <div className="flex-1">
+                      <p className="font-medium text-base-content">
+                        {step.name}
+                      </p>
+                      {step.message && (
+                        <p className="text-sm text-base-content/70">
+                          {step.message}
+                        </p>
+                      )}
                     </div>
                   </div>
+                ))}
+              </div>
+
+              {/* Results */}
+              {generationResult && (
+                <div className="mt-6 p-4 bg-base-200/50 rounded-lg">
+                  <h4 className="font-semibold text-base-content mb-2">
+                    Generation Summary
+                  </h4>
+                  <div className="text-sm text-base-content/70 space-y-1">
+                    {generationResult.success ? (
+                      <>
+                        <p>✅ Episode created successfully</p>
+                        <p>
+                          💰 Total cost: ${generationResult.totalCost || "0.00"}
+                        </p>
+                        {generationResult.episode && (
+                          <p>🎧 Episode ID: {generationResult.episode.id}</p>
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        <p>❌ Generation failed: {generationResult.error}</p>
+                        {generationResult.totalCost && (
+                          <p>💰 Partial cost: ${generationResult.totalCost}</p>
+                        )}
+                      </>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div className="flex gap-3 pt-4">
+                {!isGenerating && (
+                  <>
+                    {generationResult?.success ? (
+                      <Button variant="primary" onClick={onClose}>
+                        View Episode
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="primary"
+                        onClick={() => {
+                          resetState();
+                        }}
+                      >
+                        Try Again
+                      </Button>
+                    )}
+                    <Button btnStyle="ghost" onClick={onClose}>
+                      Close
+                    </Button>
+                  </>
                 )}
               </div>
             </div>
-          ))}
-        </div>
-
-        <div className="flex items-center justify-between">
-          <p className="text-sm text-base-content/60">
-            {availableEpisodes.length} episode
-            {availableEpisodes.length !== 1 ? "s" : ""} available
-          </p>
-
-          <div className="flex gap-3">
-            <button onClick={handleClose} className="btn btn-ghost">
-              Cancel
-            </button>
-            <button
-              onClick={handleGenerate}
-              disabled={!selectedEpisode || isGenerating}
-              className="btn btn-primary gap-2"
-            >
-              {isGenerating ? (
-                <>
-                  <div className="loading loading-spinner loading-sm"></div>
-                  Generating...
-                </>
-              ) : (
-                <>
-                  <Plus className="w-4 h-4" />
-                  Generate Episode
-                </>
-              )}
-            </button>
-          </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>

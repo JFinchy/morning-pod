@@ -1,3 +1,8 @@
+import { eq } from "drizzle-orm";
+
+import { db } from "@/lib/db";
+import { scrapedContent, type NewScrapedContent } from "@/lib/db/schema";
+
 import { HackerNewsScraper } from "./hackernews-scraper";
 import { MorningBrewScraper } from "./morningbrew-scraper";
 import { TLDRScraper } from "./tldr-scraper";
@@ -13,6 +18,7 @@ export interface ScraperManagerConfig {
   maxConcurrentScrapers: number;
   deduplicationEnabled: boolean;
   contentRetentionDays: number;
+  persistToDatabase: boolean;
 }
 
 export interface AggregatedScrapingResult {
@@ -37,6 +43,7 @@ export class ScraperManager {
       maxConcurrentScrapers: 3,
       deduplicationEnabled: true,
       contentRetentionDays: 7,
+      persistToDatabase: true,
       ...config,
     };
 
@@ -113,6 +120,16 @@ export class ScraperManager {
 
       // Update content cache
       this.updateContentCache(uniqueContent);
+
+      // Save to database if enabled
+      if (this.config.persistToDatabase && uniqueContent.length > 0) {
+        try {
+          await this.saveContentToDatabase(uniqueContent);
+        } catch (error) {
+          console.error("Failed to save content to database:", error);
+          // Continue execution - don't fail the entire scraping operation
+        }
+      }
 
       return {
         success: true,
@@ -237,5 +254,54 @@ export class ScraperManager {
   // Check if a source is enabled
   isSourceEnabled(source: string): boolean {
     return this.scrapers.has(source);
+  }
+
+  // Save content to database
+  private async saveContentToDatabase(
+    content: ScrapedContent[]
+  ): Promise<void> {
+    const contentToSave: NewScrapedContent[] = [];
+
+    for (const item of content) {
+      // Check if content already exists by hash
+      const existing = await db
+        .select({ id: scrapedContent.id })
+        .from(scrapedContent)
+        .where(eq(scrapedContent.contentHash, item.contentHash))
+        .limit(1);
+
+      if (existing.length === 0) {
+        // Content doesn't exist, prepare for insertion
+        contentToSave.push({
+          title: item.title,
+          summary: item.summary,
+          content: item.content,
+          url: item.url,
+          publishedAt: item.publishedAt,
+          source: item.source,
+          category: item.category,
+          tags: item.tags ? JSON.stringify(item.tags) : null,
+          contentHash: item.contentHash,
+          status: "raw",
+          processingMetrics: JSON.stringify({
+            scrapedAt: new Date(),
+            source: item.source,
+            category: item.category,
+          }),
+        });
+      }
+    }
+
+    // Batch insert new content
+    if (contentToSave.length > 0) {
+      await db.insert(scrapedContent).values(contentToSave);
+      console.log(
+        `Saved ${contentToSave.length} new content items to database`
+      );
+    } else {
+      console.log(
+        "No new content to save - all items already exist in database"
+      );
+    }
   }
 }

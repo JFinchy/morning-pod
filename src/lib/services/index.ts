@@ -1,5 +1,5 @@
 // Business logic services
 export * from "./scraping";
-// TODO: Implement AI and audio services
-// export * from "./ai";
+export * from "./ai";
+// TODO: Implement audio services
 // export * from "./audio";

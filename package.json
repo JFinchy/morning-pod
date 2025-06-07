@@ -28,8 +28,9 @@
     ]
   },
   "dependencies": {
-    "@clack/prompts": "^0.11.0",
-    "@inquirer/prompts": "^7.5.3",
+    "@clack/prompts": "0.11.0",
+    "@google-cloud/text-to-speech": "6.0.1",
+    "@inquirer/prompts": "7.5.3",
     "@neondatabase/serverless": "1.0.1",
     "@paralleldrive/cuid2": "2.2.2",
     "@radix-ui/react-dialog": "1.1.14",

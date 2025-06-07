@@ -27,6 +27,11 @@ export const queueStatusEnum = pgEnum("queue_status", [
   "completed",
   "failed",
 ]);
+export const contentStatusEnum = pgEnum("content_status", [
+  "raw",
+  "processed",
+  "archived",
+]);
 
 // Sources table
 export const sources = pgTable("sources", {
@@ -40,6 +45,28 @@ export const sources = pgTable("sources", {
   dailyLimit: integer("daily_limit").default(3),
   contentTier: varchar("content_tier", { length: 50 }).default("free"),
   ttsService: ttsServiceEnum("tts_service").default("openai").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Scraped Content table - stores raw content from scrapers
+export const scrapedContent = pgTable("scraped_content", {
+  id: varchar("id", { length: 128 })
+    .primaryKey()
+    .$defaultFn(() => createId()),
+  sourceId: varchar("source_id", { length: 128 }).references(() => sources.id), // Optional reference to sources table
+  title: varchar("title", { length: 1000 }).notNull(),
+  summary: text("summary").notNull(),
+  content: text("content").notNull(),
+  url: text("url").notNull(),
+  publishedAt: timestamp("published_at").notNull(),
+  source: varchar("source", { length: 255 }).notNull(), // Source name (e.g., "TLDR Tech")
+  category: varchar("category", { length: 100 }).notNull(),
+  tags: text("tags"), // JSON array of tags
+  contentHash: varchar("content_hash", { length: 128 }).notNull().unique(),
+  status: contentStatusEnum("status").default("raw").notNull(),
+  scrapedAt: timestamp("scraped_at").defaultNow().notNull(),
+  processingMetrics: text("processing_metrics"), // JSON object with scraping metrics
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -98,5 +125,7 @@ export type Episode = typeof episodes.$inferSelect;
 export type NewEpisode = typeof episodes.$inferInsert;
 export type Source = typeof sources.$inferSelect;
 export type NewSource = typeof sources.$inferInsert;
+export type ScrapedContent = typeof scrapedContent.$inferSelect;
+export type NewScrapedContent = typeof scrapedContent.$inferInsert;
 export type QueueItem = typeof queue.$inferSelect;
 export type NewQueueItem = typeof queue.$inferInsert;
