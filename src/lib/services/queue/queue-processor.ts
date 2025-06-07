@@ -225,14 +225,15 @@ export class QueueProcessor extends EventEmitter {
       // Step 2: Summarize content
       await this.updateProgress(job.queueItem.id, "summarizing", 40);
 
-      const summarizationResult = await this.summarizationService.summarize({
-        content: scrapedContent,
-        options: {
-          targetLength: "medium",
-          includeSpeakerNotes: true,
-          style: "conversational",
-        },
-      });
+      const summarizationResult =
+        await this.summarizationService.generateSummary({
+          content: scrapedContent,
+          options: {
+            targetLength: "medium",
+            includeSpeakerNotes: true,
+            style: "conversational",
+          },
+        });
 
       totalCost += summarizationResult.cost || 0;
 

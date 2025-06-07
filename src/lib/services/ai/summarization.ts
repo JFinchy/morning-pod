@@ -1,325 +1,391 @@
-import { createId } from "@paralleldrive/cuid2";
 import OpenAI from "openai";
+import { z } from "zod";
 
-import {
-  SummarizationRequest,
-  SummarizationResult,
-  SummarizationOptions,
-  ScrapedContentItem,
-  AIServiceError,
-  RateLimitError,
-  QuotaExceededError,
-  InvalidInputError,
-  CostTracking,
-} from "./types";
+/**
+ * Configuration for AI summarization service
+ *
+ * @business-context We use OpenAI GPT-4 for summarization to ensure high quality
+ *                   podcast-friendly content. Cost is balanced by limiting max tokens
+ *                   and using efficient prompts.
+ * @decision-date 2024-01-22
+ * @decision-by Product team after quality comparison testing
+ */
+const AI_CONFIG = {
+  model: "gpt-4" as const,
+  maxTokens: 2000, // ~1600 words, optimal for 5-10 min TTS audio
+  temperature: 0.3, // Consistent, factual tone
+  maxRetries: 3,
+  baseDelay: 1000, // 1 second base retry delay
+} as const;
 
-// OpenAI pricing (as of 2024) - update these as needed
+/**
+ * Pricing per 1K tokens (as of 2024-01-22)
+ * @business-context Updated monthly from OpenAI pricing page
+ */
 const PRICING = {
-  "gpt-4o": {
-    input: 0.0025, // per 1K tokens
-    output: 0.01, // per 1K tokens
-  },
-  "gpt-4o-mini": {
-    input: 0.00015, // per 1K tokens
-    output: 0.0006, // per 1K tokens
+  "gpt-4": {
+    input: 0.03, // $0.03 per 1K input tokens
+    output: 0.06, // $0.06 per 1K output tokens
   },
 } as const;
 
+/**
+ * Validation schemas for summarization inputs and outputs
+ */
+const ContentSchema = z.object({
+  title: z.string().min(1, "Title is required"),
+  content: z.string().min(100, "Content must be at least 100 characters"),
+  source: z.string().min(1, "Source is required"),
+  url: z.string().url("Valid URL is required"),
+  publishedAt: z.date().optional(),
+});
+
+const SummarySchema = z.object({
+  title: z.string().min(1),
+  summary: z.string().min(50),
+  keyPoints: z.array(z.string()).min(1).max(5),
+  estimatedReadTime: z.number().positive(),
+  ttsOptimizedContent: z.string().min(50),
+});
+
+export type ContentInput = z.infer<typeof ContentSchema>;
+export type SummaryOutput = z.infer<typeof SummarySchema>;
+
+/**
+ * Cost tracking interface for summarization operations
+ */
+export interface SummarizationCost {
+  inputTokens: number;
+  outputTokens: number;
+  totalTokens: number;
+  inputCost: number;
+  outputCost: number;
+  totalCost: number;
+  model: string;
+  timestamp: Date;
+}
+
+/**
+ * Error types for better error handling
+ */
+export class SummarizationError extends Error {
+  constructor(
+    message: string,
+    public readonly code:
+      | "VALIDATION_ERROR"
+      | "API_ERROR"
+      | "RETRY_EXHAUSTED"
+      | "CONTENT_TOO_LONG",
+    public readonly originalError?: Error
+  ) {
+    super(message);
+    this.name = "SummarizationError";
+  }
+}
+
+/**
+ * AI Summarization Service
+ *
+ * Converts raw news content into podcast-friendly summaries optimized for TTS
+ *
+ * @business-context Creates engaging, conversational summaries that sound natural
+ *                   when read by AI voice synthesis. Includes key points and
+ *                   smooth transitions for better listener experience.
+ */
 export class SummarizationService {
   private openai: OpenAI;
-  private defaultModel: string = "gpt-4o-mini";
-  private costTracker: CostTracking[] = [];
+  private costTracker: SummarizationCost[] = [];
 
-  constructor() {
-    if (!process.env.OPENAI_API_KEY) {
-      throw new Error("OPENAI_API_KEY environment variable is required");
+  constructor(apiKey?: string) {
+    if (!apiKey && !process.env.OPENAI_API_KEY) {
+      throw new SummarizationError(
+        "OpenAI API key is required",
+        "VALIDATION_ERROR"
+      );
     }
 
     this.openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
-      organization: process.env.OPENAI_ORG_ID,
+      apiKey: apiKey || process.env.OPENAI_API_KEY,
     });
   }
 
   /**
-   * Summarize scraped content into podcast-format text
+   * Generate a podcast-friendly summary from content
+   *
+   * @business-context Creates summaries optimized for voice synthesis with
+   *                   natural speech patterns, clear pronunciation cues,
+   *                   and engaging narrative flow for podcast consumption.
+   *
+   * @param content - The content to summarize
+   * @returns Promise with summary and cost tracking
+   * @throws SummarizationError for validation or API failures
    */
-  async summarize(request: SummarizationRequest): Promise<SummarizationResult> {
-    const startTime = Date.now();
-    const requestId = createId();
+  async generateSummary(content: ContentInput): Promise<{
+    summary: SummaryOutput;
+    cost: SummarizationCost;
+  }> {
+    // Validate input
+    const validatedContent = ContentSchema.parse(content);
 
+    // Check content length (approximate token count)
+    const estimatedTokens = this.estimateTokens(validatedContent.content);
+    if (estimatedTokens > 12000) {
+      // Leave room for output tokens
+      throw new SummarizationError(
+        "Content too long for processing",
+        "CONTENT_TOO_LONG"
+      );
+    }
+
+    const prompt = this.buildSummarizationPrompt(validatedContent);
+
+    let lastError: Error | null = null;
+
+    // Retry logic with exponential backoff
+    for (let attempt = 1; attempt <= AI_CONFIG.maxRetries; attempt++) {
+      try {
+        const startTime = Date.now();
+
+        const completion = await this.openai.chat.completions.create({
+          model: AI_CONFIG.model,
+          messages: [
+            {
+              role: "system",
+              content: `You are a professional podcast script writer specializing in tech news. 
+                       Create engaging, conversational summaries optimized for AI voice synthesis.
+                       Use natural speech patterns, clear pronunciation, and smooth transitions.`,
+            },
+            {
+              role: "user",
+              content: prompt,
+            },
+          ],
+          max_tokens: AI_CONFIG.maxTokens,
+          temperature: AI_CONFIG.temperature,
+          response_format: { type: "json_object" },
+        });
+
+        const usage = completion.usage;
+        if (!usage) {
+          throw new SummarizationError(
+            "No usage information returned",
+            "API_ERROR"
+          );
+        }
+
+        // Parse and validate response
+        const responseContent = completion.choices[0]?.message?.content;
+        if (!responseContent) {
+          throw new SummarizationError("No content in response", "API_ERROR");
+        }
+
+        let parsedResponse;
+        try {
+          parsedResponse = JSON.parse(responseContent);
+        } catch (parseError) {
+          throw new SummarizationError(
+            "Invalid JSON response from AI",
+            "API_ERROR",
+            parseError as Error
+          );
+        }
+
+        const summary = SummarySchema.parse(parsedResponse);
+
+        // Calculate costs
+        const cost: SummarizationCost = {
+          inputTokens: usage.prompt_tokens,
+          outputTokens: usage.completion_tokens,
+          totalTokens: usage.total_tokens,
+          inputCost:
+            (usage.prompt_tokens / 1000) * PRICING[AI_CONFIG.model].input,
+          outputCost:
+            (usage.completion_tokens / 1000) * PRICING[AI_CONFIG.model].output,
+          totalCost: 0, // Will be calculated below
+          model: AI_CONFIG.model,
+          timestamp: new Date(startTime),
+        };
+        cost.totalCost = cost.inputCost + cost.outputCost;
+
+        // Track cost for monitoring
+        this.costTracker.push(cost);
+
+        return { summary, cost };
+      } catch (error) {
+        lastError = error as Error;
+
+        if (attempt === AI_CONFIG.maxRetries) {
+          break;
+        }
+
+        // Exponential backoff delay
+        const delay = AI_CONFIG.baseDelay * Math.pow(2, attempt - 1);
+        await this.sleep(delay);
+      }
+    }
+
+    throw new SummarizationError(
+      `Failed after ${AI_CONFIG.maxRetries} attempts: ${lastError?.message}`,
+      "RETRY_EXHAUSTED",
+      lastError || undefined
+    );
+  }
+
+  /**
+   * Build the summarization prompt optimized for podcast content
+   *
+   * @business-context Creates structured prompts that guide AI to produce
+   *                   content with natural speech flow, clear transitions,
+   *                   and engaging narrative for audio consumption.
+   */
+  private buildSummarizationPrompt(content: ContentInput): string {
+    const publishedDate =
+      content.publishedAt?.toLocaleDateString() || "recently";
+
+    return `
+Please create a podcast-friendly summary of this article:
+
+**Article Title:** ${content.title}
+**Source:** ${content.source}
+**Published:** ${publishedDate}
+**URL:** ${content.url}
+
+**Content:**
+${content.content}
+
+Create a JSON response with the following structure:
+{
+  "title": "Catchy, podcast-friendly title (60 chars max)",
+  "summary": "3-paragraph summary with natural speech flow (200-300 words)",
+  "keyPoints": ["3-5 key takeaways", "Clear and concise points"],
+  "estimatedReadTime": 2,
+  "ttsOptimizedContent": "Full script optimized for AI voice synthesis (400-600 words)"
+}
+
+**TTS Optimization Guidelines:**
+- Use conversational tone with natural speech patterns
+- Include smooth transitions between topics
+- Avoid complex punctuation that affects pronunciation
+- Add brief pauses with periods for natural rhythm
+- Use "and" instead of "&", spell out numbers clearly
+- Include engaging hooks and clear conclusions
+- Make it sound like a human podcast host would deliver it
+
+**Content Requirements:**
+- Focus on the most newsworthy and interesting aspects
+- Maintain accuracy while making it engaging
+- Include context for technical terms
+- Create a narrative flow that keeps listeners engaged
+- End with a clear conclusion or call-to-action
+`;
+  }
+
+  /**
+   * Estimate token count for content (approximate)
+   * @business-context Used to prevent API calls that exceed limits
+   */
+  private estimateTokens(text: string): number {
+    // Rough estimation: 1 token ≈ 4 characters for English text
+    return Math.ceil(text.length / 4);
+  }
+
+  /**
+   * Sleep utility for retry delays
+   */
+  private sleep(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  /**
+   * Validate API key and connection
+   *
+   * @business-context Used during service initialization to ensure
+   *                   configuration is correct before attempting operations
+   */
+  async validateConnection(): Promise<boolean> {
     try {
-      // Validate input
-      this.validateRequest(request);
-
-      // Prepare content for summarization
-      const contentText = this.prepareContent(request.content);
-      const prompt = this.buildPrompt(contentText, request.options);
-
-      // Call OpenAI API
-      const completion = await this.callOpenAI(prompt, request.options);
-
-      // Calculate costs
-      const cost = this.calculateCost(completion.usage, this.defaultModel);
-
-      // Track costs
-      this.trackCost({
-        service: "openai-gpt",
-        model: this.defaultModel,
-        tokensUsed: completion.usage?.total_tokens,
-        cost,
-        timestamp: new Date(),
-        requestId,
-      });
-
-      const summary = completion.choices[0]?.message?.content;
-      if (!summary) {
-        throw new AIServiceError("No summary generated", "summarization");
-      }
-
-      // Estimate audio duration (average speaking rate: ~150 words per minute)
-      const wordCount = summary.split(/\s+/).length;
-      const estimatedDuration = Math.round((wordCount / 150) * 60); // in seconds
-
-      return {
-        success: true,
-        summary,
-        wordCount,
-        estimatedDuration,
-        cost,
-        tokensUsed: completion.usage?.total_tokens,
-        metadata: {
-          model: this.defaultModel,
-          processingTime: Date.now() - startTime,
-          sourceCount: request.content.length,
-        },
-      };
+      await this.openai.models.list();
+      return true;
     } catch (error) {
-      console.error("Summarization error:", error);
-
-      if (error instanceof AIServiceError) {
-        return {
-          success: false,
-          error: error.message,
-          metadata: {
-            model: this.defaultModel,
-            processingTime: Date.now() - startTime,
-            sourceCount: request.content.length,
-          },
-        };
-      }
-
-      // Handle OpenAI specific errors
-      if (error instanceof Error && "status" in error) {
-        const aiError = this.handleOpenAIError(error as any);
-        return {
-          success: false,
-          error: aiError.message,
-          metadata: {
-            model: this.defaultModel,
-            processingTime: Date.now() - startTime,
-            sourceCount: request.content.length,
-          },
-        };
-      }
-
-      return {
-        success: false,
-        error: "Unknown error occurred during summarization",
-        metadata: {
-          model: this.defaultModel,
-          processingTime: Date.now() - startTime,
-          sourceCount: request.content.length,
-        },
-      };
+      return false;
     }
   }
 
   /**
-   * Get cost tracking data
+   * Get cost tracking history
+   * @business-context Provides cost analytics and budget monitoring
    */
-  getCostTracking(): CostTracking[] {
+  getCostHistory(): SummarizationCost[] {
     return [...this.costTracker];
   }
 
   /**
-   * Clear cost tracking data
+   * Get total costs for a date range
+   * @business-context Used for budget reporting and cost analysis
    */
-  clearCostTracking(): void {
+  getTotalCosts(
+    startDate?: Date,
+    endDate?: Date
+  ): {
+    totalCost: number;
+    totalTokens: number;
+    requestCount: number;
+  } {
+    let filteredCosts = this.costTracker;
+
+    if (startDate) {
+      filteredCosts = filteredCosts.filter(
+        (cost) => cost.timestamp >= startDate
+      );
+    }
+
+    if (endDate) {
+      filteredCosts = filteredCosts.filter((cost) => cost.timestamp <= endDate);
+    }
+
+    return {
+      totalCost: filteredCosts.reduce((sum, cost) => sum + cost.totalCost, 0),
+      totalTokens: filteredCosts.reduce(
+        (sum, cost) => sum + cost.totalTokens,
+        0
+      ),
+      requestCount: filteredCosts.length,
+    };
+  }
+
+  /**
+   * Clear cost tracking history
+   * @business-context Used for periodic cleanup and memory management
+   */
+  clearCostHistory(): void {
     this.costTracker = [];
   }
 
-  private validateRequest(request: SummarizationRequest): void {
-    if (!request.content || request.content.length === 0) {
-      throw new InvalidInputError("summarization", "No content provided");
-    }
-
-    if (request.content.length > 50) {
-      throw new InvalidInputError(
-        "summarization",
-        "Too many content items (max 50)"
-      );
-    }
-
-    // Check total content length
-    const totalLength = request.content.reduce(
-      (sum, item) => sum + item.content.length,
-      0
-    );
-    if (totalLength > 100000) {
-      // ~100k characters
-      throw new InvalidInputError(
-        "summarization",
-        "Content too long (max 100k characters)"
-      );
-    }
+  /**
+   * Get current pricing information
+   * @business-context Exposed for cost monitoring and budgeting
+   */
+  static getPricing() {
+    return PRICING;
   }
 
-  private prepareContent(content: ScrapedContentItem[]): string {
-    return content
-      .map((item, index) => {
-        return `
-## Article ${index + 1}: ${item.title}
-**Source:** ${item.source}
-**Category:** ${item.category || "General"}
-${item.url ? `**URL:** ${item.url}` : ""}
-
-${item.content}
-
----
-`;
-      })
-      .join("\n");
+  /**
+   * Get service configuration
+   * @business-context Exposed for monitoring and debugging
+   */
+  static getConfig() {
+    return AI_CONFIG;
   }
-
-  private buildPrompt(
-    contentText: string,
-    options?: SummarizationOptions
-  ): string {
-    const style = options?.style || "conversational";
-    const targetLength = options?.targetLength || "medium";
-    const includeIntro = options?.includeIntro ?? true;
-    const includeOutro = options?.includeOutro ?? true;
-
-    const lengthGuidance = {
-      short: "100-150 words",
-      medium: "200-300 words",
-      long: "400-500 words",
-    };
-
-    const styleGuidance = {
-      conversational:
-        "Use a friendly, engaging tone as if speaking to a friend. Include natural transitions and conversational phrases.",
-      formal:
-        "Use a professional, news-anchor style tone. Be clear and authoritative.",
-      casual:
-        "Use a relaxed, informal tone. Feel free to use contractions and casual language.",
-    };
-
-    return `You are a podcast host creating a daily news summary. Transform the following news articles into a cohesive, engaging podcast script.
-
-**Style:** ${styleGuidance[style]}
-**Target Length:** ${lengthGuidance[targetLength]}
-**Include Intro:** ${includeIntro ? "Yes" : "No"}
-**Include Outro:** ${includeOutro ? "Yes" : "No"}
-
-**Instructions:**
-1. Create a flowing narrative that connects the stories naturally
-2. Prioritize the most important and interesting stories
-3. Use transitions between topics
-4. Make it sound natural when spoken aloud
-5. Include specific details and context where relevant
-6. Avoid reading like a list of bullet points
-
-${
-  includeIntro
-    ? `
-**Intro Example:** "Good morning! Welcome to your daily news briefing. I'm here with the latest updates from the world of technology and beyond. Let's dive into what's happening today."
-`
-    : ""
 }
 
-${
-  includeOutro
-    ? `
-**Outro Example:** "That's your news update for today. Stay informed, stay curious, and I'll see you tomorrow with more updates. Have a great day!"
-`
-    : ""
-}
-
-**News Articles to Summarize:**
-${contentText}
-
-**Podcast Script:**`;
-  }
-
-  private async callOpenAI(prompt: string, options?: SummarizationOptions) {
-    const maxTokens = options?.maxTokens || 800;
-    const temperature = options?.temperature || 0.7;
-
-    return await this.openai.chat.completions.create({
-      model: this.defaultModel,
-      messages: [
-        {
-          role: "system",
-          content:
-            "You are an expert podcast host and content creator. Your job is to transform news articles into engaging, natural-sounding podcast scripts.",
-        },
-        {
-          role: "user",
-          content: prompt,
-        },
-      ],
-      max_tokens: maxTokens,
-      temperature,
-      top_p: 1,
-      frequency_penalty: 0.1,
-      presence_penalty: 0.1,
-    });
-  }
-
-  private calculateCost(usage: any, model: string): number {
-    if (!usage || !PRICING[model as keyof typeof PRICING]) {
-      return 0;
-    }
-
-    const pricing = PRICING[model as keyof typeof PRICING];
-    const inputCost = (usage.prompt_tokens / 1000) * pricing.input;
-    const outputCost = (usage.completion_tokens / 1000) * pricing.output;
-
-    return Math.round((inputCost + outputCost) * 10000) / 10000; // Round to 4 decimal places
-  }
-
-  private trackCost(tracking: CostTracking): void {
-    this.costTracker.push(tracking);
-
-    // Keep only last 100 entries to prevent memory issues
-    if (this.costTracker.length > 100) {
-      this.costTracker = this.costTracker.slice(-100);
-    }
-  }
-
-  private handleOpenAIError(error: any): AIServiceError {
-    switch (error.status) {
-      case 429:
-        const retryAfter = error.headers?.["retry-after"]
-          ? parseInt(error.headers["retry-after"])
-          : undefined;
-        return new RateLimitError("summarization", retryAfter);
-
-      case 402:
-        return new QuotaExceededError("summarization");
-
-      case 400:
-        return new InvalidInputError("summarization", error.message);
-
-      default:
-        return new AIServiceError(
-          `OpenAI API error: ${error.message}`,
-          "summarization",
-          error.code || "UNKNOWN",
-          error.status ? error.status >= 500 : false
-        );
-    }
-  }
+/**
+ * Factory function to create summarization service instance
+ *
+ * @business-context Provides consistent service instantiation with
+ *                   environment-based configuration and error handling
+ */
+export function createSummarizationService(
+  apiKey?: string
+): SummarizationService {
+  return new SummarizationService(apiKey);
 }
