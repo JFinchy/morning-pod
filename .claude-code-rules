@@ -728,6 +728,283 @@ Before presenting changes:
 - [ ] Accessibility checked
 - [ ] Mobile responsiveness verified
 
+## Version Management with Changesets
+
+### Changeset Implementation Workflow
+```bash
+# 1. Create changeset (when implementing new feature/fix)
+bun changeset
+# Interactive CLI prompts for:
+# - Package selection (morning-pod)
+# - Semver bump type (patch/minor/major)
+# - Change summary description
+
+# 2. Version bump (before release)
+bun changeset:version
+# - Updates package.json version
+# - Generates/updates CHANGELOG.md
+# - Removes consumed changeset files
+
+# 3. Release to production
+bun release
+# - Builds application
+# - Creates git tag with version
+# - Triggers deployment pipeline
+```
+
+### When to Create Changesets
+- **New Features**: Use `minor` bump for user-facing features
+- **Bug Fixes**: Use `patch` bump for fixes and improvements
+- **Breaking Changes**: Use `major` bump for API/interface changes
+- **Internal Changes**: No changeset needed (refactoring, tests, docs)
+
+### Canary Deployment Strategy
+#### Cost-Free Facebook-Style Approach
+- **Single Environment**: Vercel production with feature flags
+- **Progressive Rollout**: 10% → 50% → 100% via PostHog flags
+- **Synthetic Users**: Test with fake users before real traffic
+- **Automated Monitoring**: Error rate tracking with auto-rollback
+- **Zero Infrastructure Cost**: Uses only free tiers
+
+#### Synthetic User Testing Implementation
+When Claude Code implements canary features:
+
+1. **Synthetic User Module** (`src/lib/testing/synthetic-users.ts`)
+   - Define SYNTHETIC_USER_IDS array
+   - Implement createSyntheticUser function
+   - Add isCanaryUser detection logic
+
+2. **Canary Test Automation** (`src/tests/synthetic/canary-automation.ts`)
+   - SyntheticUserTesting class
+   - User journey simulation methods
+   - Metrics collection and analysis
+
+3. **Playwright E2E Integration** (`src/tests/e2e/canary-synthetic.spec.ts`)
+   - Test each synthetic user ID
+   - Feature flag verification
+   - Error detection and reporting
+
+4. **Load Testing Setup** (`src/tests/load/canary-load.js`)
+   - K6 synthetic traffic generation
+   - Performance benchmarking
+   - Health check validation
+
+5. **Monitoring Dashboard** (`src/lib/monitoring/synthetic-dashboard.ts`)
+   - Real-time synthetic user metrics
+   - Automated alerting system
+   - Error rate threshold monitoring
+
+### Changeset Commands Reference
+```bash
+bun changeset          # Create new changeset
+bun changeset:version  # Bump version and generate changelog
+bun changeset:status   # Check pending changesets
+bun changeset:tag      # Create git tags
+bun changeset:publish  # Publish release
+bun release           # Build and publish (recommended)
+```
+
+### Integration with Task Management
+- **Check TASKS.md**: See "Next Steps: Changeset Version Management Implementation"
+- **Phased Approach**: Manual setup first, then Claude Code automation phases
+- **Documentation**: Complete implementation guide in `DEPLOYMENT_STRATEGY.md`
+
+## Package Update Management Strategy
+
+### Dependency Pinning Philosophy
+**All package versions are pinned to exact versions** (removing ^ and ~ prefixes):
+- **Reproducible Builds**: Identical dependency versions across all environments
+- **Predictable Deployments**: No surprise updates in production
+- **Controlled Updates**: Explicit version management through our scripts
+- **Security**: Deliberate updates after testing and validation
+
+### Automated Update Workflow
+```bash
+# Daily/Weekly maintenance commands
+bun deps:check                    # Check available updates
+bun deps:update:patch            # Apply safe patch updates
+bun deps:update:minor            # Apply minor version updates
+bun deps:update:safe             # Update + test automatically
+
+# Manual review required
+bun deps:update:major            # Show major updates
+bun run scripts/update-dependencies.ts --interactive
+bun deps:doctor                  # Automated safe updates with testing
+```
+
+### Update Strategy by Severity
+1. **Patch Updates** (1.0.0 → 1.0.1): Auto-apply weekly
+   - Bug fixes and security patches
+   - Minimal risk of breaking changes
+   - Automatic testing validation
+
+2. **Minor Updates** (1.0.0 → 1.1.0): Review monthly
+   - New features, backward compatible
+   - Test thoroughly before applying
+   - Create changeset for tracking
+
+3. **Major Updates** (1.0.0 → 2.0.0): Review quarterly
+   - Potential breaking changes
+   - Requires manual code review
+   - Check migration guides and changelogs
+   - Update code for compatibility
+
+### npm-check-updates (ncu) Integration
+- **Bun Compatibility**: Automatically detected via bun.lockb
+- **Configuration**: `.ncurc.json` with project-specific settings
+- **Excluded Packages**: Next.js and other critical frameworks
+- **Doctor Mode**: Iterative updates with automatic testing
+- **Rollback**: Automatic restoration on test failures
+
+### Automated Testing Pipeline
+Every dependency update automatically runs:
+1. **Package Installation**: `bun install`
+2. **Unit Tests**: `bun test`
+3. **Type Checking**: `bun run type-check`
+4. **Build Verification**: `bun run build` (for major updates)
+5. **Rollback on Failure**: Restore original package.json
+
+### Changeset Integration
+- **Automatic Changeset Creation**: For all successful updates
+- **Semantic Versioning**: Patch changesets for dependency updates
+- **Documentation**: Clear tracking of what was updated and why
+- **Release Notes**: Dependencies included in release changelog
+
+### Weekly Maintenance Routine
+```bash
+# Monday maintenance routine
+bun deps:check                   # See what's available
+bun deps:update:patch           # Apply safe patches immediately
+bun deps:update:minor           # Review and apply minor updates
+
+# Monthly major review
+bun deps:update:major           # Check breaking changes
+# Research each major update individually
+# Apply one at a time with thorough testing
+```
+
+### Emergency Update Process
+For critical security updates:
+```bash
+# Quick security patch
+bun ncu --target patch -f [vulnerable-package] -u
+bun install && bun test && bun run type-check
+
+# Create emergency changeset
+bun changeset  # Document security fix
+```
+
+### Claude Code Instructions for Dependency Management
+When implementing dependency updates:
+1. **Always check current pinned versions** in package.json
+2. **Use our automated scripts** rather than manual ncu commands
+3. **Test thoroughly** with our established test suite
+4. **Create changesets** for all dependency changes
+5. **Document rationale** for major version updates
+6. **Follow our exclusion list** (Next.js, etc.)
+7. **Verify Bun compatibility** for all new packages
+
+## Interactive Script Runner System
+
+### Problem Solved
+Package.json script bloat was becoming overwhelming with 50+ scripts. Our interactive runner organizes commands into logical categories while maintaining both discoverability and direct execution.
+
+### Implementation Strategy
+```bash
+# Core runner script
+scripts/run.ts                   # Main interactive script runner
+
+# Simplified package.json
+{
+  "scripts": {
+    "script": "bun run scripts/run.ts",
+    "dev": "bun run scripts/run.ts dev start",
+    "build": "bun run scripts/run.ts dev build", 
+    "test": "bun run scripts/run.ts test unit",
+    "test:all": "bun run scripts/run.ts test --all"
+  }
+}
+```
+
+### Usage Patterns
+#### Interactive Discovery Mode
+```bash
+bun run script                   # Show all categories
+bun run script test              # Show test commands
+bun run script deps             # Show dependency commands
+```
+
+#### Direct Execution Mode
+```bash
+bun run script test unit        # Run unit tests
+bun run script deps check       # Check for updates
+bun run script quality all      # Run all quality checks
+bun run script [category] --all # Run all in category
+```
+
+#### Help and Discovery
+```bash
+bun run script --help           # Show usage guide
+bun run script -l               # List all available commands
+```
+
+### Command Categories Structure
+Each category contains related commands with consistent naming:
+
+1. **🚀 dev** - Development workflow
+   - start, build, preview, clean
+
+2. **🧪 test** - Testing commands  
+   - unit, unit:watch, unit:ui, unit:coverage
+   - e2e, e2e:ui, e2e:debug, e2e:headed, e2e:visual
+   - performance, all
+
+3. **🗄️ db** - Database operations
+   - generate, migrate, seed, studio
+
+4. **📦 deps** - Dependency management
+   - check, update:patch, update:minor, update:safe
+   - update:major, doctor, outdated
+
+5. **✨ quality** - Code quality tools
+   - lint, lint:fix, format, format:check
+   - type-check, all
+
+6. **🚢 release** - Release management
+   - changeset, version, publish, status, release
+
+### Claude Code Integration Instructions
+When adding new scripts or commands:
+
+1. **Add to appropriate category** in `scripts/run.ts`
+2. **Follow naming conventions** (action, action:modifier)
+3. **Include descriptive text** for discoverability
+4. **Test both direct and category execution**
+5. **Update documentation** if adding new categories
+6. **Maintain backward compatibility** for essential package.json scripts
+
+### Benefits for Development Workflow
+- **Reduced cognitive load**: Organized, discoverable commands
+- **Faster onboarding**: Self-documenting interface
+- **Consistent patterns**: Same execution model across all tools
+- **Flexible usage**: Menu-driven discovery + direct execution
+- **Maintainable**: Single source of truth for all commands
+
+### Migration Strategy for New Commands
+Instead of adding to package.json:
+```bash
+# Old way (package.json bloat)
+"new:command": "complex command with flags"
+
+# New way (organized in runner)
+// Add to scripts/run.ts in appropriate category
+{
+  name: 'command',
+  description: 'Clear description of what it does', 
+  command: 'complex command with flags'
+}
+```
+
 ## Important Reminders
 
 1. **ALWAYS check TASKS.md first** - This is your roadmap
@@ -738,6 +1015,8 @@ Before presenting changes:
 6. **Keep rules synchronized** - Update both .cursorrules and .claude-code-rules
 7. **Commit after approval** - Always present changes first
 8. **Update documentation** - Keep README and FILE_STRUCTURE.md current
+9. **Use changesets for version management** - Track all user-facing changes
+10. **Implement synthetic testing** - Test canary features safely
 
 ---
-Last Updated: 2024-01-20 | Synchronized with .cursorrules
+Last Updated: 2024-01-22 | Synchronized with .cursorrules

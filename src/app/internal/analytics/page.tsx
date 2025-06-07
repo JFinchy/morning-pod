@@ -9,7 +9,7 @@ import {
   usePodcastAnalytics,
   usePlayerAnalytics,
   useUserIdentification,
-} from "@/lib/feature-flags";
+} from "@/lib/feature-flags/analytics-hooks";
 
 export default function AnalyticsPage() {
   const [testUserId] = useState(() => `test-user-${Date.now()}`);

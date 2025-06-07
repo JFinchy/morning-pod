@@ -722,6 +722,174 @@ export async function calculatePodcastCost(
 3. **GitHub MCP**: For repository management
 4. **Memory MCP**: For maintaining context across sessions
 
+## Version Management with Changesets
+
+### Changeset Workflow
+```bash
+# Create changeset (when implementing new feature)
+bun changeset
+# Interactive CLI asks for:
+# - Which packages to version (select main package)
+# - Semver bump type (patch/minor/major)
+# - Summary of changes
+
+# Version bump (before release)
+bun changeset:version
+# Updates package.json version
+# Generates CHANGELOG.md 
+# Removes consumed changeset files
+
+# Release to production
+bun release
+# Builds application
+# Creates git tag
+# Triggers deployment pipeline
+```
+
+### When to Create Changesets
+1. **New Features**: Create changeset with `minor` bump
+2. **Bug Fixes**: Create changeset with `patch` bump  
+3. **Breaking Changes**: Create changeset with `major` bump
+4. **Internal Changes**: No changeset needed (refactoring, tests)
+
+### Canary Deployment Strategy
+- **PostHog Feature Flags**: Control canary rollouts (10% → 50% → 100%)
+- **Synthetic Users**: Test canaries with fake users before real traffic
+- **Automated Rollback**: Monitor error rates and auto-disable features
+- **Cost-Free**: Uses only free tiers (Vercel, PostHog, GitHub Actions)
+
+### Synthetic User Testing Implementation
+When implementing canary features, create:
+1. **Synthetic User Module** (`src/lib/testing/synthetic-users.ts`)
+2. **Canary Test Automation** (`src/tests/synthetic/canary-automation.ts`)
+3. **Playwright E2E Tests** (`src/tests/e2e/canary-synthetic.spec.ts`)
+4. **Load Testing** (`src/tests/load/canary-load.js`)
+5. **Monitoring Dashboard** (`src/lib/monitoring/synthetic-dashboard.ts`)
+
+### Changeset Commands Reference
+```bash
+bun changeset          # Create new changeset
+bun changeset:version  # Bump version and generate changelog
+bun changeset:status   # Check pending changesets
+bun changeset:tag      # Create git tags
+bun changeset:publish  # Publish release
+bun release           # Build and publish (recommended)
+```
+
+## Package Update Management
+
+### Dependency Pinning Strategy
+All package versions are pinned to exact versions (no ^ or ~ prefixes) to ensure:
+- **Reproducible builds** across all environments
+- **Predictable behavior** in production
+- **Controlled updates** through explicit version management
+- **No surprise breaking changes** from automatic updates
+
+### Automated Update Commands
+```bash
+# Check for available updates
+bun deps:check
+
+# Safe patch updates (bug fixes only)
+bun deps:update:patch
+
+# Minor updates (new features, backward compatible)
+bun deps:update:minor
+
+# Safe automated updates with testing
+bun deps:update:safe
+
+# Check major updates (requires manual review)
+bun deps:update:major
+
+# Interactive update selection
+bun run scripts/update-dependencies.ts --interactive
+
+# Doctor mode (automated safe updates with testing)
+bun deps:doctor
+```
+
+### Update Workflow Process
+1. **Weekly Check**: Run `bun deps:check` to see available updates
+2. **Patch Updates**: Apply patch updates immediately with `bun deps:update:patch`
+3. **Minor Updates**: Review and apply minor updates monthly with `bun deps:update:minor`
+4. **Major Updates**: Review major updates quarterly, check breaking changes
+5. **Automated Testing**: All updates run tests and type checking automatically
+6. **Changeset Creation**: Automatic changeset generation for dependency updates
+
+### Major Update Review Process
+```bash
+# Check what major updates are available
+bun deps:update:major
+
+# Research breaking changes for specific packages
+# Review package changelog and migration guides
+# Update code if needed for compatibility
+# Apply specific major updates manually:
+bun ncu --target major -u [package-name]
+```
+
+### npm-check-updates Configuration
+- **Package Manager**: Bun (automatically detected via bun.lockb)
+- **Default Target**: Minor updates only
+- **Excluded Packages**: Next.js (requires manual review)
+- **Doctor Mode**: Runs tests and type checking for validation
+- **Timeout**: 15 seconds per package check
+
+## Interactive Script Runner
+
+### Overview
+To solve package.json script bloat, we use an interactive script runner that organizes commands into logical categories with both menu-driven and direct execution modes.
+
+### Usage Modes
+```bash
+# Interactive menu mode
+bun run script                    # Show category menu
+bun run script -i                 # Same as above
+
+# Direct execution mode  
+bun run script [category]         # Show category commands
+bun run script [category] [cmd]   # Run specific command
+bun run script [category] --all   # Run all commands in category
+
+# List all available commands
+bun run script -l                 # Complete command reference
+bun run script --help             # Show usage help
+```
+
+### Script Categories
+- **🚀 dev** - Development commands (start, build, preview, clean)
+- **🧪 test** - Testing commands (unit, e2e, coverage, performance)  
+- **🗄️ db** - Database commands (generate, migrate, seed, studio)
+- **📦 deps** - Dependency management (check, update, doctor)
+- **✨ quality** - Code quality (lint, format, type-check)
+- **🚢 release** - Release management (changeset, version, publish)
+
+### Common Usage Examples
+```bash
+# Development workflow
+bun run script dev start         # Start dev server
+bun run script test unit         # Run unit tests
+bun run script test --all        # Run all tests
+
+# Maintenance workflow  
+bun run script deps check        # Check for updates
+bun run script quality all       # Run all quality checks
+bun run script release changeset # Create changeset
+
+# Discovery workflow
+bun run script                   # See all categories
+bun run script test              # See all test commands
+bun run script -l                # List every available command
+```
+
+### Benefits of This Approach
+- **Reduced package.json bloat**: Only essential scripts in package.json
+- **Better discoverability**: Organized categories with descriptions
+- **Flexible execution**: Interactive menu or direct commands
+- **Consistent interface**: Same pattern for all command types
+- **Self-documenting**: Built-in help and command descriptions
+
 ### Rule Synchronization
 **IMPORTANT**: Any updates to development practices, standards, or workflows must be reflected in BOTH `.cursorrules` and `.claude-code-rules` files to maintain consistency across development environments.
 
