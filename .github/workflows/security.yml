@@ -23,10 +23,7 @@ jobs:
       run: bun install
       
     - name: Run security audit
-      run: |
-        # Create package-lock.json for npm audit
-        npm i --package-lock-only
-        npm audit --audit-level moderate
+      run: bun audit
         
     - name: Type check
       run: bun run type-check
