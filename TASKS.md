@@ -299,7 +299,98 @@ This file tracks **completed work** and **overall project phases**. For current 
 - [ ] Implement rollback procedures
 - [ ] Launch preparation checklist
 
+### 📋 Phase 9: Cost Optimization & AI Services
+
+**Branch: `feat/cost-optimization`**
+
+##### Task 9.1: Smart Model Selection & Feature Flags
+
+- [ ] **Feature flag AI model selection**
+  - Add feature flags for GPT-4o vs GPT-4o-mini selection
+  - Default all content creation to GPT-4o-mini for cost efficiency
+  - Allow easy switching between models for testing quality differences
+- [ ] **Neon database caching for summaries**
+  - Cache summaries based on content hash in Neon database
+  - Add cache invalidation strategy (24-48 hours)
+  - Skip Redis complexity for POC (move to backlog)
+- [ ] **Basic cost tracking infrastructure**
+  - Track per-request costs across AI services
+  - Add simple budget monitoring (no complex ROI for POC)
+  - Store cost data in Neon database
+
+##### Task 9.2: Dual TTS Service Integration
+
+- [ ] **Keep OpenAI TTS as fallback option**
+  - Maintain existing OpenAI TTS service
+  - Feature flag TTS provider selection
+  - Default to Google TTS, allow fallback to OpenAI
+- [ ] **Google Cloud TTS integration**
+  - Set up Google Cloud credentials and service
+  - Implement fun, uplifting voice pair (boy + girl voices)
+  - Natural conversation flow with proper pauses and timing
+  - Use "Upfirst podcast" style as inspiration for tone
+- [ ] **Podcast vs Summary mode selection**
+  - Let user choose between conversational podcast and single-voice summary
+  - Default to podcast mode for better engagement
+  - Simple UI toggle (no complex voice selection for now)
+
+##### Task 9.3: Content Processing Options
+
+- [ ] **Feature flag content processing modes**
+  - Flag different summarization approaches for A/B testing
+  - Flag conversational vs summary generation methods
+  - Allow easy testing of different content processing approaches
+- [ ] **Basic content quality filtering**
+  - Simple length and readability checks before processing
+  - Filter obvious spam or low-quality content
+  - No complex scoring algorithms for POC
+
+##### Task 9.4: Cost Monitoring (POC-Focused)
+
+- [ ] **Simple cost tracking dashboard**
+  - Basic cost per episode tracking and display
+  - Budget alerts for daily/monthly spending limits
+  - Cost comparison between TTS providers
+- [ ] **Usage analytics for optimization**
+  - Track which features are used most by users
+  - Monitor podcast vs summary mode preferences
+  - Basic performance and usage metrics
+
+**Cost Reduction Targets (Realistic for POC):**
+
+- **75% reduction in summarization costs** (GPT-4 → GPT-4o-mini)
+- **90% reduction in TTS costs** (OpenAI TTS → Google Cloud TTS)
+- **50% reduction in duplicate processing** (basic content caching)
+- **Target: $5-25/month** for moderate POC usage
+
 ## Backlog (Unplanned/Future Items)
+
+### Cost Optimization Backlog
+
+- [ ] **Redis implementation for high-performance caching**
+  - Replace Neon caching with Redis for faster performance
+  - Implement advanced cache warming strategies
+  - Add distributed caching for multiple instances
+- [ ] **Advanced content deduplication algorithms**
+  - Implement fuzzy matching for near-duplicate articles
+  - Add content similarity scoring
+  - Smart batch processing for multiple articles
+- [ ] **Voice Selection UI and Customization**
+  - User interface for voice selection and pairing
+  - Custom voice personality options
+  - Voice preview functionality
+- [ ] **Advanced ROI and Analytics**
+  - Complex cost optimization algorithms
+  - ROI metrics and business intelligence dashboard
+  - Advanced A/B testing for content quality vs cost
+- [ ] **Multi-Provider AI Architecture**
+  - Anthropic Claude integration as backup
+  - Google AI/Gemini fallback options
+  - Automatic service failover and health monitoring
+- [ ] **Intelligent Processing Pipeline**
+  - Smart article selection based on engagement potential
+  - Source reliability scoring and reputation tracking
+  - Progressive quality degradation based on budget constraints
 
 ### Enhancement Ideas
 

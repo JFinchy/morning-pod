@@ -55,9 +55,14 @@ export interface TTSRequest {
 }
 
 export interface TTSOptions {
-  voice?: "alloy" | "echo" | "fable" | "onyx" | "nova" | "shimmer";
+  voice?: "alloy" | "echo" | "fable" | "onyx" | "nova" | "shimmer" | string; // Allow any voice name for Google TTS
   model?: "tts-1" | "tts-1-hd";
   speed?: number; // 0.25 to 4.0
+  pitch?: number; // -20.0 to 20.0 for Google TTS
+  volume?: number; // -96.0 to 16.0 dB for Google TTS
+  gender?: "MALE" | "FEMALE" | "NEUTRAL"; // For Google TTS
+  format?: "mp3" | "wav" | "opus" | "aac" | "flac";
+  useSSML?: boolean; // For Google TTS SSML support
   responseFormat?: "mp3" | "opus" | "aac" | "flac";
 }
 
@@ -110,7 +115,12 @@ export interface GenerationResult {
 }
 
 export interface CostTracking {
-  service: "openai-gpt" | "openai-tts";
+  service:
+    | "openai-gpt"
+    | "openai-tts"
+    | "google-tts"
+    | "anthropic"
+    | "google-ai";
   model: string;
   tokensUsed?: number;
   charactersProcessed?: number;
