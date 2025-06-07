@@ -1,5 +1,5 @@
 #!/usr/bin/env bun
-import { db, sources, episodes, queue } from "../src/lib/db";
+import { db, sources, episodes, queue } from "../../src/lib/db";
 
 async function seed() {
   console.log("🌱 Seeding database...");

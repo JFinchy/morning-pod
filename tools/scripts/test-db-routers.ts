@@ -5,9 +5,9 @@
  * This will test the router structure and validation without requiring a database connection
  */
 
-import { episodesRouter } from "../src/lib/trpc/routers/episodes";
-import { queueRouter } from "../src/lib/trpc/routers/queue";
-import { sourcesRouter } from "../src/lib/trpc/routers/sources";
+import { episodesRouter } from "../../src/lib/trpc/routers/episodes";
+import { queueRouter } from "../../src/lib/trpc/routers/queue";
+import { sourcesRouter } from "../../src/lib/trpc/routers/sources";
 
 console.log("🧪 Testing Database Router Structure...");
 

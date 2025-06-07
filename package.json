@@ -3,15 +3,20 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "script": "bun run scripts/run.ts",
-    "dev": "bun run scripts/run.ts dev start",
-    "build": "bun run scripts/run.ts dev build",
-    "start": "bun run scripts/run.ts dev preview",
-    "test": "bun run scripts/run.ts test unit",
-    "test:all": "bun run scripts/run.ts test --all",
-    "lint": "bun run scripts/run.ts quality lint",
-    "type-check": "bun run scripts/run.ts quality type-check",
-    "changeset": "bun run scripts/run.ts release changeset",
+    "script": "bun run tools/scripts/run.ts",
+    "dev": "bun run tools/scripts/run.ts dev",
+    "build": "bun run tools/scripts/run.ts dev build",
+    "start": "bun run tools/scripts/run.ts dev preview",
+    "test": "bun run tools/scripts/run.ts test",
+    "test:unit": "bun run tools/scripts/run.ts test unit",
+    "test:all": "bun run tools/scripts/run.ts test --all",
+    "db": "bun run tools/scripts/run.ts db",
+    "deps": "bun run tools/scripts/run.ts deps",
+    "quality": "bun run tools/scripts/run.ts quality",
+    "release": "bun run tools/scripts/run.ts release",
+    "lint": "bun run tools/scripts/run.ts quality lint",
+    "type-check": "bun run tools/scripts/run.ts quality type-check",
+    "changeset": "bun run tools/scripts/run.ts release changeset",
     "prepare": "husky"
   },
   "lint-staged": {
@@ -23,6 +28,8 @@
     ]
   },
   "dependencies": {
+    "@clack/prompts": "^0.11.0",
+    "@inquirer/prompts": "^7.5.3",
     "@neondatabase/serverless": "1.0.1",
     "@paralleldrive/cuid2": "2.2.2",
     "@radix-ui/react-dialog": "1.1.14",

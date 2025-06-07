@@ -23,6 +23,8 @@
  */
 
 import { execSync } from "child_process";
+import * as p from "@clack/prompts";
+import { search } from "@inquirer/prompts";
 
 interface ScriptCommand {
   name: string;
@@ -38,7 +40,7 @@ interface ScriptCategory {
   commands: ScriptCommand[];
 }
 
-class ScriptRunner {
+export class ScriptRunner {
   private categories: ScriptCategory[] = [
     {
       name: "dev",
@@ -75,57 +77,84 @@ class ScriptRunner {
         {
           name: "unit",
           description: "Run unit tests with Vitest",
-          command: "vitest",
+          command: "bun vitest --config config/testing/vitest.config.ts",
         },
         {
           name: "unit:watch",
           description: "Run unit tests in watch mode",
-          command: "vitest --watch",
+          command:
+            "bun vitest --config config/testing/vitest.config.ts --watch",
         },
         {
           name: "unit:ui",
           description: "Run unit tests with UI",
-          command: "vitest --ui",
+          command: "bun vitest --config config/testing/vitest.config.ts --ui",
         },
         {
           name: "unit:coverage",
           description: "Run unit tests with coverage",
-          command: "vitest --coverage",
+          command:
+            "bun vitest --config config/testing/vitest.config.ts --coverage",
+        },
+        {
+          name: "unit:perf",
+          description: "Run unit tests (performance optimized)",
+          command:
+            "bun vitest --config config/testing/vitest.config.performance.ts",
         },
         {
           name: "e2e",
           description: "Run E2E tests with Playwright",
-          command: "playwright test",
+          command:
+            "playwright test --config config/testing/playwright.config.ts",
         },
         {
           name: "e2e:ui",
           description: "Run E2E tests with UI",
-          command: "playwright test --ui",
+          command:
+            "playwright test --config config/testing/playwright.config.ts --ui",
         },
         {
           name: "e2e:debug",
           description: "Debug E2E tests",
-          command: "playwright test --debug",
+          command:
+            "playwright test --config config/testing/playwright.config.ts --debug",
         },
         {
           name: "e2e:headed",
           description: "Run E2E tests in headed mode",
-          command: "playwright test --headed",
+          command:
+            "playwright test --config config/testing/playwright.config.ts --headed",
         },
         {
           name: "e2e:visual",
           description: "Update visual regression snapshots",
-          command: "playwright test --update-snapshots",
+          command:
+            "playwright test --config config/testing/playwright.config.ts --update-snapshots",
+        },
+        {
+          name: "e2e:perf",
+          description: "Run E2E tests (performance optimized)",
+          command:
+            "playwright test --config config/testing/playwright.config.performance.ts",
         },
         {
           name: "performance",
           description: "Run performance tests",
-          command: "playwright test src/tests/performance",
+          command:
+            "playwright test --config config/testing/playwright.config.ts src/tests/performance",
         },
         {
           name: "all",
           description: "Run all tests (unit + E2E)",
-          command: "vitest && playwright test",
+          command:
+            "bun vitest --config config/testing/vitest.config.ts && playwright test --config config/testing/playwright.config.ts",
+        },
+        {
+          name: "all:perf",
+          description: "Run all tests (performance optimized)",
+          command:
+            "bun vitest --config config/testing/vitest.config.performance.ts && playwright test --config config/testing/playwright.config.performance.ts",
         },
       ],
     },
@@ -147,7 +176,7 @@ class ScriptRunner {
         {
           name: "seed",
           description: "Seed database with test data",
-          command: "bun run scripts/seed.ts",
+          command: "bun run tools/scripts/seed.ts",
         },
         {
           name: "studio",
@@ -301,6 +330,75 @@ class ScriptRunner {
 
     const [category, action, ...flags] = args;
 
+    // Handle category-specific flags like: bun run test --e2e, bun run dev --build
+    if (category && flags.length > 0) {
+      const categoryFlagMap: Record<string, Record<string, string>> = {
+        test: {
+          "--e2e": "e2e",
+          "--unit": "unit",
+          "--watch": "unit:watch",
+          "--coverage": "unit:coverage",
+          "--ui": "unit:ui",
+          "--perf": "unit:perf",
+          "--debug": "e2e:debug",
+          "--headed": "e2e:headed",
+          "--visual": "e2e:visual",
+          "--performance": "performance",
+          "--all": "--all",
+        },
+        dev: {
+          "--start": "start",
+          "--build": "build",
+          "--preview": "preview",
+          "--clean": "clean",
+        },
+        quality: {
+          "--lint": "lint",
+          "--fix": "lint:fix",
+          "--format": "format",
+          "--check": "format:check",
+          "--type": "type-check",
+          "--all": "all",
+        },
+        db: {
+          "--generate": "generate",
+          "--migrate": "migrate",
+          "--seed": "seed",
+          "--studio": "studio",
+        },
+        deps: {
+          "--check": "check",
+          "--patch": "update:patch",
+          "--minor": "update:minor",
+          "--major": "update:major",
+          "--safe": "update:safe",
+          "--doctor": "doctor",
+          "--outdated": "outdated",
+        },
+        release: {
+          "--changeset": "changeset",
+          "--version": "version",
+          "--publish": "publish",
+          "--status": "status",
+          "--release": "release",
+        },
+      };
+
+      const categoryFlags = categoryFlagMap[category.toLowerCase()];
+      if (categoryFlags) {
+        for (const flag of flags) {
+          if (categoryFlags[flag]) {
+            return {
+              mode: "direct",
+              category,
+              action: categoryFlags[flag],
+              flags: flags.filter((f) => f !== flag),
+            };
+          }
+        }
+      }
+    }
+
     if (!action) {
       return { mode: "category", category, flags };
     }
@@ -316,23 +414,44 @@ class ScriptRunner {
 🎯 Interactive Script Runner
 
 Usage:
+  bun run                           # Interactive mode (main menu)
   bun run script                    # Interactive mode
   bun run script -i                 # Interactive mode  
   bun run script -l                 # List all commands
-  bun run script [category]         # Show category commands
-  bun run script [category] [cmd]   # Run specific command
-  bun run script [category] --all   # Run all commands in category
+  bun run [category]                # Show category commands
+  bun run [category] [cmd]          # Run specific command
+  bun run [category] --all          # Run all commands in category
+
+Category Flags:
+  Testing:
+    bun run test --e2e              # Run E2E tests
+    bun run test --unit             # Run unit tests
+    bun run test --watch            # Run unit tests in watch mode
+    bun run test --coverage         # Run unit tests with coverage
+    bun run test --all              # Run all tests
+    
+  Development:
+    bun run dev --start             # Start development server
+    bun run dev --build             # Build for production
+    bun run dev --preview           # Start production server
+    
+  Quality:
+    bun run quality --lint          # Run linting
+    bun run quality --format        # Format code
+    bun run quality --type          # Type checking
+    bun run quality --all           # All quality checks
 
 Categories:
 ${this.categories.map((cat) => `  ${cat.name.padEnd(10)} ${cat.icon} ${cat.description}`).join("\\n")}
 
 Examples:
-  bun run script                    # Interactive menu
-  bun run script test               # Show test commands  
-  bun run script test unit          # Run unit tests
-  bun run script test --all         # Run all tests
-  bun run script deps check         # Check dependencies
-  bun run script quality all        # Run all quality checks
+  bun run                           # Interactive main menu
+  bun run test                      # Interactive test menu  
+  bun run test unit                 # Run unit tests directly
+  bun run test --e2e                # Quick E2E test shortcut
+  bun run test --all                # Run all tests
+  bun run deps check                # Check dependencies
+  bun run quality --all             # Run all quality checks
 `);
   }
 
@@ -354,28 +473,43 @@ Examples:
   }
 
   /**
-   * Show interactive menu
+   * Show interactive menu with selection
    */
-  showInteractiveMenu(): void {
-    console.log("\\n🎯 Interactive Script Runner\\n");
-    console.log("Available categories:\\n");
+  async showInteractiveMenu(): Promise<void> {
+    p.intro("🎯 Interactive Script Runner");
 
-    this.categories.forEach((category, index) => {
-      console.log(`  ${index + 1}. ${category.icon} ${category.description}`);
-    });
+    const categoryOptions = this.categories.map((category) => ({
+      value: category.name,
+      label: `${category.icon} ${category.description}`,
+    }));
 
-    console.log("\\n💡 Enter a number (1-6) or category name:");
-    console.log("💡 Or run directly: bun run script [category] [command]");
-    console.log("💡 Example: bun run script test unit");
+    let selectedCategory;
+    try {
+      selectedCategory = await search({
+        message: "Choose a category:",
+        source: (input) => {
+          const filtered = categoryOptions.filter((option) => {
+            const searchTerm = (input || "").toLowerCase();
+            return (
+              option.label.toLowerCase().includes(searchTerm) ||
+              option.value.toLowerCase().includes(searchTerm)
+            );
+          });
+          return Promise.resolve(filtered);
+        },
+      });
+    } catch (error) {
+      p.outro("👋 See you later!");
+      process.exit(0);
+    }
 
-    // Since this is meant to be informational, we'll show the options
-    // Users can then run the direct commands
+    await this.showCategory(selectedCategory as string);
   }
 
   /**
-   * Show category commands
+   * Show category commands with interactive selection
    */
-  showCategory(categoryName: string): void {
+  async showCategory(categoryName: string): Promise<void> {
     const category = this.categories.find(
       (cat) => cat.name.toLowerCase() === categoryName.toLowerCase()
     );
@@ -389,15 +523,39 @@ Examples:
       process.exit(1);
     }
 
-    console.log(`\\n${category.icon} ${category.description}\\n`);
+    p.intro(`${category.icon} ${category.description}`);
 
-    category.commands.forEach((command) => {
-      console.log(
-        `  bun run script ${category.name} ${command.name.padEnd(15)} - ${command.description}`
-      );
-    });
+    const options = [
+      ...category.commands.map((cmd) => ({
+        value: cmd.name,
+        label: `${cmd.name} - ${cmd.description}`,
+      })),
+      { value: "--all", label: "Run all commands in this category" },
+    ];
 
-    console.log(`\\n💡 Run all: bun run script ${category.name} --all`);
+    let selected;
+    try {
+      selected = await search({
+        message: "Choose a command to run:",
+        source: (input) => {
+          const filtered = options.filter((option) => {
+            const searchTerm = (input || "").toLowerCase();
+            return (
+              option.label.toLowerCase().includes(searchTerm) ||
+              option.value.toLowerCase().includes(searchTerm)
+            );
+          });
+          return Promise.resolve(filtered);
+        },
+      });
+    } catch (error) {
+      p.outro("👋 See you later!");
+      process.exit(0);
+    }
+
+    p.outro(`Running: ${selected}`);
+
+    this.executeCommand(categoryName, selected as string);
   }
 
   /**
@@ -497,7 +655,7 @@ Examples:
   /**
    * Main execution method
    */
-  run(): void {
+  async run(): Promise<void> {
     const { mode, category, action, flags } = this.parseArgs();
 
     switch (mode) {
@@ -508,11 +666,11 @@ Examples:
         this.listAllCommands();
         break;
       case "interactive":
-        this.showInteractiveMenu();
+        await this.showInteractiveMenu();
         break;
       case "category":
         if (category) {
-          this.showCategory(category);
+          await this.showCategory(category);
         }
         break;
       case "direct":
@@ -526,6 +684,11 @@ Examples:
   }
 }
 
-// Run the script
-const runner = new ScriptRunner();
-runner.run();
+// Run the script only if this file is executed directly
+if (import.meta.url === `file://${process.argv[1]}`) {
+  const runner = new ScriptRunner();
+  runner.run().catch((error) => {
+    console.error("Script runner failed:", error);
+    process.exit(1);
+  });
+}
