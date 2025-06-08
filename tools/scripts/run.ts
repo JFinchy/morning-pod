@@ -26,6 +26,12 @@ import { execSync } from "child_process";
 import * as p from "@clack/prompts";
 import { search } from "@inquirer/prompts";
 
+// Handle Ctrl+C gracefully
+process.on("SIGINT", () => {
+  console.log("\n👋 See you later!");
+  process.exit(0);
+});
+
 interface ScriptCommand {
   name: string;
   description: string;
@@ -211,7 +217,7 @@ export class ScriptRunner {
           name: "update:safe",
           description: "Update with automatic testing",
           command:
-            "ncu --target minor --timeout 15000 --concurrency 2 -u && bun install && bun test && bun run type-check",
+            "ncu --target minor --timeout 15000 --concurrency 2 -u && bun install && bun vitest --config config/testing/vitest.config.ts && tsc --noEmit",
         },
         {
           name: "update:major",
@@ -241,8 +247,35 @@ export class ScriptRunner {
         {
           name: "security:check",
           description: "Run comprehensive security checks",
+          command: "bun audit --audit-level moderate && tsc --noEmit",
+        },
+        {
+          name: "clear:cache",
+          description: "Clear all package manager caches",
           command:
-            "bun audit --audit-level moderate && bun run tools/scripts/run.ts quality type-check",
+            "bun pm cache rm && rm -rf ~/.npm/_cacache && rm -rf ~/.cache/yarn || echo 'Cache clearing completed'",
+        },
+        {
+          name: "clear:node_modules",
+          description: "Remove node_modules and reinstall",
+          command: "rm -rf node_modules && bun install",
+        },
+        {
+          name: "clear:lockfile",
+          description: "Remove lockfile and reinstall dependencies",
+          command: "rm -f bun.lockb package-lock.json yarn.lock && bun install",
+        },
+        {
+          name: "clear:build",
+          description: "Clear build artifacts and caches",
+          command:
+            "rm -rf .next dist build out .turbo && echo 'Build artifacts cleared'",
+        },
+        {
+          name: "clear:all",
+          description: "Full cleanup: caches, node_modules, build artifacts",
+          command:
+            "rm -rf node_modules .next dist build out .turbo bun.lockb && bun pm cache rm && rm -rf ~/.npm/_cacache && bun install",
         },
       ],
     },
@@ -288,7 +321,7 @@ export class ScriptRunner {
         },
         {
           name: "all",
-          description: "Run all quality checks",
+          description: "Run all quality checks (lint, format, type-check)",
           command: "bun run next lint && prettier --check . && tsc --noEmit",
         },
       ],
@@ -322,6 +355,54 @@ export class ScriptRunner {
           name: "release",
           description: "Full release process",
           command: "changeset version && bun run build && changeset publish",
+        },
+      ],
+    },
+    {
+      name: "kill",
+      description: "Process Management",
+      icon: "🔪",
+      commands: [
+        {
+          name: "vitest",
+          description: "Kill all Vitest processes",
+          command: "pkill -f vitest || echo 'No Vitest processes found'",
+        },
+        {
+          name: "eslint",
+          description: "Kill all ESLint processes",
+          command: "pkill -f eslint || echo 'No ESLint processes found'",
+        },
+        {
+          name: "playwright",
+          description: "Kill all Playwright processes",
+          command:
+            "pkill -f playwright || echo 'No Playwright processes found'",
+        },
+        {
+          name: "nextjs",
+          description: "Kill all Next.js dev server processes",
+          command:
+            "pkill -f 'next dev' || echo 'No Next.js dev processes found'",
+        },
+        {
+          name: "node",
+          description: "Kill all Node.js processes (excluding system)",
+          command:
+            "pkill -f 'node.*\\.(js|ts)' || echo 'No Node.js script processes found'",
+        },
+        {
+          name: "dev",
+          description:
+            "Kill common dev processes (vitest, eslint, playwright, next)",
+          command:
+            "pkill -f 'vitest|eslint|playwright|next dev' || echo 'No dev processes found'",
+        },
+        {
+          name: "all",
+          description: "Kill all development-related processes",
+          command:
+            "pkill -f 'vitest|eslint|playwright|next dev|node.*\\.(js|ts)' || echo 'No development processes found'",
         },
       ],
     },
@@ -408,6 +489,11 @@ export class ScriptRunner {
           "--audit": "audit",
           "--audit-fix": "audit:fix",
           "--security": "security:check",
+          "--clear-cache": "clear:cache",
+          "--clear-modules": "clear:node_modules",
+          "--clear-lock": "clear:lockfile",
+          "--clear-build": "clear:build",
+          "--clear-all": "clear:all",
         },
         release: {
           "--changeset": "changeset",
@@ -415,6 +501,15 @@ export class ScriptRunner {
           "--publish": "publish",
           "--status": "status",
           "--release": "release",
+        },
+        kill: {
+          "--vitest": "vitest",
+          "--eslint": "eslint",
+          "--playwright": "playwright",
+          "--nextjs": "nextjs",
+          "--node": "node",
+          "--dev": "dev",
+          "--all": "all",
         },
       };
 
@@ -477,12 +572,23 @@ Category Flags:
     bun run quality --strict        # Setup strict ESLint config
     bun run quality --format        # Format code
     bun run quality --type          # Type checking
-    bun run quality --all           # All quality checks
+    bun run quality --all           # All quality checks (no tests)
     
   Dependencies & Security:
     bun run deps --audit            # Check security vulnerabilities
     bun run deps --security         # Comprehensive security checks
     bun run deps --outdated         # Show outdated packages
+    bun run deps --clear-cache      # Clear package manager caches
+    bun run deps --clear-modules    # Remove node_modules and reinstall
+    bun run deps --clear-all        # Full cleanup and reinstall
+    
+  Process Management:
+    bun run kill --vitest           # Kill Vitest processes
+    bun run kill --eslint           # Kill ESLint processes
+    bun run kill --playwright       # Kill Playwright processes
+    bun run kill --nextjs           # Kill Next.js dev processes
+    bun run kill --dev              # Kill common dev processes
+    bun run kill --all              # Kill all dev processes
 
 Categories:
 ${this.categories.map((cat) => `  ${cat.name.padEnd(10)} ${cat.icon} ${cat.description}`).join("\\n")}
@@ -608,11 +714,11 @@ Passing Additional Arguments:
     let additionalArgs = "";
     try {
       const examples = this.getArgumentExamples(categoryName, String(selected));
-      additionalArgs = await p.text({
+      additionalArgs = (await p.text({
         message: `Additional arguments (optional, e.g., ${examples}):`,
         placeholder: "Press Enter to skip",
         defaultValue: "",
-      });
+      })) as string;
     } catch (error) {
       additionalArgs = "";
     }
@@ -784,7 +890,12 @@ Passing Additional Arguments:
     try {
       execSync(command.command, { stdio: "inherit", cwd: process.cwd() });
       console.log(`\\n✅ ${command.name} completed successfully!`);
-    } catch (error) {
+    } catch (error: any) {
+      // Handle Ctrl+C gracefully for watch mode commands
+      if (error.signal === "SIGINT") {
+        console.log(`\\n👋 See you later!`);
+        process.exit(0);
+      }
       console.log(`\\n❌ Command failed:`, error);
       process.exit(1);
     }
@@ -805,7 +916,12 @@ Passing Additional Arguments:
         console.log(
           `\\n✅ All ${category.name} commands completed successfully!`
         );
-      } catch (error) {
+      } catch (error: any) {
+        // Handle Ctrl+C gracefully
+        if (error.signal === "SIGINT") {
+          console.log(`\\n👋 See you later!`);
+          process.exit(0);
+        }
         console.log(`\\n❌ Command failed:`, error);
         process.exit(1);
       }
@@ -819,7 +935,12 @@ Passing Additional Arguments:
         try {
           execSync(command.command, { stdio: "inherit", cwd: process.cwd() });
           console.log(`✅ ${command.name} completed successfully`);
-        } catch (error) {
+        } catch (error: any) {
+          // Handle Ctrl+C gracefully
+          if (error.signal === "SIGINT") {
+            console.log(`\\n👋 See you later!`);
+            process.exit(0);
+          }
           console.log(`❌ ${command.name} failed:`, error);
           console.log("\\n🛑 Stopping execution due to failure");
           process.exit(1);

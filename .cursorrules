@@ -841,20 +841,28 @@ bun ncu --target major -u [package-name]
 ### Overview
 To solve package.json script bloat, we use an interactive script runner that organizes commands into logical categories with both menu-driven and direct execution modes.
 
+### Quick Development Access
+```bash
+# Standard development commands
+bun run dev                       # Next.js dev server (standard)
+bun run go                        # Interactive dev options (build, preview, clean)
+bun run interactive               # Interactive script runner
+```
+
 ### Usage Modes
 ```bash
 # Interactive menu mode
-bun run script                    # Show category menu
-bun run script -i                 # Same as above
+bun run interactive               # Show category menu
+bun run interactive -i            # Same as above
 
 # Direct execution mode  
-bun run script [category]         # Show category commands
-bun run script [category] [cmd]   # Run specific command
-bun run script [category] --all   # Run all commands in category
+bun run interactive [category]    # Show category commands
+bun run interactive [category] [cmd] # Run specific command
+bun run interactive [category] --all # Run all commands in category
 
 # List all available commands
-bun run script -l                 # Complete command reference
-bun run script --help             # Show usage help
+bun run interactive -l            # Complete command reference
+bun run interactive --help        # Show usage help
 ```
 
 ### Script Categories
@@ -868,20 +876,27 @@ bun run script --help             # Show usage help
 ### Common Usage Examples
 ```bash
 # Development workflow
-bun run script dev start         # Start dev server
-bun run script test unit         # Run unit tests
-bun run script test --all        # Run all tests
+bun run dev                      # Standard Next.js dev server
+bun run go                       # Interactive dev options (build, preview, clean)
+bun run test                     # Standard unit tests
+bun run lint                     # Standard linting
 
-# Maintenance workflow  
-bun run script deps check        # Check for updates
-bun run script quality all       # Run all quality checks
-bun run script release changeset # Create changeset
+# Interactive workflow  
+bun run interactive deps check  # Check for updates
+bun run quality                  # Interactive quality menu
+bun run release                  # Interactive release menu
 
 # Discovery workflow
-bun run script                   # See all categories
-bun run script test              # See all test commands
-bun run script -l                # List every available command
+bun run interactive              # See all categories
+bun run interactive -l           # List every available command
 ```
+
+### Development Script Usage
+**IMPORTANT**: 
+- Use `bun run dev` for standard Next.js development server
+- Use `bun run go` for interactive dev options (build, preview, clean)
+- Use `bun run interactive` for full script runner menu
+- Standard commands available: `test`, `lint`, `type-check`, `changeset`, `build`, `start`
 
 ### Benefits of This Approach
 - **Reduced package.json bloat**: Only essential scripts in package.json
@@ -889,9 +904,29 @@ bun run script -l                # List every available command
 - **Flexible execution**: Interactive menu or direct commands
 - **Consistent interface**: Same pattern for all command types
 - **Self-documenting**: Built-in help and command descriptions
+- **No conflicts**: Separate commands for quick access vs script runner
 
-### Rule Synchronization
-**IMPORTANT**: Any updates to development practices, standards, or workflows must be reflected in BOTH `.cursorrules` and `.claude-code-rules` files to maintain consistency across development environments.
+### AI Assistant Command Reference
+**For Claude/Cursor**: When working on this project, use these commands:
+
+**Standard Development:**
+- `bun run dev` - Next.js development server
+- `bun run build` - Production build
+- `bun run test` - Unit tests
+- `bun run lint` - ESLint
+- `bun run type-check` - TypeScript checking
+
+**Interactive Script Runner:**
+- `bun run interactive` - Full script runner menu
+- `bun run go` - Interactive dev options (build, preview, clean)
+- `bun run quality` - Interactive quality checks
+- `bun run db` - Interactive database operations
+- `bun run deps` - Interactive dependency management
+- `bun run release` - Interactive release management
+
+**Direct Script Execution:**
+- `bun run interactive [category] [command]` - Run specific commands
+- `bun run interactive --help` - Show all available options
 
 ## Troubleshooting Guide
 
