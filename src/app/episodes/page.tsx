@@ -43,7 +43,7 @@ export default function EpisodesPage() {
       setIsLoading(false);
     }
     if (episodesError) {
-      setError(handleTRPCError(episodesError).message);
+      setError(handleTRPCError(episodesError));
       setIsLoading(false);
     }
   }, [episodesData, episodesError]);
