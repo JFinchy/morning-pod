@@ -26,7 +26,8 @@ interface ScraperDebugInfo {
 }
 
 export default function ScrapingInternalPage() {
-  const [selectedScraper, setSelectedScraper] = useState<string>("all");
+  // TODO: Implement scraper selection functionality
+  // const [selectedScraper, setSelectedScraper] = useState<string>("all");
   const [debugMode, setDebugMode] = useState(false);
   const [showRawData, setShowRawData] = useState(false);
 
@@ -35,8 +36,9 @@ export default function ScrapingInternalPage() {
     api.scraping.getMetrics.useQuery();
   const { data: cachedContent, refetch: refetchContent } =
     api.scraping.getCachedContent.useQuery();
-  const { data: availableScrapers } =
-    api.scraping.getAvailableScrapers.useQuery();
+  // TODO: Use availableScrapers for scraper selection
+  // const { data: availableScrapers } =
+  //   api.scraping.getAvailableScrapers.useQuery();
 
   // Mutations
   const scrapeAll = api.scraping.scrapeAll.useMutation({
@@ -258,9 +260,9 @@ export default function ScrapingInternalPage() {
                               <div className="text-error text-xs font-medium mb-1">
                                 Errors:
                               </div>
-                              {scraper.errors.map((error, index) => (
+                              {scraper.errors.map((error) => (
                                 <div
-                                  key={index}
+                                  key={error}
                                   className="text-error text-xs bg-error/10 p-2 rounded"
                                 >
                                   {error}
@@ -358,7 +360,7 @@ export default function ScrapingInternalPage() {
               </h2>
 
               <div className="space-y-3">
-                {debugInfo.map((scraper, index) => (
+                {debugInfo.map((scraper) => (
                   <div key={scraper.name} className="flex items-center gap-3">
                     <div className="w-3 h-3 rounded-full bg-primary"></div>
                     <div className="flex-1">

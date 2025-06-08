@@ -12,15 +12,21 @@ export async function GET() {
     const { renderTrpcPanel } = await import("trpc-ui");
 
     return new NextResponse(
-      renderTrpcPanel(appRouter as any, {
-        url: "/api/trpc", // Default tRPC route
-        transformer: "superjson", // We're using superjson for data transformation
-        meta: {
-          title: "Morning Pod tRPC API",
-          description:
-            "Auto-generated testing UI for Morning Pod tRPC endpoints. Test episodes, sources, queue management, and more.",
-        },
-      }),
+      // Type assertion necessary due to version incompatibility between tRPC v11 and trpc-ui
+      // trpc-ui expects a different AnyRouter interface than what our tRPC v11 router provides
+      // This is safe since renderTrpcPanel only uses the router's procedure definitions
+      renderTrpcPanel(
+        appRouter as unknown as Parameters<typeof renderTrpcPanel>[0],
+        {
+          url: "/api/trpc", // Default tRPC route
+          transformer: "superjson", // We're using superjson for data transformation
+          meta: {
+            title: "Morning Pod tRPC API",
+            description:
+              "Auto-generated testing UI for Morning Pod tRPC endpoints. Test episodes, sources, queue management, and more.",
+          },
+        }
+      ),
       {
         status: 200,
         headers: [["Content-Type", "text/html"] as [string, string]],

@@ -72,7 +72,6 @@ export class ScraperManager {
   }
 
   async scrapeAll(): Promise<AggregatedScrapingResult> {
-    const startTime = Date.now();
     const sourceResults: Record<string, ScrapingResult> = {};
     const metrics: Record<string, ScrapingMetrics> = {};
     const allContent: ScrapedContent[] = [];
@@ -141,7 +140,7 @@ export class ScraperManager {
         metrics,
         aggregatedAt: new Date(),
       };
-    } catch (error) {
+    } catch {
       return {
         success: false,
         totalItems: 0,

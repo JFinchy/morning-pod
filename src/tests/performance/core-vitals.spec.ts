@@ -33,8 +33,12 @@ test.describe("Performance - Core Web Vitals (POC)", () => {
         let cumulativeLayoutShift = 0;
         new PerformanceObserver((entryList) => {
           for (const entry of entryList.getEntries()) {
-            if (!(entry as any).hadRecentInput) {
-              cumulativeLayoutShift += (entry as any).value;
+            const layoutShiftEntry = entry as unknown as {
+              hadRecentInput?: boolean;
+              value: number;
+            };
+            if (!layoutShiftEntry.hadRecentInput) {
+              cumulativeLayoutShift += layoutShiftEntry.value;
             }
           }
           vitals.cls = cumulativeLayoutShift;
@@ -87,22 +91,23 @@ test.describe("Performance - Core Web Vitals (POC)", () => {
   });
 
   test("should have reasonable resource sizes", async ({ page }) => {
-    const responses: any[] = [];
+    const responses: unknown[] = [];
 
     page.on("response", (response) => {
       responses.push({
         url: response.url(),
         status: response.status(),
         size: response.headers()["content-length"] || 0,
-      });
+      } as unknown);
     });
 
     await page.goto("/");
     await page.waitForLoadState("networkidle");
 
     // Analyze resource sizes
-    const totalSize = responses.reduce((sum, response) => {
-      return sum + (parseInt(response.size as string) || 0);
+    const totalSize = responses.reduce((sum: number, response) => {
+      const responseObj = response as { size: string | number };
+      return sum + (parseInt(String(responseObj.size)) || 0);
     }, 0);
 
     console.log(`Total Resource Size: ${totalSize} bytes`);
@@ -112,9 +117,10 @@ test.describe("Performance - Core Web Vitals (POC)", () => {
     expect(responses.length).toBeLessThan(50); // Not too many requests
 
     // Log large resources for optimization
-    const largeResources = responses.filter(
-      (r) => parseInt(r.size as string) > 100000
-    );
+    const largeResources = responses.filter((r) => {
+      const responseObj = r as { size: string | number };
+      return parseInt(String(responseObj.size)) > 100000;
+    });
     if (largeResources.length > 0) {
       console.log("Large Resources (>100KB):", largeResources);
     }

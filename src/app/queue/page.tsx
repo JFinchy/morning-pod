@@ -36,18 +36,19 @@ export default function QueuePage() {
     }
   };
 
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case "high":
-        return "text-error";
-      case "medium":
-        return "text-warning";
-      case "low":
-        return "text-base-content/60";
-      default:
-        return "text-base-content";
-    }
-  };
+  // TODO: Use for priority-based styling
+  // const getPriorityColor = (priority: string) => {
+  //   switch (priority) {
+  //     case "high":
+  //       return "text-error";
+  //     case "medium":
+  //       return "text-warning";
+  //     case "low":
+  //       return "text-base-content/60";
+  //     default:
+  //       return "text-base-content";
+  //   }
+  // };
 
   return (
     <MainLayout>

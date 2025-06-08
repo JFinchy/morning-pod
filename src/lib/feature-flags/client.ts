@@ -65,7 +65,7 @@ export function useFeatureFlags(
   const posthog = usePostHog();
 
   // Memoize the flagKeys array to prevent infinite re-renders
-  const memoizedFlagKeys = useMemo(() => flagKeys, [flagKeys.join(",")]);
+  const memoizedFlagKeys = useMemo(() => flagKeys, [flagKeys]);
 
   const [flagValues, setFlagValues] = useState<
     Partial<Record<FeatureFlagKey, FeatureFlagValue>>
@@ -227,12 +227,12 @@ export function usePremiumFlags() {
  */
 export function evaluateFeatureFlag(
   flag: FeatureFlagKey,
-  posthog?: any
+  posthog?: { getFeatureFlag: (flag: string) => unknown }
 ): FeatureFlagValue {
   if (!posthog) {
     return DEFAULT_FLAG_VALUES[flag];
   }
 
   const value = posthog.getFeatureFlag(flag);
-  return value !== undefined ? value : DEFAULT_FLAG_VALUES[flag];
+  return typeof value === "boolean" ? value : DEFAULT_FLAG_VALUES[flag];
 }

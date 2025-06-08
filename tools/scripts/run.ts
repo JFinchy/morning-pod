@@ -262,6 +262,16 @@ export class ScriptRunner {
           command: "bun run next lint --fix",
         },
         {
+          name: "lint:quiet",
+          description: "Run ESLint (errors only)",
+          command: "bun run next lint --quiet",
+        },
+        {
+          name: "lint:strict",
+          description: "Setup strict ESLint config",
+          command: "bun run next lint --strict",
+        },
+        {
           name: "format",
           description: "Format code with Prettier",
           command: "prettier --write .",
@@ -374,6 +384,8 @@ export class ScriptRunner {
         quality: {
           "--lint": "lint",
           "--fix": "lint:fix",
+          "--quiet": "lint:quiet",
+          "--strict": "lint:strict",
           "--format": "format",
           "--check": "format:check",
           "--type": "type-check",
@@ -442,6 +454,7 @@ Usage:
   bun run script -l                 # List all commands
   bun run [category]                # Show category commands
   bun run [category] [cmd]          # Run specific command
+  bun run [category] [cmd] [args]   # Run command with additional arguments
   bun run [category] --all          # Run all commands in category
 
 Category Flags:
@@ -459,6 +472,9 @@ Category Flags:
     
   Quality:
     bun run quality --lint          # Run linting
+    bun run quality --fix           # Fix ESLint issues
+    bun run quality --quiet         # Run linting (errors only)
+    bun run quality --strict        # Setup strict ESLint config
     bun run quality --format        # Format code
     bun run quality --type          # Type checking
     bun run quality --all           # All quality checks
@@ -473,12 +489,20 @@ ${this.categories.map((cat) => `  ${cat.name.padEnd(10)} ${cat.icon} ${cat.descr
 
 Examples:
   bun run                           # Interactive main menu
-  bun run test                      # Interactive test menu  
+  bun run test                      # Run all tests (unit + E2E)
+  bun run test:interactive          # Interactive test menu  
   bun run test unit                 # Run unit tests directly
   bun run test --e2e                # Quick E2E test shortcut
-  bun run test --all                # Run all tests
+  bun run quality                   # Run all quality checks (lint + format + type)
+  bun run quality:interactive       # Interactive quality menu
   bun run deps check                # Check dependencies
-  bun run quality --all             # Run all quality checks
+
+Passing Additional Arguments:
+  bun run quality lint src/         # Lint specific directory
+  bun run quality --quiet --max-warnings 0  # Quiet with max warnings
+  bun run quality format src/ --check  # Format check specific directory
+  bun run test unit --coverage --watch  # Unit tests with coverage and watch
+  bun run test e2e --headed --debug     # E2E tests in headed debug mode
 `);
   }
 
@@ -580,9 +604,138 @@ Examples:
       process.exit(0);
     }
 
-    p.outro(`Running: ${selected}`);
+    // Check if user wants to add additional arguments
+    let additionalArgs = "";
+    try {
+      const examples = this.getArgumentExamples(categoryName, String(selected));
+      additionalArgs = await p.text({
+        message: `Additional arguments (optional, e.g., ${examples}):`,
+        placeholder: "Press Enter to skip",
+        defaultValue: "",
+      });
+    } catch (error) {
+      additionalArgs = "";
+    }
 
-    this.executeCommand(categoryName, selected as string);
+    const fullCommand = additionalArgs
+      ? `${selected} ${additionalArgs}`
+      : selected;
+    p.outro(`Running: ${fullCommand}`);
+
+    this.executeCommandWithArgs(
+      categoryName,
+      selected as string,
+      additionalArgs
+    );
+  }
+
+  /**
+   * Get context-specific argument examples based on category and command
+   */
+  getArgumentExamples(categoryName: string, commandName: string): string {
+    const exampleMap: Record<string, Record<string, string>> = {
+      test: {
+        unit: "--watch --coverage",
+        "unit:watch": "--ui --coverage",
+        "unit:coverage": "--reporter=verbose",
+        e2e: "--headed --debug",
+        "e2e:ui": "--project=chromium",
+        "e2e:debug": "--project=webkit",
+        performance: "--repeat-each=3",
+        default: "--timeout 30000",
+      },
+      quality: {
+        lint: "src/ --max-warnings 0",
+        "lint:fix": "src/components --quiet",
+        "lint:quiet": "--max-warnings 5",
+        "lint:strict": "--dir src/app",
+        format: "src/ --check",
+        "format:check": "src/components",
+        "type-check": "--incremental",
+        default: "src/ --verbose",
+      },
+      dev: {
+        start: "--port 3001",
+        build: "--debug",
+        preview: "--port 3000",
+        default: "--help",
+      },
+      db: {
+        generate: "--name add_user_table",
+        migrate: "--verbose",
+        default: "--help",
+      },
+      deps: {
+        check: "--target minor",
+        "update:patch": "--interactive",
+        default: "--help",
+      },
+      default: {
+        default: "--help",
+      },
+    };
+
+    const categoryExamples =
+      exampleMap[categoryName.toLowerCase()] || exampleMap.default;
+    return (
+      categoryExamples[commandName] || categoryExamples.default || "--help"
+    );
+  }
+
+  /**
+   * Execute a specific command with additional arguments
+   */
+  executeCommandWithArgs(
+    categoryName: string,
+    actionName: string,
+    additionalArgs: string
+  ): void {
+    const category = this.categories.find(
+      (cat) => cat.name.toLowerCase() === categoryName.toLowerCase()
+    );
+
+    if (!category) {
+      console.log(`❌ Unknown category: ${categoryName}`);
+      console.log(
+        "Available categories:",
+        this.categories.map((c) => c.name).join(", ")
+      );
+      process.exit(1);
+    }
+
+    // Handle --all flag
+    if (actionName === "--all") {
+      this.executeAllInCategory(category);
+      return;
+    }
+
+    const command = category.commands.find(
+      (cmd) => cmd.name.toLowerCase() === actionName.toLowerCase()
+    );
+
+    if (!command) {
+      console.log(`❌ Unknown command: ${actionName}`);
+      console.log(
+        "Available commands:",
+        category.commands.map((c) => c.name).join(", ")
+      );
+      process.exit(1);
+    }
+
+    const fullCommand = additionalArgs
+      ? `${command.command} ${additionalArgs}`
+      : command.command;
+
+    console.log(`\\n▶️  ${category.icon} ${command.description}\\n`);
+    console.log(`🔧 Command: ${fullCommand}\\n`);
+
+    try {
+      execSync(fullCommand, { stdio: "inherit", cwd: process.cwd() });
+      console.log(`\\n✅ ${command.name} completed successfully!`);
+    } catch (error) {
+      console.log(`\\n❌ Command failed:`, error);
+      process.exit(1);
+    }
   }
 
   /**

@@ -144,10 +144,10 @@ export async function getPremiumFlags(
 /**
  * Filter sources based on feature flags
  */
-export async function getEnabledSources(
-  sources: any[],
+export async function getEnabledSources<T extends { id: string }>(
+  sources: T[],
   userIdentifier?: string
-): Promise<any[]> {
+): Promise<T[]> {
   const sourceFlags = await getSourceFlags(userIdentifier);
 
   return sources.filter((source) => {

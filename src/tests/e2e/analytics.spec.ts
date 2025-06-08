@@ -127,10 +127,10 @@ test.describe("Analytics Dashboard", () => {
 });
 
 test.describe("Analytics Integration", () => {
-  test("should track page view on load", async ({ page, context }) => {
+  test("should track page view on load", async ({ page }) => {
     // Enable console message tracking
     const consoleMessages: string[] = [];
-    page.on("console", (msg) => {
+    page.on("console", (msg: { text: () => string }) => {
       if (msg.text().includes("Event tracked: page-viewed")) {
         consoleMessages.push(msg.text());
       }
@@ -149,7 +149,7 @@ test.describe("Analytics Integration", () => {
     // Test error handling by temporarily breaking PostHog
     await page.addInitScript(() => {
       // Mock PostHog to throw errors
-      (window as any).posthog = {
+      (window as unknown as { posthog: unknown }).posthog = {
         identify: () => {
           throw new Error("PostHog error");
         },
