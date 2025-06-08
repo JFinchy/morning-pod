@@ -7,8 +7,8 @@ describe("ScriptRunner Unit Tests", () => {
 
   beforeEach(async () => {
     // Import ScriptRunner fresh for each test
-    const module = await import("../../../tools/scripts/run");
-    ScriptRunner = module.ScriptRunner;
+    const moduleImport = await import("../../../tools/scripts/run");
+    ScriptRunner = moduleImport.ScriptRunner;
     runner = new ScriptRunner();
   });
 
