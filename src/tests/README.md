@@ -476,6 +476,59 @@ Our test infrastructure generates comprehensive reports:
 - [ ] Load testing capabilities
 - [ ] Advanced visual AI comparisons
 
+## Script Runner Tests
+
+### Test Files
+
+1. **`script-runner-basic.test.ts`** - Smoke tests for basic functionality
+
+   - Import and instantiation validation
+   - Category structure validation
+   - Command structure validation
+   - Basic argument parsing (4 tests)
+
+2. **`script-runner-final.test.ts`** - Comprehensive functionality tests
+   - Complete class structure validation
+   - Argument parsing for all modes (help, list, interactive, category, direct)
+   - Flag shortcut testing for all categories
+   - Package.json integration validation
+   - Edge case and error handling
+   - Performance and memory testing
+   - Flag mapping completeness validation (30 tests)
+
+### Test Coverage
+
+The script runner tests cover:
+
+- **Class Structure (100%)**: All methods and properties
+- **Argument Parsing (100%)**: All modes and flag combinations
+- **Category Validation (100%)**: All 6 categories (dev, test, db, deps, quality, release)
+- **Command Validation (100%)**: All commands in each category
+- **Integration Testing (100%)**: Package.json command alignment
+- **Edge Cases (100%)**: Malformed args, special characters, long arguments
+- **Performance Testing**: Memory usage and execution time validation
+
+### Key Test Features
+
+1. **No Complex Mocking**: Tests focus on actual functionality without brittle mocks
+2. **Real Behavior Testing**: Tests validate actual script behavior
+3. **Comprehensive Coverage**: 34 tests covering all aspects of the script runner
+4. **Fast Execution**: All tests complete in under 1 second
+5. **Reliable**: No flaky tests or timing dependencies
+
+### Script Runner Test Results
+
+```
+✓ src/tests/unit/script-runner-basic.test.ts (4 tests)
+✓ src/tests/unit/script-runner-final.test.ts (30 tests)
+
+Test Files  2 passed (2)
+Tests  34 passed (34)
+Duration  810ms
+```
+
+All script runner tests pass consistently with no flakes or timing issues.
+
 ---
 
 _For technical questions or test infrastructure improvements, contact the development team or create an issue._

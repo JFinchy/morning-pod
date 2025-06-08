@@ -5,6 +5,24 @@ import {
   ScrapedContent,
 } from "./types";
 
+// Type for raw Morning Brew content before validation
+interface RawMorningBrewContent {
+  title?: unknown;
+  summary?: unknown;
+  content?: unknown;
+  url?: unknown;
+  publishedAt?: unknown;
+}
+
+// Type for validated Morning Brew content
+interface ValidatedMorningBrewContent {
+  title: string;
+  summary: string;
+  content?: string;
+  url?: string;
+  publishedAt?: Date;
+}
+
 export class MorningBrewScraper extends BaseScraper {
   constructor() {
     const config: ScraperConfig = {
@@ -65,37 +83,44 @@ export class MorningBrewScraper extends BaseScraper {
     }
   }
 
-  validateContent(content: any): boolean {
+  validateContent(content: unknown): content is ValidatedMorningBrewContent {
+    if (content === null || typeof content !== "object") {
+      return false;
+    }
+    const item = content as RawMorningBrewContent;
     return (
-      content &&
-      typeof content.title === "string" &&
-      typeof content.summary === "string" &&
-      content.title.length > 10 &&
-      content.summary.length > 20 // Business content tends to be longer
+      "title" in item &&
+      "summary" in item &&
+      typeof item.title === "string" &&
+      typeof item.summary === "string" &&
+      item.title.length > 10 &&
+      item.summary.length > 20 // Business content tends to be longer
     );
   }
 
-  transformContent(rawContent: any): ScrapedContent[] {
-    if (!Array.isArray(rawContent)) {
-      rawContent = [rawContent];
-    }
+  transformContent(rawContent: unknown): ScrapedContent[] {
+    const contentArray = Array.isArray(rawContent) ? rawContent : [rawContent];
 
-    return rawContent
-      .filter((item: any) => this.validateContent(item))
-      .map((item: any, index: number) => ({
+    return contentArray
+      .filter((item: unknown): item is ValidatedMorningBrewContent =>
+        this.validateContent(item)
+      )
+      .map((item: ValidatedMorningBrewContent, index: number) => ({
         id: `brew-${Date.now()}-${index}`,
-        title: item.title.trim(),
-        summary: item.summary.trim(),
-        content: item.content || item.summary,
-        url: item.url || `${this.config.baseUrl}/daily/${index}`,
-        publishedAt: item.publishedAt || new Date(),
+        title: String(item.title).trim(),
+        summary: String(item.summary).trim(),
+        content: String(item.content || item.summary),
+        url: String(item.url || `${this.config.baseUrl}/daily/${index}`),
+        publishedAt: (item.publishedAt as Date) || new Date(),
         source: this.config.name,
         category: this.config.category,
         tags: this.extractBusinessTags(
-          item.title,
-          item.content || item.summary
+          String(item.title),
+          String(item.content || item.summary)
         ),
-        contentHash: this.generateContentHash(item.title + item.summary),
+        contentHash: this.generateContentHash(
+          String(item.title) + String(item.summary)
+        ),
       }));
   }
 

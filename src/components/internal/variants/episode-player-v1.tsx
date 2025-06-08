@@ -1,7 +1,7 @@
 "use client";
 
 import { Play, Pause, Volume2, SkipBack, SkipForward } from "lucide-react";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 
 import { Episode } from "@/lib/mock-data/episodes";
 
@@ -26,7 +26,6 @@ export function EpisodePlayerV1({
   volume = 0.8,
   onVolumeChange,
 }: EpisodePlayerV1Props) {
-  const [isDragging, setIsDragging] = useState(false);
   const progressBarRef = useRef<HTMLDivElement>(null);
   const volumeBarRef = useRef<HTMLDivElement>(null);
 

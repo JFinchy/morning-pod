@@ -1,26 +1,24 @@
 "use client";
 
-import { X, Plus, Clock, CheckCircle, AlertCircle, Play } from "lucide-react";
+import { X, Plus, Clock, CheckCircle, Play } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { toast } from "react-hot-toast";
-
-import { api } from "@/lib/trpc/client";
 
 import { Dialog, DialogContent, DialogTitle } from "../ui/dialog";
 
-interface GenerationModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
-
-interface AvailableEpisode {
+// Type for available episodes from the tRPC getAvailableForGeneration endpoint
+type AvailableEpisode = {
   id: string;
   title: string;
   source: string;
   description: string;
   publishedAt: string;
   estimatedDuration: string;
+};
+
+interface GenerationModalProps {
+  isOpen: boolean;
+  onClose: () => void;
 }
 
 export function GenerationModal({ isOpen, onClose }: GenerationModalProps) {
@@ -36,11 +34,36 @@ export function GenerationModal({ isOpen, onClose }: GenerationModalProps) {
   const availableEpisodes: AvailableEpisode[] = [];
   const loadingAvailable = false;
 
+  // Define the generate episode input type based on the tRPC schema
+  type GenerateEpisodeInput = {
+    episodeId: string;
+  };
+
+  // Define the generate episode response type based on the mock implementation
+  type GenerateEpisodeResponse = {
+    id: string;
+    title: string;
+    source: string;
+    status: "generating";
+    message: string;
+  };
+
   // Generate episode mutation
   // TODO: Implement generate endpoint
   // const generateEpisode = api.episodes.generate.useMutation({
   const generateEpisode = {
-    mutate: (data: any) => console.log("Generate episode:", data),
+    mutate: (data: GenerateEpisodeInput) => {
+      console.log("Generate episode:", data);
+      // Mock response for development
+      const response: GenerateEpisodeResponse = {
+        id: `ep-${Date.now()}`,
+        title: "Mock Generated Episode",
+        source: "Development",
+        status: "generating",
+        message: "Episode generation started successfully",
+      };
+      return Promise.resolve(response);
+    },
     isLoading: false,
     error: null,
   };

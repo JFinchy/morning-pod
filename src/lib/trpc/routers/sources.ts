@@ -228,8 +228,9 @@ export const sourcesRouter = createTRPCRouter({
         }
 
         return { success: true };
-      } catch (error: any) {
-        if (error.code === "23503") {
+      } catch (error: unknown) {
+        const dbError = error as { code?: string };
+        if (dbError.code === "23503") {
           // Foreign key constraint violation
           throw new Error(
             "Cannot delete source: episodes are still referencing it"

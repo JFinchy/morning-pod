@@ -280,14 +280,14 @@ export const episodesRouter = createTRPCRouter({
       ]);
 
       // Calculate totals
-      const totalPlays = playsResult.reduce(
-        (sum: number, ep: any) => sum + (ep.plays || 0),
-        0
-      );
-      const totalCost = costResult.reduce(
-        (sum: number, ep: any) => sum + Number(ep.cost || 0),
-        0
-      );
+      const totalPlays = playsResult.reduce((sum: number, ep: unknown) => {
+        const episode = ep as { plays?: number };
+        return sum + (episode.plays || 0);
+      }, 0);
+      const totalCost = costResult.reduce((sum: number, ep: unknown) => {
+        const episode = ep as { cost?: string };
+        return sum + Number(episode.cost || 0);
+      }, 0);
 
       return {
         total: totalResult[0]?.count ?? 0,

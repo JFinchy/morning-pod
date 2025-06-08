@@ -65,7 +65,7 @@ export function useEventTracking() {
   );
 
   const trackPageView = useCallback(
-    (page: string, properties?: Record<string, any>) => {
+    (page: string, properties?: Record<string, unknown>) => {
       analytics.trackPageView(page, properties);
     },
     [analytics]
@@ -76,7 +76,7 @@ export function useEventTracking() {
       component: string,
       action: string,
       variant?: string,
-      properties?: Record<string, any>
+      properties?: Record<string, unknown>
     ) => {
       analytics.trackInteraction(component, action, variant, properties);
     },

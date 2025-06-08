@@ -150,7 +150,7 @@ export function QueueStatus({
 
         {/* Timeline Items */}
         <div className="space-y-3">
-          {visibleItems.map((item, _index) => {
+          {visibleItems.map((item, index) => {
             const isActive = activeItems.includes(item);
             return (
               <div key={item.id} className="flex items-start gap-3">
@@ -167,7 +167,7 @@ export function QueueStatus({
                             : "bg-base-300 border-base-300"
                     }`}
                   />
-                  {_index < visibleItems.length - 1 && (
+                  {index < visibleItems.length - 1 && (
                     <div className="w-0.5 h-8 bg-base-300 mt-1" />
                   )}
                 </div>
@@ -353,7 +353,7 @@ export function QueueStatus({
                   >
                     <div className="flex items-center gap-2">
                       <span className="text-xs font-mono text-base-content/40 w-6">
-                        #{item.position + 1}
+                        #{index + 1}
                       </span>
                       <StatusIcon status={item.status} />
                     </div>

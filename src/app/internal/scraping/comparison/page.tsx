@@ -2,9 +2,6 @@
 
 import {
   Globe,
-  Clock,
-  TrendingUp,
-  Users,
   FileText,
   Zap,
   AlertCircle,
@@ -14,7 +11,6 @@ import {
 import { useState } from "react";
 
 import { Button } from "@/components/ui";
-import { api } from "@/lib/trpc/client";
 
 interface ContentSourceComparison {
   id: string;

@@ -5,6 +5,7 @@ import {
   createAnalyticsService,
   getCommonEventProperties,
 } from "@/lib/feature-flags/analytics";
+import type { PostHog } from "posthog-js";
 
 // Mock PostHog
 const mockPostHog = {
@@ -12,14 +13,14 @@ const mockPostHog = {
   capture: vi.fn(),
   setPersonProperties: vi.fn(),
   reset: vi.fn(),
-};
+} as unknown as PostHog;
 
 describe("AnalyticsService", () => {
   let analyticsService: AnalyticsService;
 
   beforeEach(() => {
     vi.clearAllMocks();
-    analyticsService = new AnalyticsService(mockPostHog as any);
+    analyticsService = new AnalyticsService(mockPostHog);
   });
 
   describe("identify", () => {
@@ -245,7 +246,7 @@ describe("AnalyticsService", () => {
 
 describe("createAnalyticsService", () => {
   it("should create analytics service with PostHog instance", () => {
-    const service = createAnalyticsService(mockPostHog as any);
+    const service = createAnalyticsService(mockPostHog);
     expect(service).toBeInstanceOf(AnalyticsService);
   });
 
@@ -309,7 +310,7 @@ describe("Event Type Safety", () => {
     // This test ensures TypeScript compilation will catch type errors
     // In a real test environment, TypeScript would prevent incorrect usage
 
-    const service = new AnalyticsService(mockPostHog as any);
+    const service = new AnalyticsService(mockPostHog);
 
     // Valid event
     service.track("episode-played", {
@@ -327,7 +328,7 @@ describe("Event Type Safety", () => {
 
 describe("Analytics Integration Patterns", () => {
   it("should support complete podcast generation workflow tracking", () => {
-    const service = new AnalyticsService(mockPostHog as any);
+    const service = new AnalyticsService(mockPostHog);
 
     // Simulate complete workflow
     service.track("podcast-generation-started", {
@@ -372,7 +373,7 @@ describe("Analytics Integration Patterns", () => {
   });
 
   it("should support player engagement tracking", () => {
-    const service = new AnalyticsService(mockPostHog as any);
+    const service = new AnalyticsService(mockPostHog);
 
     service.track("episode-played", {
       episodeId: "ep-123",

@@ -5,7 +5,6 @@ import { vi, expect } from "vitest";
 
 interface CustomRenderOptions extends Omit<RenderOptions, "wrapper"> {
   theme?: string;
-  mockTrpcResponses?: Record<string, any>;
 }
 
 // Create a test wrapper with providers
@@ -27,11 +26,7 @@ const createTestWrapper = (options: {
 // Custom render function with providers
 const customRender = (
   ui: ReactElement,
-  {
-    theme = "forest",
-    mockTrpcResponses = {},
-    ...renderOptions
-  }: CustomRenderOptions = {}
+  { theme = "forest", ...renderOptions }: CustomRenderOptions = {}
 ) => {
   // Create a new QueryClient for each test to avoid cache interference
   const queryClient = new QueryClient({
@@ -78,29 +73,51 @@ export const waitForNoLoadingStates = async (container: HTMLElement) => {
 
 // Helper to simulate user interactions
 export const createUserInteractionHelpers = () => ({
-  clickButton: async (user: any, buttonText: string) => {
-    const button = await user.findByRole("button", {
+  clickButton: async (user: unknown, buttonText: string) => {
+    const userObj = user as {
+      findByRole: (role: string, options: unknown) => Promise<unknown>;
+      click: (element: unknown) => Promise<void>;
+    };
+    const button = await userObj.findByRole("button", {
       name: new RegExp(buttonText, "i"),
     });
-    await user.click(button);
+    await userObj.click(button);
     return button;
   },
 
-  openModal: async (user: any, triggerText: string) => {
-    await user.click(await user.findByText(new RegExp(triggerText, "i")));
-    return await user.findByRole("dialog");
+  openModal: async (user: unknown, triggerText: string) => {
+    const userObj = user as {
+      click: (element: unknown) => Promise<void>;
+      findByText: (regex: RegExp) => Promise<unknown>;
+      findByRole: (role: string) => Promise<unknown>;
+    };
+    await userObj.click(await userObj.findByText(new RegExp(triggerText, "i")));
+    return await userObj.findByRole("dialog");
   },
 
-  closeModal: async (user: any) => {
-    const closeButton = await user.findByRole("button", { name: /close/i });
-    await user.click(closeButton);
+  closeModal: async (user: unknown) => {
+    const userObj = user as {
+      findByRole: (role: string, options: unknown) => Promise<unknown>;
+      click: (element: unknown) => Promise<void>;
+    };
+    const closeButton = await userObj.findByRole("button", { name: /close/i });
+    await userObj.click(closeButton);
   },
 
-  selectOption: async (user: any, selectLabel: string, optionText: string) => {
-    const select = await user.findByLabelText(new RegExp(selectLabel, "i"));
-    await user.click(select);
-    const option = await user.findByText(new RegExp(optionText, "i"));
-    await user.click(option);
+  selectOption: async (
+    user: unknown,
+    selectLabel: string,
+    optionText: string
+  ) => {
+    const userObj = user as {
+      findByLabelText: (regex: RegExp) => Promise<unknown>;
+      click: (element: unknown) => Promise<void>;
+      findByText: (regex: RegExp) => Promise<unknown>;
+    };
+    const select = await userObj.findByLabelText(new RegExp(selectLabel, "i"));
+    await userObj.click(select);
+    const option = await userObj.findByText(new RegExp(optionText, "i"));
+    await userObj.click(option);
   },
 });
 

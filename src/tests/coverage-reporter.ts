@@ -11,11 +11,13 @@ import type {
 } from "@playwright/test/reporter";
 
 class CoverageReporter implements Reporter {
-  private coverageData: any[] = [];
-  private config: FullConfig | undefined;
+  private coverageData: Array<{
+    testTitle: string;
+    projectName: string | undefined;
+    coverage: TestResult["attachments"][0];
+  }> = [];
 
-  onBegin(config: FullConfig, suite: Suite) {
-    this.config = config;
+  onBegin(_config: FullConfig, suite: Suite) {
     console.log(
       `🔍 Coverage Reporter: Starting coverage collection for ${suite.allTests().length} tests`
     );
@@ -46,7 +48,9 @@ class CoverageReporter implements Reporter {
       timestamp: new Date().toISOString(),
       status: result.status,
       totalTests: this.coverageData.length,
-      projects: [...new Set(this.coverageData.map((d) => d.projectName))],
+      projects: Array.from(
+        new Set(this.coverageData.map((d) => d.projectName))
+      ),
       summary: {
         message: "E2E test coverage collection completed",
         instructions: [

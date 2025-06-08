@@ -19,7 +19,7 @@ export default function ScrapingPage() {
   const [selectedSource, setSelectedSource] = useState<string>("");
 
   // Queries
-  const { data: availableScrapers, refetch: _refetchScrapers } =
+  const { data: availableScrapers } =
     api.scraping.getAvailableScrapers.useQuery();
   const { data: cachedContent, refetch: refetchCached } =
     api.scraping.getCachedContent.useQuery();

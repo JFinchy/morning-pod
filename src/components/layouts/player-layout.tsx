@@ -31,8 +31,8 @@ interface PlayerLayoutProps {
 
 export function PlayerLayout({ children, episode }: PlayerLayoutProps) {
   const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [volume, setVolume] = useState(75);
+  const [currentTime] = useState(0);
+  const [volume] = useState(75);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
 
   const duration = episode?.duration || 180; // Default 3 minutes for demo

@@ -254,7 +254,7 @@ export function QueueStatusV2({
                   >
                     <div className="flex items-center gap-2">
                       <span className="text-xs font-mono text-base-content/40 w-6">
-                        #{item.position + 1}
+                        #{index + 1}
                       </span>
                       <StatusIcon status={item.status} />
                     </div>
