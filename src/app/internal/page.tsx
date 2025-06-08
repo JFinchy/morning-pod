@@ -9,11 +9,14 @@ import {
   Brain,
   Layout,
   Volume2,
+  Activity,
+  Flag,
 } from "lucide-react";
 import Link from "next/link";
 
 import { MainLayout } from "@/components/layouts";
 import { Button } from "@/components/ui";
+import { CanaryMonitoringDashboard } from "@/components/internal/canary-monitoring-dashboard";
 
 export default function InternalPage() {
   const componentVariants = [
@@ -63,6 +66,14 @@ export default function InternalPage() {
         "Test PostHog integration and monitor analytics events in real-time",
       href: "/internal/analytics",
       category: "Analytics",
+      status: "Active",
+    },
+    {
+      name: "Canary Monitoring",
+      description:
+        "Real-time monitoring of canary deployments and feature flag rollouts",
+      href: "#canary-monitoring",
+      category: "Deployment",
       status: "Active",
     },
   ];
@@ -488,6 +499,31 @@ export default function InternalPage() {
               </div>
             </div>
           </Link>
+        </div>
+
+        {/* Canary Monitoring Dashboard */}
+        <div
+          id="canary-monitoring"
+          className="card bg-base-100 shadow-sm border border-base-300"
+        >
+          <div className="card-body p-6">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-2 bg-orange-500/10 rounded-lg">
+                <Activity className="w-6 h-6 text-orange-500" />
+              </div>
+              <div>
+                <h2 className="text-xl font-semibold">
+                  Canary Deployment Monitoring
+                </h2>
+                <p className="text-base-content/70 text-sm">
+                  Real-time monitoring of canary deployments and automated
+                  feature flag rollouts
+                </p>
+              </div>
+            </div>
+
+            <CanaryMonitoringDashboard />
+          </div>
         </div>
       </div>
     </MainLayout>

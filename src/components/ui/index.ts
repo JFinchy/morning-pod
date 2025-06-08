@@ -28,3 +28,5 @@ export {
 export { ThemeSwitcher } from "./theme-switcher";
 export { default as ErrorBoundary } from "./error-boundary";
 export * from "./loading-skeleton";
+export { Badge } from "./badge";
+export { Card, CardHeader, CardTitle, CardContent } from "./card";
