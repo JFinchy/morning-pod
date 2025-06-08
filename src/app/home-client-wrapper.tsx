@@ -11,8 +11,8 @@ interface HomeClientWrapperProps {
 
 export function HomeClientWrapper({
   children,
-  initialEpisodes: _initialEpisodes,
-  initialStats: _initialStats,
+  // initialEpisodes: _initialEpisodes,
+  // initialStats: _initialStats,
 }: HomeClientWrapperProps) {
   // This component can be used for any client-side interactivity
   // that needs to be hydrated with server data

@@ -1,47 +1,10 @@
 import { z } from "zod";
 
 import { getEnabledSources } from "../../feature-flags/server";
+import { mockSources, type Source } from "../../mock-data/sources";
 import { createTRPCRouter, publicProcedure } from "../server-mock";
 
-// Mock sources data
-const mockSources = [
-  {
-    id: "tldr",
-    name: "TLDR Newsletter",
-    url: "https://tldr.tech",
-    category: "Tech News",
-    active: true,
-    dailyLimit: 3,
-    contentTier: "premium",
-    ttsService: "openai" as const,
-    createdAt: new Date("2024-01-01"),
-    updatedAt: new Date("2024-01-01"),
-  },
-  {
-    id: "hacker-news",
-    name: "Hacker News",
-    url: "https://news.ycombinator.com",
-    category: "Developer News",
-    active: true,
-    dailyLimit: 5,
-    contentTier: "free",
-    ttsService: "openai" as const,
-    createdAt: new Date("2024-01-01"),
-    updatedAt: new Date("2024-01-01"),
-  },
-  {
-    id: "morning-brew",
-    name: "Morning Brew",
-    url: "https://morningbrew.com",
-    category: "Business News",
-    active: true,
-    dailyLimit: 2,
-    contentTier: "premium",
-    ttsService: "google" as const,
-    createdAt: new Date("2024-01-01"),
-    updatedAt: new Date("2024-01-01"),
-  },
-];
+// Using imported mockSources from mock-data/sources.ts
 
 export const sourcesMockRouter = createTRPCRouter({
   // Get all sources with optional filtering and feature flag filtering
@@ -101,14 +64,13 @@ export const sourcesMockRouter = createTRPCRouter({
 
     const grouped = enabledSources.reduce(
       (acc, source) => {
-        const category = source.category;
-        if (!acc[category]) {
-          acc[category] = [];
+        if (!acc[source.category]) {
+          acc[source.category] = [];
         }
-        acc[category].push(source);
+        acc[source.category].push(source);
         return acc;
       },
-      {} as Record<string, typeof enabledSources>
+      {} as Record<string, Source[]>
     );
 
     return grouped;

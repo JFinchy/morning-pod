@@ -41,11 +41,11 @@ export function collectPerformanceMetrics(): PerformanceMetrics | null {
     try {
       const lcpObserver = new PerformanceObserver((list) => {
         const entries = list.getEntries();
-        const lastEntry = entries[entries.length - 1] as any;
+        const lastEntry = entries[entries.length - 1] as PerformancePaintTiming;
         metrics.largestContentfulPaint = lastEntry.startTime;
       });
       lcpObserver.observe({ type: "largest-contentful-paint", buffered: true });
-    } catch (e) {
+    } catch {
       // Observer not supported
     }
 
@@ -53,12 +53,14 @@ export function collectPerformanceMetrics(): PerformanceMetrics | null {
     try {
       const fidObserver = new PerformanceObserver((list) => {
         const entries = list.getEntries();
-        entries.forEach((entry: any) => {
-          metrics.firstInputDelay = entry.processingStart - entry.startTime;
+        entries.forEach((entry) => {
+          const fidEntry = entry as PerformanceEventTiming;
+          metrics.firstInputDelay =
+            fidEntry.processingStart - fidEntry.startTime;
         });
       });
       fidObserver.observe({ type: "first-input", buffered: true });
-    } catch (e) {
+    } catch {
       // Observer not supported
     }
 
@@ -67,15 +69,19 @@ export function collectPerformanceMetrics(): PerformanceMetrics | null {
       let clsValue = 0;
       const clsObserver = new PerformanceObserver((list) => {
         const entries = list.getEntries();
-        entries.forEach((entry: any) => {
-          if (!entry.hadRecentInput) {
-            clsValue += entry.value;
+        entries.forEach((entry) => {
+          const clsEntry = entry as PerformanceEntry & {
+            value: number;
+            hadRecentInput: boolean;
+          };
+          if (!clsEntry.hadRecentInput) {
+            clsValue += clsEntry.value;
           }
         });
         metrics.cumulativeLayoutShift = clsValue;
       });
       clsObserver.observe({ type: "layout-shift", buffered: true });
-    } catch (e) {
+    } catch {
       // Observer not supported
     }
   }

@@ -5,6 +5,30 @@ import {
   ScrapedContent,
 } from "./types";
 
+// Type for raw Hacker News content before validation
+interface RawHackerNewsContent {
+  title?: unknown;
+  summary?: unknown;
+  content?: unknown;
+  url?: unknown;
+  publishedAt?: unknown;
+  points?: unknown;
+  comments?: unknown;
+  id?: unknown;
+}
+
+// Type for validated Hacker News content
+interface ValidatedHackerNewsContent {
+  title: string;
+  summary?: string;
+  content?: string;
+  url?: string;
+  publishedAt?: Date;
+  points?: number;
+  comments?: number;
+  id?: string | number;
+}
+
 export class HackerNewsScraper extends BaseScraper {
   constructor() {
     const config: ScraperConfig = {
@@ -65,35 +89,45 @@ export class HackerNewsScraper extends BaseScraper {
     }
   }
 
-  validateContent(content: any): boolean {
+  validateContent(content: unknown): content is ValidatedHackerNewsContent {
+    if (content === null || typeof content !== "object") {
+      return false;
+    }
+    const item = content as RawHackerNewsContent;
     return (
-      content &&
-      typeof content.title === "string" &&
-      content.title.length > 5 &&
-      (content.points || content.comments) // HN stories have points or comments
+      "title" in item &&
+      typeof item.title === "string" &&
+      item.title.length > 5 &&
+      (item.points !== undefined || item.comments !== undefined) // HN stories have points or comments
     );
   }
 
-  transformContent(rawContent: any): ScrapedContent[] {
-    if (!Array.isArray(rawContent)) {
-      rawContent = [rawContent];
-    }
+  transformContent(rawContent: unknown): ScrapedContent[] {
+    const contentArray = Array.isArray(rawContent) ? rawContent : [rawContent];
 
-    return rawContent
-      .filter((item: any) => this.validateContent(item))
-      .map((item: any, index: number) => ({
+    return contentArray
+      .filter((item: unknown): item is ValidatedHackerNewsContent =>
+        this.validateContent(item)
+      )
+      .map((item: ValidatedHackerNewsContent, index: number) => ({
         id: `hn-${Date.now()}-${index}`,
-        title: item.title.trim(),
+        title: String(item.title).trim(),
         summary: this.generateSummary(item),
-        content:
-          item.content || item.summary || `Discussion about: ${item.title}`,
-        url: item.url || `${this.config.baseUrl}/item?id=${item.id || index}`,
-        publishedAt: item.publishedAt || new Date(),
+        content: String(
+          item.content || item.summary || `Discussion about: ${item.title}`
+        ),
+        url: String(
+          item.url || `${this.config.baseUrl}/item?id=${item.id || index}`
+        ),
+        publishedAt: (item.publishedAt as Date) || new Date(),
         source: this.config.name,
         category: this.config.category,
-        tags: this.extractHNTags(item.title, item.content),
+        tags: this.extractHNTags(
+          String(item.title),
+          String(item.content || "")
+        ),
         contentHash: this.generateContentHash(
-          item.title + (item.summary || "")
+          String(item.title) + String(item.summary || "")
         ),
       }));
   }
@@ -138,15 +172,15 @@ export class HackerNewsScraper extends BaseScraper {
     return this.transformContent(mockStories);
   }
 
-  private generateSummary(item: any): string {
-    if (item.summary) return item.summary;
+  private generateSummary(item: ValidatedHackerNewsContent): string {
+    if (item.summary && typeof item.summary === "string") return item.summary;
 
     // Generate a basic summary from title and metadata
     const points = item.points ? `${item.points} points` : "";
     const comments = item.comments ? `${item.comments} comments` : "";
     const engagement = [points, comments].filter(Boolean).join(", ");
 
-    return `${item.title}${engagement ? ` (${engagement})` : ""}`;
+    return `${String(item.title)}${engagement ? ` (${engagement})` : ""}`;
   }
 
   private extractHNTags(title: string, content?: string): string[] {

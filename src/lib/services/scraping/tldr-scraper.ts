@@ -5,6 +5,24 @@ import {
   ScrapedContent,
 } from "./types";
 
+// Type for raw TLDR content before validation
+interface RawTldrContent {
+  title?: unknown;
+  summary?: unknown;
+  content?: unknown;
+  url?: unknown;
+  publishedAt?: unknown;
+}
+
+// Type for validated TLDR content
+interface ValidatedTldrContent {
+  title: string;
+  summary: string;
+  content?: string;
+  url?: string;
+  publishedAt?: Date;
+}
+
 export class TLDRScraper extends BaseScraper {
   constructor() {
     const config: ScraperConfig = {
@@ -66,24 +84,30 @@ export class TLDRScraper extends BaseScraper {
     }
   }
 
-  validateContent(content: any): boolean {
+  validateContent(content: unknown): content is ValidatedTldrContent {
+    if (content === null || typeof content !== "object") {
+      return false;
+    }
+    const item = content as RawTldrContent;
     return (
-      content &&
-      typeof content.title === "string" &&
-      typeof content.summary === "string" &&
-      content.title.length > 0 &&
-      content.summary.length > 10
+      "title" in item &&
+      "summary" in item &&
+      typeof item.title === "string" &&
+      typeof item.summary === "string" &&
+      item.title.length > 0 &&
+      item.summary.length > 10
     );
   }
 
-  transformContent(rawContent: any): ScrapedContent[] {
-    if (!Array.isArray(rawContent)) {
-      rawContent = [rawContent];
-    }
+  transformContent(rawContent: unknown): ScrapedContent[] {
+    // Ensure we have an array to work with
+    const contentArray = Array.isArray(rawContent) ? rawContent : [rawContent];
 
-    return rawContent
-      .filter((item: any) => this.validateContent(item))
-      .map((item: any, index: number) => ({
+    return contentArray
+      .filter((item: unknown): item is ValidatedTldrContent =>
+        this.validateContent(item)
+      )
+      .map((item: ValidatedTldrContent, index: number) => ({
         id: `tldr-${Date.now()}-${index}`,
         title: item.title.trim(),
         summary: item.summary.trim(),

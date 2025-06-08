@@ -78,14 +78,17 @@ Our testing strategy ensures quality across all components and user workflows:
 ### Unit & Integration Tests (Vitest + React Testing Library)
 
 ```bash
-# Run all unit tests
-bun test
+# Run all tests (unit + E2E)
+bun run test
 
-# Run tests in watch mode
-bun test:watch
+# Run only unit tests
+bun run test unit
 
-# Generate coverage report
-bun test:coverage
+# Interactive test menu with additional options
+bun run test:interactive
+
+# Run tests in watch mode with coverage
+bun run test unit --watch --coverage
 ```
 
 **Current Status**: ✅ 11/11 tests passing
@@ -100,18 +103,15 @@ bun test:coverage
 
 ```bash
 # Basic E2E testing
-bun test:e2e              # All E2E tests
-bun test:e2e:ui           # Interactive UI mode
-bun test:e2e:debug        # Debug mode
-bun test:e2e:headed       # Run with browser UI
+bun run test e2e          # All E2E tests
+bun run test e2e --ui     # Interactive UI mode
+bun run test e2e --debug  # Debug mode
+bun run test e2e --headed # Run with browser UI
 
-# Advanced features
-bun test:e2e:trace        # Enable trace collection
-bun test:e2e:video        # Record test videos
-bun test:e2e:visual       # Update visual snapshots
-bun test:e2e:codegen      # Generate test code
-bun test:e2e:report       # View HTML report
-bun test:e2e:coverage     # JS/CSS coverage collection
+# Advanced E2E options
+bun run test e2e --project=chromium    # Specific browser
+bun run test e2e --update-snapshots    # Update visual snapshots
+bun run test performance               # Performance tests only
 ```
 
 **Test Matrix**: 48 combinations (4 themes × 3 browsers × 4 viewports)
@@ -128,10 +128,10 @@ bun test:e2e:coverage     # JS/CSS coverage collection
 
 ```bash
 # Run performance benchmarks
-bun test:performance
+bun run test performance
 
-# Generate Lighthouse reports
-bun test:lighthouse
+# Run performance-optimized test suite
+bun run test unit:perf && bun run test e2e:perf
 ```
 
 ### Accessibility Testing
@@ -238,38 +238,56 @@ Check our task management system for detailed project planning:
 
 ## 🔧 Development Commands
 
+Our project uses an interactive script runner for streamlined development:
+
+### Quick Commands (Most Common)
+
 ```bash
 # Development
-bun run dev                 # Start development server
-bun run build              # Production build
-bun run start              # Production server
-bun run type-check         # TypeScript validation
+bun run dev               # Start development server
+bun run build            # Production build
+bun run start            # Production server
+
+# Testing & Quality
+bun run test             # Run all tests (unit + E2E)
+bun run quality          # Run all quality checks (lint + format + type)
 
 # Database
-bun run db:generate        # Generate migrations
-bun run db:migrate         # Run migrations
-bun run db:seed            # Seed with sample data
-bun run db:studio          # Open database GUI
+bun run db generate      # Generate migrations
+bun run db migrate       # Run migrations
+bun run db seed          # Seed with sample data
+```
 
-# Testing
-bun test                   # Unit tests
-bun test:watch             # Watch mode
-bun test:e2e              # End-to-end tests
-bun test:e2e:ui           # E2E with UI
-bun test:performance      # Performance tests
-bun test:accessibility    # Accessibility audit
+### Interactive Mode & Advanced Options
 
-# Code Quality
-bun run lint              # ESLint check
-bun run lint:fix          # Auto-fix issues
-bun run format            # Prettier formatting
-bun run format:check      # Check formatting
+```bash
+# Interactive menus with context-specific examples
+bun run test:interactive     # Interactive test menu
+bun run quality:interactive  # Interactive quality menu
 
-# Dependencies
-bun install               # Install packages
-bun add <package>         # Add dependency
-bun update               # Update all packages
-bun outdated             # Check outdated packages
+# Direct commands with additional arguments
+bun run test unit --watch --coverage    # Unit tests with watch and coverage
+bun run test e2e --headed --debug       # E2E tests in headed debug mode
+bun run quality lint src/ --max-warnings 0  # Lint specific directory
+bun run quality format src/ --check     # Format check specific directory
+
+# Emergency tools
+bun run kill-processes      # Kill stuck test/lint processes
+bun run kill-processes --force  # Force kill with SIGKILL
+```
+
+### All Available Categories
+
+```bash
+# Get help and see all options
+bun run script --help       # Show full help
+bun run script --list       # List all commands
+
+# Category shortcuts
+bun run dev --start          # Start development server
+bun run test --e2e           # Run E2E tests
+bun run quality --lint       # Run linting
+bun run deps --check         # Check for updates
 ```
 
 ## 🎨 Theme Testing

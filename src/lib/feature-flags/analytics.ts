@@ -230,7 +230,7 @@ export class AnalyticsService {
   /**
    * Track page view
    */
-  trackPageView(page: string, properties?: Record<string, any>): void {
+  trackPageView(page: string, properties?: Record<string, unknown>): void {
     this.track("page-viewed", {
       page,
       referrer: typeof document !== "undefined" ? document.referrer : undefined,
@@ -245,7 +245,7 @@ export class AnalyticsService {
     component: string,
     action: string,
     variant?: string,
-    properties?: Record<string, any>
+    properties?: Record<string, unknown>
   ): void {
     this.track("component-interacted", {
       component,

@@ -13,7 +13,7 @@ interface UserInteraction {
   target: string;
   timestamp: number;
   duration?: number;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 class PerformanceMonitor {
@@ -44,14 +44,19 @@ class PerformanceMonitor {
 
     // Track First Input Delay (FID)
     this.observePerformanceEntry("first-input", (entry) => {
-      const fid = entry.processingStart - entry.startTime;
+      const fidEntry = entry as PerformanceEventTiming;
+      const fid = fidEntry.processingStart - fidEntry.startTime;
       this.recordMetric("FID", fid, "ms");
     });
 
     // Track Cumulative Layout Shift (CLS)
     this.observePerformanceEntry("layout-shift", (entry) => {
-      if (!entry.hadRecentInput) {
-        this.recordMetric("CLS", entry.value, "score");
+      const clsEntry = entry as PerformanceEntry & {
+        value: number;
+        hadRecentInput: boolean;
+      };
+      if (!clsEntry.hadRecentInput) {
+        this.recordMetric("CLS", clsEntry.value, "score");
       }
     });
 
@@ -61,7 +66,7 @@ class PerformanceMonitor {
 
   private observePerformanceEntry(
     type: string,
-    callback: (entry: any) => void
+    callback: (entry: PerformanceEntry) => void
   ) {
     if (!this.isEnabled || !window.PerformanceObserver) return;
 
@@ -123,7 +128,7 @@ class PerformanceMonitor {
   trackUserInteraction(
     action: string,
     target: string,
-    metadata?: Record<string, any>
+    metadata?: Record<string, unknown>
   ) {
     const interaction: UserInteraction = {
       action,
@@ -262,7 +267,7 @@ export function usePerformanceTracking() {
   const trackInteraction = (
     action: string,
     target: string,
-    metadata?: Record<string, any>
+    metadata?: Record<string, unknown>
   ) => {
     performanceMonitor.trackUserInteraction(action, target, metadata);
   };
