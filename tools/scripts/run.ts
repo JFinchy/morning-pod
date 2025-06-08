@@ -714,11 +714,11 @@ Passing Additional Arguments:
     let additionalArgs = "";
     try {
       const examples = this.getArgumentExamples(categoryName, String(selected));
-      additionalArgs = await p.text({
+      additionalArgs = (await p.text({
         message: `Additional arguments (optional, e.g., ${examples}):`,
         placeholder: "Press Enter to skip",
         defaultValue: "",
-      });
+      })) as string;
     } catch (error) {
       additionalArgs = "";
     }
