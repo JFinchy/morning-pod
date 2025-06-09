@@ -325,6 +325,48 @@ export class ScriptRunner {
       icon: "🚢",
       name: "release",
     },
+    {
+      commands: [
+        {
+          command: "bun run tools/scripts/branch-manager.ts --checkout",
+          description: "Switch to recent branch interactively",
+          name: "checkout",
+        },
+        {
+          command: "bun run tools/scripts/branch-manager.ts",
+          description: "Interactive branch management",
+          name: "interactive",
+        },
+        {
+          command: "bun run tools/scripts/branch-manager.ts --analysis",
+          description: "Show branch analysis and statistics",
+          name: "analysis",
+        },
+        {
+          command: "bun run tools/scripts/branch-manager.ts --stale",
+          description: "Archive stale branches (>30 days)",
+          name: "stale",
+        },
+        {
+          command: "bun run tools/scripts/branch-manager.ts --orphaned",
+          description: "Archive local-only branches",
+          name: "orphaned",
+        },
+        {
+          command: "bun run tools/scripts/branch-manager.ts --merged",
+          description: "Archive merged branches deleted from remote",
+          name: "merged",
+        },
+        {
+          command: "bun run tools/scripts/branch-manager.ts --stale --dry-run",
+          description: "Preview stale branches (dry run)",
+          name: "preview",
+        },
+      ],
+      description: "Branch Management",
+      icon: "🌿",
+      name: "branches",
+    },
   ];
 
   /**
@@ -619,6 +661,15 @@ export class ScriptRunner {
           "--release": "release",
           "--status": "status",
           "--version": "version",
+        },
+        branches: {
+          "--analysis": "analysis",
+          "--checkout": "checkout",
+          "--interactive": "interactive",
+          "--merged": "merged",
+          "--orphaned": "orphaned",
+          "--preview": "preview",
+          "--stale": "stale",
         },
         test: {
           "--all": "--all",
