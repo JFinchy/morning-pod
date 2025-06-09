@@ -29,7 +29,7 @@ export default function EpisodeComparisonPage() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
-            <Link href="/" className="btn btn-ghost btn-circle">
+            <Link className="btn btn-ghost btn-circle" href="/">
               <ArrowLeft className="w-5 h-5" />
             </Link>
             <div>
@@ -44,16 +44,16 @@ export default function EpisodeComparisonPage() {
 
           <div className="flex items-center gap-2">
             <Button
+              onClick={() => setViewMode("grid")}
               size="sm"
               variant={viewMode === "grid" ? "primary" : "neutral"}
-              onClick={() => setViewMode("grid")}
             >
               <Grid className="w-4 h-4" />
             </Button>
             <Button
+              onClick={() => setViewMode("list")}
               size="sm"
               variant={viewMode === "list" ? "primary" : "neutral"}
-              onClick={() => setViewMode("list")}
             >
               <List className="w-4 h-4" />
             </Button>
@@ -71,11 +71,11 @@ export default function EpisodeComparisonPage() {
           <div className="flex gap-2 flex-wrap">
             {mockEpisodes.map((ep, index) => (
               <button
-                key={ep.id}
-                onClick={() => setSelectedEpisode(index)}
                 className={`btn btn-sm ${
                   selectedEpisode === index ? "btn-primary" : "btn-outline"
                 }`}
+                key={ep.id}
+                onClick={() => setSelectedEpisode(index)}
               >
                 {ep.source?.name || `Episode ${index + 1}`}
               </button>
@@ -153,30 +153,30 @@ export default function EpisodeComparisonPage() {
             {[
               {
                 component: EpisodeCardV1,
-                title: "Version 1: Minimal",
                 description:
                   "Clean typography, simple layout, focus on content readability. Ideal for content-heavy interfaces.",
                 tags: ["Clean", "Readable", "Minimal"],
+                title: "Version 1: Minimal",
               },
               {
                 component: EpisodeCardV2,
-                title: "Version 2: Visual",
                 description:
                   "Rich visuals, gradient backgrounds, prominent thumbnails. Great for discovery and engagement.",
                 tags: ["Visual", "Engaging", "Rich"],
+                title: "Version 2: Visual",
               },
               {
                 component: EpisodeCardV3,
-                title: "Version 3: Compact",
                 description:
                   "Space-efficient, list-style layout, perfect for showing many episodes in limited space.",
                 tags: ["Compact", "Efficient", "Dense"],
+                title: "Version 3: Compact",
               },
             ].map(
-              ({ component: Component, title, description, tags }, index) => (
+              ({ component: Component, description, tags, title }, index) => (
                 <div
-                  key={index}
                   className="border border-base-300 rounded-lg p-6"
+                  key={index}
                 >
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <div className="lg:col-span-1">
@@ -189,8 +189,8 @@ export default function EpisodeComparisonPage() {
                       <div className="flex gap-1 flex-wrap">
                         {tags.map((tag) => (
                           <span
-                            key={tag}
                             className="badge badge-sm badge-outline"
+                            key={tag}
                           >
                             {tag}
                           </span>

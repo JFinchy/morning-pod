@@ -1,2 +1,2 @@
 export { QueueProcessor } from "./queue-processor";
-export { type QueueProcessorConfig, type ProcessingJob } from "./types";
+export { type ProcessingJob, type QueueProcessorConfig } from "./types";

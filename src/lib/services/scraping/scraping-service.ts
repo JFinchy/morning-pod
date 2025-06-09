@@ -9,10 +9,10 @@ import { z } from "zod";
  */
 
 export interface ScrapedContent {
-  title: string;
   content: string;
-  source: string;
   publishedAt?: string;
+  source: string;
+  title: string;
   url: string;
 }
 
@@ -38,16 +38,16 @@ export class ScrapingService {
       const html = await response.text();
 
       // Simple HTML parsing - extract title and basic content
-      const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
+      const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/iu);
       const title = titleMatch ? titleMatch[1].trim() : "Untitled";
 
       // Extract content from common content containers
       const contentPatterns = [
-        /<article[^>]*>(.*?)<\/article>/gi,
-        /<main[^>]*>(.*?)<\/main>/gi,
+        /<article[^>]*>(.*?)<\/article>/giu,
+        /<main[^>]*>(.*?)<\/main>/giu,
         /<div[^>]*class="[^"]*content[^"]*"[^>]*>(.*?)<\/div>/gi,
         /<div[^>]*class="[^"]*post[^"]*"[^>]*>(.*?)<\/div>/gi,
-        /<body[^>]*>(.*?)<\/body>/gi,
+        /<body[^>]*>(.*?)<\/body>/giu,
       ];
 
       let content = "";
@@ -63,8 +63,8 @@ export class ScrapingService {
       content = content
         .replace(/<script[^>]*>.*?<\/script>/gi, "")
         .replace(/<style[^>]*>.*?<\/style>/gi, "")
-        .replace(/<[^>]+>/g, " ")
-        .replace(/\s+/g, " ")
+        .replace(/<[^>]+>/gu, " ")
+        .replace(/\s+/gu, " ")
         .trim();
 
       if (!content || content.length < 100) {
@@ -76,11 +76,11 @@ export class ScrapingService {
       const source = urlObj.hostname.replace("www.", "");
 
       return {
-        title,
         content,
-        source,
-        url,
         publishedAt: new Date().toISOString(),
+        source,
+        title,
+        url,
       };
     } catch (error) {
       throw new Error(

@@ -1,27 +1,19 @@
 /// <reference types="vitest" />
-import path from "path";
-
 import react from "@vitejs/plugin-react";
+import path from "path";
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   plugins: [react()],
-  test: {
-    globals: true,
-    environment: "jsdom",
-    setupFiles: [path.resolve(__dirname, "../../src/tests/setup.ts")],
-    css: true,
-    // Mock out performance monitoring by default
-    mockReset: true,
-    clearMocks: true,
-    restoreMocks: true,
-    // Standard configuration for normal development
-    pool: "threads",
-    poolOptions: {
-      threads: {
-        singleThread: false,
-      },
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "../../src"),
     },
+  },
+  test: {
+    clearMocks: true,
+    css: true,
+    environment: "jsdom",
     // Exclude Playwright test files
     exclude: [
       "**/node_modules/**",
@@ -32,10 +24,17 @@ export default defineConfig({
       "**/e2e/**",
       "**/performance/**",
     ],
-  },
-  resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "../../src"),
+    globals: true,
+    // Mock out performance monitoring by default
+    mockReset: true,
+    // Standard configuration for normal development
+    pool: "threads",
+    poolOptions: {
+      threads: {
+        singleThread: false,
+      },
     },
+    restoreMocks: true,
+    setupFiles: [path.resolve(__dirname, "../../src/tests/setup.ts")],
   },
 });

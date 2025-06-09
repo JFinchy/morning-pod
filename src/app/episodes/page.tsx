@@ -1,20 +1,20 @@
 "use client";
 
-import { Play, List, Grid, Search, Filter, Volume2 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { Filter, Grid, List, Play, Search, Volume2 } from "lucide-react";
+import { useEffect, useState } from "react";
 
-import { EpisodeCard, AudioPlayer } from "@/components/features";
+import { AudioPlayer, EpisodeCard } from "@/components/features";
 import { MainLayout } from "@/components/layouts";
 import { Button } from "@/components/ui";
 import ErrorBoundary from "@/components/ui/error-boundary";
 import { EpisodeListSkeleton } from "@/components/ui/loading-skeleton";
-import type { Episode } from "@/lib/db/schema";
+import { type Episode } from "@/lib/db/schema";
 import { api, handleTRPCError } from "@/lib/trpc/client";
 import { sanitizeString } from "@/lib/utils/api-middleware";
 import { usePerformanceTracking } from "@/lib/utils/performance";
 
 type ViewMode = "grid" | "list";
-type FilterStatus = "all" | "ready" | "generating" | "pending" | "failed";
+type FilterStatus = "all" | "failed" | "generating" | "pending" | "ready";
 
 export default function EpisodesPage() {
   const [episodes, setEpisodes] = useState<Episode[]>([]);
@@ -23,7 +23,7 @@ export default function EpisodesPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<FilterStatus>("all");
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<null | string>(null);
 
   // Performance tracking
   const { trackInteraction, trackMetric } = usePerformanceTracking();
@@ -31,8 +31,8 @@ export default function EpisodesPage() {
   // Fetch episodes
   const {
     data: episodesData,
-    isLoading: episodesLoading,
     error: episodesError,
+    isLoading: episodesLoading,
   } = api.episodes.getAll.useQuery({
     limit: 50,
   });
@@ -85,10 +85,10 @@ export default function EpisodesPage() {
 
   const statusCounts = {
     all: episodes.length,
-    ready: episodes.filter((ep) => ep.status === "ready").length,
+    failed: episodes.filter((ep) => ep.status === "failed").length,
     generating: episodes.filter((ep) => ep.status === "generating").length,
     pending: episodes.filter((ep) => ep.status === "pending").length,
-    failed: episodes.filter((ep) => ep.status === "failed").length,
+    ready: episodes.filter((ep) => ep.status === "ready").length,
   };
 
   return (
@@ -111,16 +111,16 @@ export default function EpisodesPage() {
 
                 <div className="flex items-center gap-2">
                   <Button
+                    onClick={() => setViewMode("grid")}
                     size="sm"
                     variant={viewMode === "grid" ? "primary" : "secondary"}
-                    onClick={() => setViewMode("grid")}
                   >
                     <Grid className="w-4 h-4" />
                   </Button>
                   <Button
+                    onClick={() => setViewMode("list")}
                     size="sm"
                     variant={viewMode === "list" ? "primary" : "secondary"}
-                    onClick={() => setViewMode("list")}
                   >
                     <List className="w-4 h-4" />
                   </Button>
@@ -131,12 +131,12 @@ export default function EpisodesPage() {
               <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                 {Object.entries(statusCounts).map(([status, count]) => (
                   <div
-                    key={status}
                     className={`stats shadow cursor-pointer transition-colors ${
                       statusFilter === status
                         ? "bg-primary text-primary-content"
                         : "bg-base-200"
                     }`}
+                    key={status}
                     onClick={() => setStatusFilter(status as FilterStatus)}
                   >
                     <div className="stat">
@@ -159,13 +159,13 @@ export default function EpisodesPage() {
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-base-content/50" />
                   <input
-                    type="text"
-                    placeholder="Search episodes..."
                     className="input input-bordered w-full pl-10"
-                    value={searchQuery}
                     onChange={(e) =>
                       setSearchQuery(sanitizeString(e.target.value))
                     }
+                    placeholder="Search episodes..."
+                    type="text"
+                    value={searchQuery}
                   />
                 </div>
               </div>
@@ -175,10 +175,10 @@ export default function EpisodesPage() {
                 <Filter className="w-4 h-4 text-base-content/50" />
                 <select
                   className="select select-bordered"
-                  value={statusFilter}
                   onChange={(e) =>
                     setStatusFilter(e.target.value as FilterStatus)
                   }
+                  value={statusFilter}
                 >
                   <option value="all">All Episodes</option>
                   <option value="ready">Ready to Play</option>
@@ -216,7 +216,7 @@ export default function EpisodesPage() {
                     : "Generate your first episode to get started"}
                 </p>
                 {!searchQuery && statusFilter === "all" && (
-                  <Button variant="primary" size="lg">
+                  <Button size="lg" variant="primary">
                     Generate Episode
                   </Button>
                 )}
@@ -234,13 +234,13 @@ export default function EpisodesPage() {
               >
                 {filteredEpisodes.map((episode) => (
                   <EpisodeCard
-                    key={episode.id}
-                    episode={episode}
-                    onPlay={handlePlayEpisode}
-                    onPause={handlePauseEpisode}
-                    isCurrentlyPlaying={currentEpisode?.id === episode.id}
-                    variant={viewMode === "list" ? "compact" : "default"}
                     className={viewMode === "list" ? "max-w-none" : ""}
+                    episode={episode}
+                    isCurrentlyPlaying={currentEpisode?.id === episode.id}
+                    key={episode.id}
+                    onPause={handlePauseEpisode}
+                    onPlay={handlePlayEpisode}
+                    variant={viewMode === "list" ? "compact" : "default"}
                   />
                 ))}
               </div>
@@ -258,16 +258,16 @@ export default function EpisodesPage() {
                   </div>
                   <div className="flex-1">
                     <AudioPlayer
-                      episode={currentEpisode}
-                      autoPlay={true}
-                      onEpisodeEnd={handleEpisodeEnd}
+                      autoPlay
                       className="shadow-none bg-transparent"
+                      episode={currentEpisode}
+                      onEpisodeEnd={handleEpisodeEnd}
                     />
                   </div>
                   <Button
-                    size="sm"
                     btnStyle="ghost"
                     onClick={() => setCurrentEpisode(null)}
+                    size="sm"
                   >
                     ✕
                   </Button>
@@ -277,7 +277,7 @@ export default function EpisodesPage() {
           )}
 
           {/* Bottom padding to account for fixed player */}
-          {currentEpisode && <div className="h-32"></div>}
+          {currentEpisode && <div className="h-32" />}
         </div>
       </MainLayout>
     </ErrorBoundary>

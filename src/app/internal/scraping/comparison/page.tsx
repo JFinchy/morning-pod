@@ -1,47 +1,50 @@
 "use client";
 
 import {
-  Globe,
-  FileText,
-  Zap,
   AlertCircle,
-  CheckCircle,
   BarChart3,
+  CheckCircle,
+  FileText,
+  Globe,
+  Zap,
 } from "lucide-react";
 import { useState } from "react";
 
 import { Button } from "@/components/ui";
 
 interface ContentSourceComparison {
+  apiAvailable: boolean;
+  audience: string;
+  category: string;
+  cons: string[];
+  contentQuality: number; // 1-10
   id: string;
   name: string;
-  category: string;
-  audience: string;
-  updateFrequency: string;
-  contentQuality: number; // 1-10
-  scrapingDifficulty: number; // 1-10
-  apiAvailable: boolean;
-  rateLimit: string;
   pros: string[];
-  cons: string[];
+  rateLimit: string;
   sampleContent: {
-    title: string;
     summary: string;
     tags: string[];
+    title: string;
   };
+  scrapingDifficulty: number; // 1-10
+  updateFrequency: string;
 }
 
 const contentSources: ContentSourceComparison[] = [
   {
+    apiAvailable: false,
+    audience: "Developers & Tech Enthusiasts",
+    category: "Technology",
+    cons: [
+      "No official API",
+      "Rate limiting required",
+      "Paywall content",
+      "Email-based distribution",
+    ],
+    contentQuality: 9,
     id: "tldr",
     name: "TLDR Newsletter",
-    category: "Technology",
-    audience: "Developers & Tech Enthusiasts",
-    updateFrequency: "Daily",
-    contentQuality: 9,
-    scrapingDifficulty: 3,
-    apiAvailable: false,
-    rateLimit: "10 req/min",
     pros: [
       "High-quality curated content",
       "Consistent formatting",
@@ -49,29 +52,29 @@ const contentSources: ContentSourceComparison[] = [
       "Daily updates",
       "Concise summaries",
     ],
-    cons: [
-      "No official API",
-      "Rate limiting required",
-      "Paywall content",
-      "Email-based distribution",
-    ],
+    rateLimit: "10 req/min",
     sampleContent: {
-      title: "OpenAI GPT-4 Turbo with Vision Now Available",
       summary:
         "OpenAI has released GPT-4 Turbo with vision capabilities, allowing the model to understand images and text together. The update includes improved performance and reduced costs.",
       tags: ["AI", "OpenAI", "GPT-4", "Vision", "API"],
+      title: "OpenAI GPT-4 Turbo with Vision Now Available",
     },
+    scrapingDifficulty: 3,
+    updateFrequency: "Daily",
   },
   {
+    apiAvailable: true,
+    audience: "Developer Community",
+    category: "Technology & Startups",
+    cons: [
+      "Variable content quality",
+      "Noise in submissions",
+      "Community-driven ranking",
+      "Limited content metadata",
+    ],
+    contentQuality: 8,
     id: "hackernews",
     name: "Hacker News",
-    category: "Technology & Startups",
-    audience: "Developer Community",
-    updateFrequency: "Real-time",
-    contentQuality: 8,
-    scrapingDifficulty: 2,
-    apiAvailable: true,
-    rateLimit: "30 req/min",
     pros: [
       "Official API available",
       "Real-time updates",
@@ -79,29 +82,29 @@ const contentSources: ContentSourceComparison[] = [
       "Developer-focused content",
       "No authentication required",
     ],
-    cons: [
-      "Variable content quality",
-      "Noise in submissions",
-      "Community-driven ranking",
-      "Limited content metadata",
-    ],
+    rateLimit: "30 req/min",
     sampleContent: {
-      title: "Show HN: I built a collaborative Rust editor",
       summary:
         "A new collaborative code editor built in Rust with real-time synchronization and VS Code compatibility. Currently supports 10+ languages with syntax highlighting.",
       tags: ["Rust", "Editor", "Collaboration", "Show HN", "Development"],
+      title: "Show HN: I built a collaborative Rust editor",
     },
+    scrapingDifficulty: 2,
+    updateFrequency: "Real-time",
   },
   {
+    apiAvailable: false,
+    audience: "Business Professionals",
+    category: "Business & Finance",
+    cons: [
+      "Subscription model",
+      "Complex scraping",
+      "Anti-bot measures",
+      "Legal considerations",
+    ],
+    contentQuality: 9,
     id: "morningbrew",
     name: "Morning Brew",
-    category: "Business & Finance",
-    audience: "Business Professionals",
-    updateFrequency: "Daily",
-    contentQuality: 9,
-    scrapingDifficulty: 5,
-    apiAvailable: false,
-    rateLimit: "15 req/min",
     pros: [
       "Professional business content",
       "Excellent writing quality",
@@ -109,64 +112,61 @@ const contentSources: ContentSourceComparison[] = [
       "Consistent schedule",
       "Broad business coverage",
     ],
-    cons: [
-      "Subscription model",
-      "Complex scraping",
-      "Anti-bot measures",
-      "Legal considerations",
-    ],
+    rateLimit: "15 req/min",
     sampleContent: {
-      title: "Nvidia Hits $2 Trillion Market Cap Milestone",
       summary:
         "Nvidia has become the fourth company to reach a $2 trillion market valuation, driven by AI chip demand. The stock has surged 60% this year as data centers expand globally.",
       tags: ["Nvidia", "AI", "Stocks", "Market Cap", "Technology"],
+      title: "Nvidia Hits $2 Trillion Market Cap Milestone",
     },
+    scrapingDifficulty: 5,
+    updateFrequency: "Daily",
   },
 ];
 
 const scrapingStrategies = [
   {
-    name: "Direct Web Scraping",
     complexity: "Medium",
+    cons: ["Anti-bot measures", "Structure changes", "Legal concerns"],
+    name: "Direct Web Scraping",
+    pros: ["Real-time data", "Full content access", "No API limits"],
     reliability: 7,
     speed: 8,
-    pros: ["Real-time data", "Full content access", "No API limits"],
-    cons: ["Anti-bot measures", "Structure changes", "Legal concerns"],
   },
   {
-    name: "RSS/Feed Parsing",
     complexity: "Low",
+    cons: ["Limited content", "Not all sources", "Delayed updates"],
+    name: "RSS/Feed Parsing",
+    pros: ["Structured data", "Official support", "Reliable updates"],
     reliability: 9,
     speed: 9,
-    pros: ["Structured data", "Official support", "Reliable updates"],
-    cons: ["Limited content", "Not all sources", "Delayed updates"],
   },
   {
-    name: "API Integration",
     complexity: "Low",
+    cons: ["Limited sources", "API costs", "Rate limits", "Authentication"],
+    name: "API Integration",
+    pros: ["Official support", "Structured data", "Rate limiting", "Reliable"],
     reliability: 10,
     speed: 10,
-    pros: ["Official support", "Structured data", "Rate limiting", "Reliable"],
-    cons: ["Limited sources", "API costs", "Rate limits", "Authentication"],
   },
   {
-    name: "Email Parsing",
     complexity: "High",
-    reliability: 6,
-    speed: 5,
-    pros: ["Newsletter access", "Formatted content", "Regular schedule"],
     cons: [
       "Email complexity",
       "Delayed delivery",
       "Spam filters",
       "Authentication",
     ],
+    name: "Email Parsing",
+    pros: ["Newsletter access", "Formatted content", "Regular schedule"],
+    reliability: 6,
+    speed: 5,
   },
 ];
 
 export default function ScrapingComparisonPage() {
-  const [selectedSource, setSelectedSource] = useState<string | null>(null);
-  const [selectedStrategy, setSelectedStrategy] = useState<string | null>(null);
+  const [selectedSource, setSelectedSource] = useState<null | string>(null);
+  const [selectedStrategy, setSelectedStrategy] = useState<null | string>(null);
   const [comparisonMode, setComparisonMode] = useState<
     "sources" | "strategies"
   >("sources");
@@ -223,12 +223,12 @@ export default function ScrapingComparisonPage() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
               {contentSources.map((source) => (
                 <div
-                  key={source.id}
                   className={`card bg-base-100 shadow-lg border-2 cursor-pointer transition-all duration-200 ${
                     selectedSource === source.id
                       ? "border-primary shadow-xl"
                       : "border-base-300 hover:border-primary/50"
                   }`}
+                  key={source.id}
                   onClick={() =>
                     setSelectedSource(
                       selectedSource === source.id ? null : source.id
@@ -292,7 +292,7 @@ export default function ScrapingComparisonPage() {
                         <div
                           className="bg-primary h-2 rounded-full transition-all duration-300"
                           style={{ width: `${source.contentQuality * 10}%` }}
-                        ></div>
+                        />
                       </div>
                     </div>
                   </div>
@@ -333,10 +333,10 @@ export default function ScrapingComparisonPage() {
                                 <ul className="space-y-1">
                                   {source.pros.map((pro, index) => (
                                     <li
-                                      key={index}
                                       className="text-sm text-base-content/80 flex items-start"
+                                      key={index}
                                     >
-                                      <span className="w-1 h-1 bg-success rounded-full mt-2 mr-2 flex-shrink-0"></span>
+                                      <span className="w-1 h-1 bg-success rounded-full mt-2 mr-2 flex-shrink-0" />
                                       {pro}
                                     </li>
                                   ))}
@@ -351,10 +351,10 @@ export default function ScrapingComparisonPage() {
                                 <ul className="space-y-1">
                                   {source.cons.map((con, index) => (
                                     <li
-                                      key={index}
                                       className="text-sm text-base-content/80 flex items-start"
+                                      key={index}
                                     >
-                                      <span className="w-1 h-1 bg-error rounded-full mt-2 mr-2 flex-shrink-0"></span>
+                                      <span className="w-1 h-1 bg-error rounded-full mt-2 mr-2 flex-shrink-0" />
                                       {con}
                                     </li>
                                   ))}
@@ -382,8 +382,8 @@ export default function ScrapingComparisonPage() {
                                   {source.sampleContent.tags.map(
                                     (tag, index) => (
                                       <span
-                                        key={index}
                                         className="badge badge-primary badge-sm"
+                                        key={index}
                                       >
                                         {tag}
                                       </span>
@@ -452,12 +452,12 @@ export default function ScrapingComparisonPage() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
               {scrapingStrategies.map((strategy, index) => (
                 <div
-                  key={index}
                   className={`card bg-base-100 shadow-lg border-2 cursor-pointer transition-all duration-200 ${
                     selectedStrategy === strategy.name
                       ? "border-primary shadow-xl"
                       : "border-base-300 hover:border-primary/50"
                   }`}
+                  key={index}
                   onClick={() =>
                     setSelectedStrategy(
                       selectedStrategy === strategy.name ? null : strategy.name
@@ -490,7 +490,7 @@ export default function ScrapingComparisonPage() {
                           <div
                             className="bg-success h-2 rounded-full"
                             style={{ width: `${strategy.reliability * 10}%` }}
-                          ></div>
+                          />
                         </div>
                       </div>
 
@@ -503,7 +503,7 @@ export default function ScrapingComparisonPage() {
                           <div
                             className="bg-info h-2 rounded-full"
                             style={{ width: `${strategy.speed * 10}%` }}
-                          ></div>
+                          />
                         </div>
                       </div>
                     </div>
@@ -514,7 +514,7 @@ export default function ScrapingComparisonPage() {
                       </div>
                       <ul className="text-xs space-y-1">
                         {strategy.pros.slice(0, 2).map((pro, i) => (
-                          <li key={i} className="text-base-content/70">
+                          <li className="text-base-content/70" key={i}>
                             • {pro}
                           </li>
                         ))}
@@ -569,7 +569,7 @@ export default function ScrapingComparisonPage() {
                                   style={{
                                     width: `${strategy.reliability * 10}%`,
                                   }}
-                                ></div>
+                                />
                               </div>
                             </div>
                           </td>
@@ -580,7 +580,7 @@ export default function ScrapingComparisonPage() {
                                 <div
                                   className="bg-info h-2 rounded-full"
                                   style={{ width: `${strategy.speed * 10}%` }}
-                                ></div>
+                                />
                               </div>
                             </div>
                           </td>

@@ -1,12 +1,12 @@
 "use client";
 
 import {
-  Clock,
-  Play,
-  Pause,
-  SkipForward,
-  RefreshCw,
   AlertCircle,
+  Clock,
+  Pause,
+  Play,
+  RefreshCw,
+  SkipForward,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -70,18 +70,18 @@ export default function QueuePage() {
               <label className="label cursor-pointer gap-2">
                 <span className="label-text text-sm">Auto-refresh</span>
                 <input
-                  type="checkbox"
-                  className="toggle toggle-primary toggle-sm"
                   checked={autoRefresh}
+                  className="toggle toggle-primary toggle-sm"
                   onChange={(e) => setAutoRefresh(e.target.checked)}
+                  type="checkbox"
                 />
               </label>
             </div>
-            <Button btnStyle="outline" size="sm" className="gap-2">
+            <Button btnStyle="outline" className="gap-2" size="sm">
               <RefreshCw className="w-4 h-4" />
               Refresh
             </Button>
-            <Button variant="primary" size="sm" className="gap-2">
+            <Button className="gap-2" size="sm" variant="primary">
               <Play className="w-4 h-4" />
               Start Queue
             </Button>
@@ -93,20 +93,20 @@ export default function QueuePage() {
           queueItems={
             queueItems?.queueItems?.map((item) => ({
               ...item,
+              completedAt: item.completedAt ?? undefined,
+              cost: item.cost ? Number(item.cost) : undefined,
+              errorMessage: item.errorMessage ?? undefined,
               estimatedTimeRemaining: item.estimatedTimeRemaining ?? undefined,
               startedAt: item.startedAt ?? undefined,
-              completedAt: item.completedAt ?? undefined,
-              errorMessage: item.errorMessage ?? undefined,
-              cost: item.cost ? Number(item.cost) : undefined,
             })) || []
           }
           stats={{
-            totalInQueue: queueStats?.total || 0,
-            currentlyProcessing: queueStats?.active || 0,
             averageProcessingTime: 180, // 3 minutes default
+            currentlyProcessing: queueStats?.active || 0,
             estimatedWaitTime: 600, // 10 minutes default
             successRate: 0.92, // 92% default
             totalCostToday: Number(queueStats?.totalCost) || 0,
+            totalInQueue: queueStats?.total || 0,
           }}
         />
 
@@ -236,12 +236,12 @@ export default function QueuePage() {
                             <div className="flex items-center gap-2">
                               <span className="text-sm">{item.progress}%</span>
                               {[
+                                "generating-audio",
                                 "scraping",
                                 "summarizing",
-                                "generating-audio",
                                 "uploading",
                               ].includes(item.status) && (
-                                <span className="loading loading-spinner loading-xs"></span>
+                                <span className="loading loading-spinner loading-xs" />
                               )}
                             </div>
                           ) : (
@@ -259,8 +259,8 @@ export default function QueuePage() {
                           <div className="flex gap-1">
                             {item.status === "pending" && (
                               <Button
-                                size="xs"
                                 btnStyle="ghost"
+                                size="xs"
                                 title="Move to front"
                               >
                                 <SkipForward className="w-3 h-3" />
@@ -268,7 +268,7 @@ export default function QueuePage() {
                             )}
                             {(item.status === "failed" ||
                               item.status === "pending") && (
-                              <Button size="xs" btnStyle="ghost" title="Retry">
+                              <Button btnStyle="ghost" size="xs" title="Retry">
                                 <RefreshCw className="w-3 h-3" />
                               </Button>
                             )}

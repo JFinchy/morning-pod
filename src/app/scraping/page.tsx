@@ -1,19 +1,18 @@
 "use client";
 
 import {
-  RefreshCw,
-  Download,
-  Settings,
   Activity,
-  Clock,
   CheckCircle,
+  Clock,
+  Download,
+  RefreshCw,
+  Settings,
   XCircle,
 } from "lucide-react";
 import { useState } from "react";
 
-import { api } from "../../lib/trpc/client";
-
 import { type ScrapedContent } from "../../lib/services/scraping/types";
+import { api } from "../../lib/trpc/client";
 
 export default function ScrapingPage() {
   const [selectedSource, setSelectedSource] = useState<string>("");
@@ -28,23 +27,23 @@ export default function ScrapingPage() {
 
   // Mutations
   const scrapeAll = api.scraping.scrapeAll.useMutation({
+    onError: (error) => {
+      console.error("Failed to scrape all sources:", error);
+    },
     onSuccess: () => {
       refetchCached();
       refetchMetrics();
-    },
-    onError: (error) => {
-      console.error("Failed to scrape all sources:", error);
     },
   });
 
   const scrapeSource = api.scraping.scrapeSource.useMutation({
+    onError: (error) => {
+      console.error(`Failed to scrape source:`, error);
+      setSelectedSource("");
+    },
     onSuccess: () => {
       refetchCached();
       refetchMetrics();
-      setSelectedSource("");
-    },
-    onError: (error) => {
-      console.error(`Failed to scrape source:`, error);
       setSelectedSource("");
     },
   });
@@ -62,10 +61,10 @@ export default function ScrapingPage() {
 
   const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat("en-US", {
-      month: "short",
       day: "numeric",
       hour: "2-digit",
       minute: "2-digit",
+      month: "short",
     }).format(new Date(date));
   };
 
@@ -86,9 +85,9 @@ export default function ScrapingPage() {
         </div>
         <div className="flex gap-3">
           <button
-            onClick={handleScrapeAll}
-            disabled={scrapeAll.isPending}
             className="btn btn-primary gap-2"
+            disabled={scrapeAll.isPending}
+            onClick={handleScrapeAll}
           >
             {scrapeAll.isPending ? (
               <RefreshCw className="w-4 h-4 animate-spin" />
@@ -114,16 +113,16 @@ export default function ScrapingPage() {
             <div className="space-y-2 mt-4">
               {availableScrapers?.scrapers?.map((scraper) => (
                 <div
-                  key={scraper}
                   className="flex items-center justify-between"
+                  key={scraper}
                 >
                   <span className="text-sm capitalize">{scraper}</span>
                   <button
-                    onClick={() => handleScrapeSource(scraper)}
+                    className="btn btn-xs btn-outline"
                     disabled={
                       scrapeSource.isPending && selectedSource === scraper
                     }
-                    className="btn btn-xs btn-outline"
+                    onClick={() => handleScrapeSource(scraper)}
                   >
                     {scrapeSource.isPending && selectedSource === scraper ? (
                       <RefreshCw className="w-3 h-3 animate-spin" />
@@ -241,8 +240,8 @@ export default function ScrapingPage() {
                 .slice(0, 10)
                 .map((article: ScrapedContent) => (
                   <div
-                    key={article.id}
                     className="border border-base-300 rounded-lg p-4 hover:bg-base-200/50 transition-colors"
+                    key={article.id}
                   >
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1">
@@ -263,8 +262,8 @@ export default function ScrapingPage() {
                           <div className="flex flex-wrap gap-1 mt-2">
                             {article.tags.slice(0, 3).map((tag) => (
                               <span
-                                key={tag}
                                 className="badge badge-xs badge-secondary"
+                                key={tag}
                               >
                                 {tag}
                               </span>
@@ -273,10 +272,10 @@ export default function ScrapingPage() {
                         )}
                       </div>
                       <a
-                        href={article.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
                         className="btn btn-sm btn-outline"
+                        href={article.url}
+                        rel="noopener noreferrer"
+                        target="_blank"
                       >
                         View
                       </a>
@@ -300,9 +299,9 @@ export default function ScrapingPage() {
               Start by scraping content from available sources
             </p>
             <button
-              onClick={handleScrapeAll}
-              disabled={scrapeAll.isPending}
               className="btn btn-primary"
+              disabled={scrapeAll.isPending}
+              onClick={handleScrapeAll}
             >
               {scrapeAll.isPending ? "Scraping..." : "Scrape All Sources"}
             </button>

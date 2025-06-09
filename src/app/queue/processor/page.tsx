@@ -1,16 +1,16 @@
 "use client";
 
 import {
-  Play,
-  Pause,
-  Square,
-  Settings,
   Activity,
-  Clock,
-  DollarSign,
   AlertCircle,
   CheckCircle,
+  Clock,
+  DollarSign,
+  Pause,
+  Play,
   RefreshCw,
+  Settings,
+  Square,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -97,18 +97,18 @@ export default function QueueProcessorPage() {
               <label className="label cursor-pointer gap-2">
                 <span className="label-text text-sm">Auto-refresh</span>
                 <input
-                  type="checkbox"
-                  className="toggle toggle-primary toggle-sm"
                   checked={autoRefresh}
+                  className="toggle toggle-primary toggle-sm"
                   onChange={(e) => setAutoRefresh(e.target.checked)}
+                  type="checkbox"
                 />
               </label>
             </div>
             <Button
               btnStyle="outline"
-              size="sm"
               className="gap-2"
               onClick={() => refetchStatus()}
+              size="sm"
             >
               <RefreshCw className="w-4 h-4" />
               Refresh
@@ -138,11 +138,11 @@ export default function QueueProcessorPage() {
             <div className="flex flex-wrap gap-2 mb-6">
               {processorStatus?.status === "idle" && (
                 <Button
-                  variant="primary"
-                  size="sm"
                   className="gap-2"
-                  onClick={() => startProcessor.mutate()}
                   loading={startProcessor.isPending}
+                  onClick={() => startProcessor.mutate()}
+                  size="sm"
+                  variant="primary"
                 >
                   <Play className="w-4 h-4" />
                   Start Processor
@@ -153,20 +153,20 @@ export default function QueueProcessorPage() {
                 <>
                   <Button
                     btnStyle="outline"
-                    size="sm"
                     className="gap-2"
-                    onClick={() => pauseProcessor.mutate()}
                     loading={pauseProcessor.isPending}
+                    onClick={() => pauseProcessor.mutate()}
+                    size="sm"
                   >
                     <Pause className="w-4 h-4" />
                     Pause
                   </Button>
                   <Button
-                    variant="error"
-                    size="sm"
                     className="gap-2"
-                    onClick={() => stopProcessor.mutate()}
                     loading={stopProcessor.isPending}
+                    onClick={() => stopProcessor.mutate()}
+                    size="sm"
+                    variant="error"
                   >
                     <Square className="w-4 h-4" />
                     Stop
@@ -177,21 +177,21 @@ export default function QueueProcessorPage() {
               {processorStatus?.status === "paused" && (
                 <>
                   <Button
-                    variant="primary"
-                    size="sm"
                     className="gap-2"
-                    onClick={() => resumeProcessor.mutate()}
                     loading={resumeProcessor.isPending}
+                    onClick={() => resumeProcessor.mutate()}
+                    size="sm"
+                    variant="primary"
                   >
                     <Play className="w-4 h-4" />
                     Resume
                   </Button>
                   <Button
-                    variant="error"
-                    size="sm"
                     className="gap-2"
-                    onClick={() => stopProcessor.mutate()}
                     loading={stopProcessor.isPending}
+                    onClick={() => stopProcessor.mutate()}
+                    size="sm"
+                    variant="error"
                   >
                     <Square className="w-4 h-4" />
                     Stop
@@ -199,7 +199,7 @@ export default function QueueProcessorPage() {
                 </>
               )}
 
-              <Button btnStyle="outline" size="sm" className="gap-2">
+              <Button btnStyle="outline" className="gap-2" size="sm">
                 <Settings className="w-4 h-4" />
                 Configure
               </Button>
@@ -273,7 +273,7 @@ export default function QueueProcessorPage() {
                     style={{
                       width: `${Math.min(100, ((processorStatus?.averageProcessingTime || 0) / 300) * 100)}%`,
                     }}
-                  ></div>
+                  />
                 </div>
                 <p className="text-xs text-base-content/60">
                   Target: under 5 minutes
@@ -296,7 +296,7 @@ export default function QueueProcessorPage() {
                     style={{
                       width: `${(processorStatus?.successRate || 0) * 100}%`,
                     }}
-                  ></div>
+                  />
                 </div>
                 <p className="text-xs text-base-content/60">
                   Target: above 90%

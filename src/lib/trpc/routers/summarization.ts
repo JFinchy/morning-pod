@@ -11,9 +11,9 @@ export const summarizationRouter = createTRPCRouter({
   // Placeholder for when we refactor to match new API
   placeholder: publicProcedure.query(() => {
     return {
-      success: false,
       message:
         "Summarization router temporarily disabled - use /api/episodes/generate",
+      success: false,
     };
   }),
 });

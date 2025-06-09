@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, Settings, RefreshCw } from "lucide-react";
+import { ArrowLeft, RefreshCw, Settings } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -9,7 +9,7 @@ import {
   QueueStatusV2,
   QueueStatusV3,
 } from "@/components/internal/variants";
-import { mockQueueItems, mockGenerationStats } from "@/lib/mock-data";
+import { mockGenerationStats, mockQueueItems } from "@/lib/mock-data";
 
 export default function QueueComparisonPage() {
   const [refreshKey, setRefreshKey] = useState(0);
@@ -17,10 +17,10 @@ export default function QueueComparisonPage() {
 
   const queueVariants = [
     {
-      name: "Progress Bar Queue (V1)",
       component: QueueStatusV1,
       description:
         "Traditional list view with clear progress bars and comprehensive stats",
+      name: "Progress Bar Queue (V1)",
       strengths: [
         "Clear progress visualization",
         "Detailed queue statistics",
@@ -31,10 +31,10 @@ export default function QueueComparisonPage() {
         "Users who need detailed monitoring and prefer traditional list layouts",
     },
     {
-      name: "Dashboard Style (V2)",
       component: QueueStatusV2,
       description:
         "Real-time dashboard with circular progress and live updates",
+      name: "Dashboard Style (V2)",
       strengths: [
         "Real-time updates",
         "Circular progress rings",
@@ -45,10 +45,10 @@ export default function QueueComparisonPage() {
         "Power users and administrators who need comprehensive monitoring",
     },
     {
-      name: "Timeline View (V3)",
       component: QueueStatusV3,
       description:
         "Timeline-style visualization showing queue flow and progression",
+      name: "Timeline View (V3)",
       strengths: [
         "Timeline visualization",
         "Interactive hover effects",
@@ -70,7 +70,7 @@ export default function QueueComparisonPage() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
-            <Link href="/" className="btn btn-ghost btn-sm">
+            <Link className="btn btn-ghost btn-sm" href="/">
               <ArrowLeft className="w-4 h-4" />
               Back to Home
             </Link>
@@ -85,7 +85,7 @@ export default function QueueComparisonPage() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <button onClick={handleRefresh} className="btn btn-primary btn-sm">
+            <button className="btn btn-primary btn-sm" onClick={handleRefresh}>
               <RefreshCw className="w-4 h-4" />
               Refresh
             </button>
@@ -93,10 +93,10 @@ export default function QueueComparisonPage() {
               <label className="label cursor-pointer gap-2">
                 <span className="label-text text-sm">Show Details</span>
                 <input
-                  type="checkbox"
                   checked={showDetails}
-                  onChange={(e) => setShowDetails(e.target.checked)}
                   className="checkbox checkbox-primary checkbox-sm"
+                  onChange={(e) => setShowDetails(e.target.checked)}
+                  type="checkbox"
                 />
               </label>
             </div>
@@ -150,7 +150,7 @@ export default function QueueComparisonPage() {
             const ComponentToRender = variant.component;
 
             return (
-              <div key={`${variant.name}-${refreshKey}`} className="space-y-4">
+              <div className="space-y-4" key={`${variant.name}-${refreshKey}`}>
                 {/* Variant Info */}
                 <div className="card bg-base-100 shadow-sm">
                   <div className="card-body p-4">
@@ -173,8 +173,8 @@ export default function QueueComparisonPage() {
                         </h4>
                         <ul className="text-base-content/60 space-y-1">
                           {variant.strengths.map((strength, i) => (
-                            <li key={i} className="flex items-center gap-2">
-                              <div className="w-1 h-1 bg-primary rounded-full"></div>
+                            <li className="flex items-center gap-2" key={i}>
+                              <div className="w-1 h-1 bg-primary rounded-full" />
                               {strength}
                             </li>
                           ))}
@@ -204,10 +204,10 @@ export default function QueueComparisonPage() {
                   </div>
                   <div className="card-body p-4">
                     <ComponentToRender
-                      queueItems={mockQueueItems}
-                      stats={mockGenerationStats}
-                      showDetails={showDetails}
                       maxVisible={index === 2 ? 4 : 5} // V3 shows fewer by default
+                      queueItems={mockQueueItems}
+                      showDetails={showDetails}
+                      stats={mockGenerationStats}
                     />
                   </div>
                 </div>
@@ -229,7 +229,7 @@ export default function QueueComparisonPage() {
                 </h4>
                 <ul className="space-y-1 text-base-content/60">
                   {mockQueueItems.map((item, index) => (
-                    <li key={item.id} className="flex items-center gap-2">
+                    <li className="flex items-center gap-2" key={item.id}>
                       <span className="font-mono text-xs">#{index + 1}</span>
                       <span className="truncate">{item.episodeTitle}</span>
                       <span
@@ -282,14 +282,14 @@ export default function QueueComparisonPage() {
         <div className="flex justify-center mt-8">
           <div className="join">
             <Link
-              href="/episodes/comparison"
               className="btn btn-outline join-item"
+              href="/episodes/comparison"
             >
               Episode Cards
             </Link>
             <Link
-              href="/players/comparison"
               className="btn btn-outline join-item"
+              href="/players/comparison"
             >
               Audio Players
             </Link>

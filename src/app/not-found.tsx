@@ -22,14 +22,14 @@ export default function NotFound() {
       </div>
       <div className="space-x-4">
         <Link
-          href="/"
           className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-md shadow-md transition duration-300"
+          href="/"
         >
           Back to Homepage
         </Link>
         <Link
-          href="/episodes"
           className="px-6 py-3 bg-gray-300 hover:bg-gray-400 text-gray-800 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-white font-semibold rounded-md shadow-md transition duration-300"
+          href="/episodes"
         >
           Browse All Podcasts
         </Link>

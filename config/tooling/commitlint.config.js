@@ -1,6 +1,10 @@
 module.exports = {
   extends: ["@commitlint/config-conventional"],
   rules: {
+    "header-max-length": [2, "always", 200],
+    "subject-case": [2, "never", ["start-case", "pascal-case", "upper-case"]],
+    "subject-empty": [2, "never"],
+    "subject-full-stop": [2, "never", "."],
     "type-enum": [
       2,
       "always",
@@ -18,9 +22,5 @@ module.exports = {
         "revert", // Reverts a previous commit
       ],
     ],
-    "subject-case": [2, "never", ["start-case", "pascal-case", "upper-case"]],
-    "subject-empty": [2, "never"],
-    "subject-full-stop": [2, "never", "."],
-    "header-max-length": [2, "always", 200],
   },
 };

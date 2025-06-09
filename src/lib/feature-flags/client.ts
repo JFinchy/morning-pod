@@ -1,9 +1,9 @@
 "use client";
 
 import { usePostHog } from "posthog-js/react";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 
-import type { FeatureFlagKey, FeatureFlagValue } from "./config";
+import { type FeatureFlagKey, type FeatureFlagValue } from "./config";
 import { DEFAULT_FLAG_VALUES, getEnvironmentFlagOverrides } from "./config";
 
 /**
@@ -185,9 +185,8 @@ export function checkFeatureFlag(
     return posthogValue;
   } else if (envOverrides[flagKey] !== undefined) {
     return envOverrides[flagKey]!;
-  } else {
-    return DEFAULT_FLAG_VALUES[flagKey];
   }
+  return DEFAULT_FLAG_VALUES[flagKey];
 }
 
 /**

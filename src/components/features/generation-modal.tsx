@@ -1,35 +1,36 @@
 "use client";
 
-import { useState } from "react";
 import {
+  AlertCircle,
+  CheckCircle,
+  Download,
+  Loader2,
+  Play,
+  Share,
+} from "lucide-react";
+import { useState } from "react";
+import { z } from "zod";
+
+import {
+  Button,
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  Button,
   Progress,
 } from "@/components/ui";
-import {
-  Loader2,
-  Play,
-  Download,
-  Share,
-  AlertCircle,
-  CheckCircle,
-} from "lucide-react";
-import { z } from "zod";
 
 /**
  * Generation request validation
  */
 const GenerationRequestSchema = z.object({
+  model: z.enum(["tts-1", "tts-1-hd"]).default("tts-1"),
   sourceUrl: z.string().url("Please enter a valid URL"),
+  title: z.string().optional(),
   voice: z
     .enum(["alloy", "echo", "fable", "onyx", "nova", "shimmer"])
     .default("alloy"),
-  model: z.enum(["tts-1", "tts-1-hd"]).default("tts-1"),
-  title: z.string().optional(),
 });
 
 type GenerationRequest = z.infer<typeof GenerationRequestSchema>;
@@ -38,49 +39,49 @@ type GenerationRequest = z.infer<typeof GenerationRequestSchema>;
  * Voice options with descriptions
  */
 const VOICE_OPTIONS = [
-  { value: "alloy", label: "Alloy - Neutral, professional" },
-  { value: "echo", label: "Echo - Warm, conversational" },
-  { value: "fable", label: "Fable - Expressive, storytelling" },
-  { value: "onyx", label: "Onyx - Deep, authoritative" },
-  { value: "nova", label: "Nova - Bright, energetic" },
-  { value: "shimmer", label: "Shimmer - Soft, gentle" },
+  { label: "Alloy - Neutral, professional", value: "alloy" },
+  { label: "Echo - Warm, conversational", value: "echo" },
+  { label: "Fable - Expressive, storytelling", value: "fable" },
+  { label: "Onyx - Deep, authoritative", value: "onyx" },
+  { label: "Nova - Bright, energetic", value: "nova" },
+  { label: "Shimmer - Soft, gentle", value: "shimmer" },
 ] as const;
 
 /**
  * Model options
  */
 const MODEL_OPTIONS = [
-  { value: "tts-1", label: "Standard Quality - Faster, lower cost" },
-  { value: "tts-1-hd", label: "HD Quality - Higher quality, 2x cost" },
+  { label: "Standard Quality - Faster, lower cost", value: "tts-1" },
+  { label: "HD Quality - Higher quality, 2x cost", value: "tts-1-hd" },
 ] as const;
 
 /**
  * Generation progress stages
  */
 interface GenerationProgress {
+  cost?: number;
+  details?: string;
+  message: string;
+  progress: number;
   stage:
-    | "scraping"
-    | "summarizing"
+    | "complete"
+    | "error"
     | "generating_audio"
     | "saving"
-    | "complete"
-    | "error";
-  progress: number;
-  message: string;
-  details?: string;
-  cost?: number;
+    | "scraping"
+    | "summarizing";
 }
 
 /**
  * Generated episode result
  */
 interface GeneratedEpisode {
-  id: string;
-  title: string;
-  summary: string;
   audioUrl: string;
-  duration: number;
   cost: number;
+  duration: number;
+  id: string;
+  summary: string;
+  title: string;
 }
 
 interface GenerationModalProps {
@@ -98,16 +99,16 @@ export function GenerationModal({
   const [isOpen, setIsOpen] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [formData, setFormData] = useState<GenerationRequest>({
-    sourceUrl: "",
-    voice: "alloy",
     model: "tts-1",
+    sourceUrl: "",
     title: "",
+    voice: "alloy",
   });
   const [progress, setProgress] = useState<GenerationProgress | null>(null);
   const [generatedEpisode, setGeneratedEpisode] =
     useState<GeneratedEpisode | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [estimatedCost, setEstimatedCost] = useState<number | null>(null);
+  const [estimatedCost, setEstimatedCost] = useState<null | number>(null);
 
   /**
    * Validate form data
@@ -120,11 +121,11 @@ export function GenerationModal({
     } catch (error) {
       if (error instanceof z.ZodError) {
         const newErrors: Record<string, string> = {};
-        error.errors.forEach((err) => {
+        for (const err of error.errors) {
           if (err.path[0]) {
             newErrors[err.path[0] as string] = err.message;
           }
-        });
+        }
         setErrors(newErrors);
       }
       return false;
@@ -170,17 +171,17 @@ export function GenerationModal({
 
     setIsGenerating(true);
     setProgress({
-      stage: "scraping",
-      progress: 0,
       message: "Starting generation...",
+      progress: 0,
+      stage: "scraping",
     });
     setGeneratedEpisode(null);
 
     try {
       const response = await fetch("/api/episodes/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
+        headers: { "Content-Type": "application/json" },
+        method: "POST",
       });
 
       if (!response.ok) {
@@ -211,19 +212,19 @@ export function GenerationModal({
 
               if (data.type === "progress") {
                 setProgress({
-                  stage: data.stage,
-                  progress: data.progress,
-                  message: data.message,
-                  details: data.details,
                   cost: data.cost,
+                  details: data.details,
+                  message: data.message,
+                  progress: data.progress,
+                  stage: data.stage,
                 });
               } else if (data.type === "complete") {
                 setGeneratedEpisode(data.episode);
                 setProgress({
-                  stage: "complete",
-                  progress: 100,
-                  message: "Episode generated successfully!",
                   cost: data.episode.cost,
+                  message: "Episode generated successfully!",
+                  progress: 100,
+                  stage: "complete",
                 });
 
                 if (onEpisodeGenerated) {
@@ -241,10 +242,10 @@ export function GenerationModal({
     } catch (error) {
       console.error("Generation failed:", error);
       setProgress({
-        stage: "error",
-        progress: 0,
-        message: "Generation failed",
         details: error instanceof Error ? error.message : "Unknown error",
+        message: "Generation failed",
+        progress: 0,
+        stage: "error",
       });
     } finally {
       setIsGenerating(false);
@@ -256,10 +257,10 @@ export function GenerationModal({
    */
   const resetModal = () => {
     setFormData({
-      sourceUrl: "",
-      voice: "alloy",
       model: "tts-1",
+      sourceUrl: "",
       title: "",
+      voice: "alloy",
     });
     setProgress(null);
     setGeneratedEpisode(null);
@@ -284,24 +285,24 @@ export function GenerationModal({
   const getStageInfo = (stage: GenerationProgress["stage"]) => {
     switch (stage) {
       case "scraping":
-        return { label: "Scraping Content", color: "text-blue-600" };
+        return { color: "text-blue-600", label: "Scraping Content" };
       case "summarizing":
-        return { label: "AI Summarization", color: "text-purple-600" };
+        return { color: "text-purple-600", label: "AI Summarization" };
       case "generating_audio":
-        return { label: "Generating Audio", color: "text-green-600" };
+        return { color: "text-green-600", label: "Generating Audio" };
       case "saving":
-        return { label: "Saving Episode", color: "text-orange-600" };
+        return { color: "text-orange-600", label: "Saving Episode" };
       case "complete":
-        return { label: "Complete", color: "text-green-700" };
+        return { color: "text-green-700", label: "Complete" };
       case "error":
-        return { label: "Error", color: "text-red-600" };
+        return { color: "text-red-600", label: "Error" };
       default:
-        return { label: "Processing", color: "text-gray-600" };
+        return { color: "text-gray-600", label: "Processing" };
     }
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog onOpenChange={setIsOpen} open={isOpen}>
       <DialogTrigger asChild>
         {trigger || (
           <Button className="btn btn-primary">Generate Episode</Button>
@@ -322,14 +323,14 @@ export function GenerationModal({
               <span className="label-text font-medium">Article URL</span>
             </label>
             <input
-              type="url"
-              placeholder="https://example.com/article"
               className={`input input-bordered w-full ${
                 errors.sourceUrl ? "input-error" : ""
               }`}
-              value={formData.sourceUrl}
-              onChange={(e) => handleInputChange("sourceUrl", e.target.value)}
               disabled={isGenerating}
+              onChange={(e) => handleInputChange("sourceUrl", e.target.value)}
+              placeholder="https://example.com/article"
+              type="url"
+              value={formData.sourceUrl}
             />
             {errors.sourceUrl && (
               <p className="text-error text-sm">{errors.sourceUrl}</p>
@@ -344,12 +345,12 @@ export function GenerationModal({
               </span>
             </label>
             <input
-              type="text"
-              placeholder="Leave empty to auto-generate"
               className="input input-bordered w-full"
-              value={formData.title}
-              onChange={(e) => handleInputChange("title", e.target.value)}
               disabled={isGenerating}
+              onChange={(e) => handleInputChange("title", e.target.value)}
+              placeholder="Leave empty to auto-generate"
+              type="text"
+              value={formData.title}
             />
           </div>
 
@@ -360,9 +361,9 @@ export function GenerationModal({
             </label>
             <select
               className="select select-bordered w-full"
-              value={formData.voice}
-              onChange={(e) => handleInputChange("voice", e.target.value)}
               disabled={isGenerating}
+              onChange={(e) => handleInputChange("voice", e.target.value)}
+              value={formData.voice}
             >
               {VOICE_OPTIONS.map((voice) => (
                 <option key={voice.value} value={voice.value}>
@@ -379,9 +380,9 @@ export function GenerationModal({
             </label>
             <select
               className="select select-bordered w-full"
-              value={formData.model}
-              onChange={(e) => handleInputChange("model", e.target.value)}
               disabled={isGenerating}
+              onChange={(e) => handleInputChange("model", e.target.value)}
+              value={formData.model}
             >
               {MODEL_OPTIONS.map((model) => (
                 <option key={model.value} value={model.value}>
@@ -423,7 +424,7 @@ export function GenerationModal({
                 </span>
               </div>
 
-              <Progress value={progress.progress} className="w-full" />
+              <Progress className="w-full" value={progress.progress} />
 
               <div className="text-sm">
                 <p>{progress.message}</p>
@@ -467,15 +468,15 @@ export function GenerationModal({
                 </div>
 
                 <div className="flex gap-2">
-                  <Button size="sm" className="btn btn-primary btn-sm">
+                  <Button className="btn btn-primary btn-sm" size="sm">
                     <Play className="w-4 h-4 mr-1" />
                     Play
                   </Button>
-                  <Button size="sm" className="btn btn-outline btn-sm">
+                  <Button className="btn btn-outline btn-sm" size="sm">
                     <Download className="w-4 h-4 mr-1" />
                     Download
                   </Button>
-                  <Button size="sm" className="btn btn-outline btn-sm">
+                  <Button className="btn btn-outline btn-sm" size="sm">
                     <Share className="w-4 h-4 mr-1" />
                     Share
                   </Button>
@@ -487,18 +488,18 @@ export function GenerationModal({
           {/* Action Buttons */}
           <div className="flex justify-end gap-3 pt-4">
             <Button
-              onClick={handleClose}
-              disabled={isGenerating}
               className="btn btn-outline"
+              disabled={isGenerating}
+              onClick={handleClose}
             >
               {isGenerating ? "Generating..." : "Cancel"}
             </Button>
 
             {!generatedEpisode && (
               <Button
-                onClick={startGeneration}
-                disabled={isGenerating || !formData.sourceUrl}
                 className="btn btn-primary"
+                disabled={isGenerating || !formData.sourceUrl}
+                onClick={startGeneration}
               >
                 {isGenerating ? (
                   <>
@@ -513,11 +514,11 @@ export function GenerationModal({
 
             {generatedEpisode && (
               <Button
+                className="btn btn-primary"
                 onClick={() => {
                   resetModal();
                   setIsOpen(false);
                 }}
-                className="btn btn-primary"
               >
                 Generate Another
               </Button>

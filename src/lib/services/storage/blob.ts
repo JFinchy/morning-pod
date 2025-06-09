@@ -1,37 +1,37 @@
 import { createId } from "@paralleldrive/cuid2";
-import { put, del, head } from "@vercel/blob";
+import { del, head, put } from "@vercel/blob";
 
 export interface BlobUploadOptions {
-  filename?: string;
-  contentType?: string;
   addRandomSuffix?: boolean;
+  contentType?: string;
+  filename?: string;
 }
 
 export interface BlobUploadResult {
-  success: boolean;
-  url?: string;
-  pathname?: string;
-  size?: number;
   error?: string;
   metadata?: {
-    uploadTime: number;
     contentType: string;
     filename: string;
+    uploadTime: number;
   };
+  pathname?: string;
+  size?: number;
+  success: boolean;
+  url?: string;
 }
 
 export interface BlobDeleteResult {
-  success: boolean;
   error?: string;
+  success: boolean;
 }
 
 export interface BlobInfoResult {
-  success: boolean;
+  contentType?: string;
+  error?: string;
   exists?: boolean;
   size?: number;
-  contentType?: string;
+  success: boolean;
   uploadedAt?: Date;
-  error?: string;
 }
 
 export class BlobStorageService {
@@ -41,6 +41,92 @@ export class BlobStorageService {
     // Vercel Blob automatically uses BLOB_READ_WRITE_TOKEN from environment
     this.baseUrl =
       process.env.BLOB_STORE_URL || "https://blob.vercel-storage.com";
+  }
+
+  /**
+   * Delete audio file from Vercel Blob storage
+   */
+  async deleteAudio(url: string): Promise<BlobDeleteResult> {
+    try {
+      await del(url);
+
+      return {
+        success: true,
+      };
+    } catch (error) {
+      console.error("Blob delete error:", error);
+
+      return {
+        error: error instanceof Error ? error.message : "Unknown delete error",
+        success: false,
+      };
+    }
+  }
+
+  /**
+   * Generate a unique filename for an episode
+   */
+  generateFilename(episodeId: string, extension: string = "mp3"): string {
+    const timestamp = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
+    const randomSuffix = createId().slice(0, 8);
+    return `episode-${episodeId}-${timestamp}-${randomSuffix}.${extension}`;
+  }
+
+  /**
+   * Get information about a blob file
+   */
+  async getAudioInfo(url: string): Promise<BlobInfoResult> {
+    try {
+      const info = await head(url);
+
+      return {
+        contentType: info.contentType,
+        exists: true,
+        size: info.size,
+        success: true,
+        uploadedAt: info.uploadedAt,
+      };
+    } catch (error) {
+      console.error("Blob info error:", error);
+
+      // If the error is 404, the file doesn't exist
+      if (error instanceof Error && error.message.includes("404")) {
+        return {
+          exists: false,
+          success: true,
+        };
+      }
+
+      return {
+        error: error instanceof Error ? error.message : "Unknown info error",
+        success: false,
+      };
+    }
+  }
+
+  /**
+   * Get storage usage statistics (if available)
+   */
+  async getStorageStats(): Promise<{
+    error?: string;
+    success: boolean;
+    totalFiles?: number;
+    totalSize?: number;
+  }> {
+    try {
+      // Note: Vercel Blob doesn't provide a direct API for listing all files
+      // This would need to be tracked separately in your database
+      return {
+        success: true,
+        totalFiles: 0,
+        totalSize: 0,
+      };
+    } catch (error) {
+      return {
+        error: error instanceof Error ? error.message : "Unknown stats error",
+        success: false,
+      };
+    }
   }
 
   /**
@@ -72,136 +158,50 @@ export class BlobStorageService {
       });
 
       return {
-        success: true,
-        url: blob.url,
-        pathname: blob.pathname,
-        size: audioBuffer.length, // Use buffer length since blob.size might not be available
         metadata: {
-          uploadTime: Date.now() - startTime,
           contentType,
           filename,
+          uploadTime: Date.now() - startTime,
         },
+        pathname: blob.pathname,
+        size: audioBuffer.length, // Use buffer length since blob.size might not be available
+        success: true,
+        url: blob.url,
       };
     } catch (error) {
       console.error("Blob upload error:", error);
 
       return {
-        success: false,
         error: error instanceof Error ? error.message : "Unknown upload error",
         metadata: {
-          uploadTime: Date.now() - startTime,
           contentType: options?.contentType || "audio/mpeg",
           filename: options?.filename || `episode-${episodeId}`,
+          uploadTime: Date.now() - startTime,
         },
-      };
-    }
-  }
-
-  /**
-   * Delete audio file from Vercel Blob storage
-   */
-  async deleteAudio(url: string): Promise<BlobDeleteResult> {
-    try {
-      await del(url);
-
-      return {
-        success: true,
-      };
-    } catch (error) {
-      console.error("Blob delete error:", error);
-
-      return {
         success: false,
-        error: error instanceof Error ? error.message : "Unknown delete error",
       };
     }
-  }
-
-  /**
-   * Get information about a blob file
-   */
-  async getAudioInfo(url: string): Promise<BlobInfoResult> {
-    try {
-      const info = await head(url);
-
-      return {
-        success: true,
-        exists: true,
-        size: info.size,
-        contentType: info.contentType,
-        uploadedAt: info.uploadedAt,
-      };
-    } catch (error) {
-      console.error("Blob info error:", error);
-
-      // If the error is 404, the file doesn't exist
-      if (error instanceof Error && error.message.includes("404")) {
-        return {
-          success: true,
-          exists: false,
-        };
-      }
-
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : "Unknown info error",
-      };
-    }
-  }
-
-  /**
-   * Generate a unique filename for an episode
-   */
-  generateFilename(episodeId: string, extension: string = "mp3"): string {
-    const timestamp = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
-    const randomSuffix = createId().slice(0, 8);
-    return `episode-${episodeId}-${timestamp}-${randomSuffix}.${extension}`;
   }
 
   /**
    * Validate audio buffer before upload
    */
-  validateAudioBuffer(buffer: Buffer): { valid: boolean; error?: string } {
+  validateAudioBuffer(buffer: Buffer): { error?: string; valid: boolean } {
     if (!buffer || buffer.length === 0) {
-      return { valid: false, error: "Empty audio buffer" };
+      return { error: "Empty audio buffer", valid: false };
     }
 
     // Check minimum size (1KB)
     if (buffer.length < 1024) {
-      return { valid: false, error: "Audio buffer too small (minimum 1KB)" };
+      return { error: "Audio buffer too small (minimum 1KB)", valid: false };
     }
 
     // Check maximum size (50MB)
     const maxSize = 50 * 1024 * 1024; // 50MB
     if (buffer.length > maxSize) {
-      return { valid: false, error: "Audio buffer too large (maximum 50MB)" };
+      return { error: "Audio buffer too large (maximum 50MB)", valid: false };
     }
 
     return { valid: true };
-  }
-
-  /**
-   * Get storage usage statistics (if available)
-   */
-  async getStorageStats(): Promise<{
-    success: boolean;
-    totalFiles?: number;
-    totalSize?: number;
-    error?: string;
-  }> {
-    try {
-      // Note: Vercel Blob doesn't provide a direct API for listing all files
-      // This would need to be tracked separately in your database
-      return {
-        success: true,
-        totalFiles: 0,
-        totalSize: 0,
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : "Unknown stats error",
-      };
-    }
   }
 }

@@ -1,32 +1,32 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, it, expect, vi } from "vitest";
+import { describe, expect, test, vi } from "vitest";
 
 // Test reusable UI components
 function MockButton({
   children,
-  onClick,
   disabled = false,
+  onClick,
 }: {
   children: React.ReactNode;
-  onClick?: () => void;
   disabled?: boolean;
+  onClick?: () => void;
 }) {
   return (
-    <button onClick={onClick} disabled={disabled} className="btn btn-primary">
+    <button className="btn btn-primary" disabled={disabled} onClick={onClick}>
       {children}
     </button>
   );
 }
 
 function MockDashboardCard({
+  description,
   title,
   value,
-  description,
 }: {
-  title: string;
-  value: string | number;
   description?: string;
+  title: string;
+  value: number | string;
 }) {
   return (
     <div className="card bg-base-100 shadow-sm">
@@ -42,18 +42,18 @@ function MockDashboardCard({
 }
 
 function MockEpisodeCard({
-  title,
-  summary,
   status,
+  summary,
+  title,
 }: {
-  title: string;
+  status: "error" | "generating" | "ready";
   summary: string;
-  status: "ready" | "generating" | "error";
+  title: string;
 }) {
   const statusColor = {
-    ready: "badge-success",
-    generating: "badge-warning",
     error: "badge-error",
+    generating: "badge-warning",
+    ready: "badge-success",
   }[status];
 
   return (
@@ -76,7 +76,7 @@ function MockEpisodeCard({
 
 function MockNavigation() {
   return (
-    <nav role="navigation" className="navbar bg-base-100">
+    <nav className="navbar bg-base-100" role="navigation">
       <div className="navbar-start">
         <span className="btn btn-ghost text-xl">Morning Pod</span>
       </div>
@@ -97,13 +97,13 @@ function MockNavigation() {
         </ul>
       </div>
       <div className="navbar-end">
-        <button className="btn btn-square btn-ghost" aria-label="Menu">
+        <button aria-label="Menu" className="btn btn-square btn-ghost">
           <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
             <path
-              fillRule="evenodd"
-              d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"
               clipRule="evenodd"
-            ></path>
+              d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"
+              fillRule="evenodd"
+            />
           </svg>
         </button>
       </div>
@@ -115,7 +115,7 @@ function MockDashboard() {
   return (
     <div>
       <MockNavigation />
-      <main role="main" className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-8" role="main">
         <div className="mb-8">
           <h1 className="text-3xl font-bold">Welcome to Morning Pod</h1>
           <p className="text-base-content/70 mt-2">
@@ -134,19 +134,19 @@ function MockDashboard() {
           <h2 className="text-xl font-semibold mb-4">Recent Episodes</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <MockEpisodeCard
-              title="TLDR Tech News - January 4th"
+              status="ready"
               summary="Today in tech: OpenAI announces new features, Apple releases iOS update, and more..."
-              status="ready"
+              title="TLDR Tech News - January 4th"
             />
             <MockEpisodeCard
-              title="Hacker News Digest - January 4th"
-              summary="Top stories from Hacker News including discussions on AI, startups, and programming..."
               status="generating"
+              summary="Top stories from Hacker News including discussions on AI, startups, and programming..."
+              title="Hacker News Digest - January 4th"
             />
             <MockEpisodeCard
-              title="Morning Brew Summary - January 3rd"
-              summary="Business news roundup covering markets, tech, and entrepreneurship..."
               status="ready"
+              summary="Business news roundup covering markets, tech, and entrepreneurship..."
+              title="Morning Brew Summary - January 3rd"
             />
           </div>
         </section>
@@ -157,7 +157,7 @@ function MockDashboard() {
 
 describe("UI Components", () => {
   describe("Button Component", () => {
-    it("renders and handles clicks", async () => {
+    test("renders and handles clicks", async () => {
       const user = userEvent.setup();
       const handleClick = vi.fn();
 
@@ -170,21 +170,21 @@ describe("UI Components", () => {
       expect(handleClick).toHaveBeenCalledTimes(1);
     });
 
-    it("can be disabled", () => {
+    test("can be disabled", () => {
       render(<MockButton disabled>Disabled</MockButton>);
 
       const button = screen.getByRole("button", { name: /disabled/i });
-      expect(button).toBeDisabled();
+      await expect(button).toBeDisabled();
     });
   });
 
   describe("Dashboard Card", () => {
-    it("displays title and value", () => {
+    test("displays title and value", () => {
       render(
         <MockDashboardCard
+          description="All time"
           title="Total Episodes"
           value={42}
-          description="All time"
         />
       );
 
@@ -195,39 +195,41 @@ describe("UI Components", () => {
   });
 
   describe("Episode Card", () => {
-    it("shows episode details and status", () => {
+    test("shows episode details and status", () => {
       render(
         <MockEpisodeCard
-          title="Test Episode"
-          summary="A test episode summary"
           status="ready"
+          summary="A test episode summary"
+          title="Test Episode"
         />
       );
 
       expect(screen.getByText("Test Episode")).toBeInTheDocument();
       expect(screen.getByText("A test episode summary")).toBeInTheDocument();
       expect(screen.getByText("ready")).toBeInTheDocument();
-      expect(screen.getByRole("button", { name: /play/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: /play/iu })
+      ).toBeInTheDocument();
     });
 
-    it("hides play button for generating episodes", () => {
+    test("hides play button for generating episodes", () => {
       render(
         <MockEpisodeCard
-          title="Generating Episode"
-          summary="This episode is being generated"
           status="generating"
+          summary="This episode is being generated"
+          title="Generating Episode"
         />
       );
 
       expect(screen.getByText("generating")).toBeInTheDocument();
       expect(
-        screen.queryByRole("button", { name: /play/i })
+        screen.queryByRole("button", { name: /play/iu })
       ).not.toBeInTheDocument();
     });
   });
 
   describe("Navigation", () => {
-    it("has accessible navigation structure", () => {
+    test("has accessible navigation structure", () => {
       render(<MockNavigation />);
 
       const nav = screen.getByRole("navigation");
@@ -239,12 +241,14 @@ describe("UI Components", () => {
       expect(screen.getByText("Episodes")).toBeInTheDocument();
       expect(screen.getByText("Sources")).toBeInTheDocument();
       expect(screen.getByText("Queue")).toBeInTheDocument();
-      expect(screen.getByRole("button", { name: /menu/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: /menu/iu })
+      ).toBeInTheDocument();
     });
   });
 
   describe("Dashboard Layout", () => {
-    it("renders complete dashboard structure", () => {
+    test("renders complete dashboard structure", () => {
       render(<MockDashboard />);
 
       // Check semantic structure
@@ -255,7 +259,7 @@ describe("UI Components", () => {
       expect(
         screen.getByRole("heading", {
           level: 1,
-          name: /welcome to morning pod/i,
+          name: /welcome to morning pod/iu,
         })
       ).toBeInTheDocument();
       expect(
@@ -269,19 +273,21 @@ describe("UI Components", () => {
       expect(screen.getByText("2.5 hours")).toBeInTheDocument();
     });
 
-    it("supports keyboard navigation", async () => {
+    test("supports keyboard navigation", async () => {
       const user = userEvent.setup();
       render(<MockDashboard />);
 
       // Tab through interactive elements
       await user.tab();
+      // eslint-disable-next-line testing-library/no-node-access
       expect(document.activeElement).toHaveAccessibleName();
 
       await user.tab();
+      // eslint-disable-next-line testing-library/no-node-access
       expect(document.activeElement).toHaveAccessibleName();
     });
 
-    it("has proper ARIA structure", () => {
+    test("has proper ARIA structure", () => {
       render(<MockDashboard />);
 
       // Check for proper roles
@@ -289,18 +295,18 @@ describe("UI Components", () => {
       expect(screen.getByRole("navigation")).toBeInTheDocument();
 
       // Check that interactive elements have accessible names
-      const playButtons = screen.getAllByRole("button", { name: /play/i });
-      expect(playButtons.length).toBe(2); // Two play buttons (for ready episodes)
-      playButtons.forEach((button) => {
+      const playButtons = screen.getAllByRole("button", { name: /play/iu });
+      expect(playButtons).toHaveLength(2); // Two play buttons (for ready episodes)
+      for (const button of playButtons) {
         expect(button).toHaveAccessibleName();
-      });
+      }
 
-      const menuButton = screen.getByRole("button", { name: /menu/i });
+      const menuButton = screen.getByRole("button", { name: /menu/iu });
       expect(menuButton).toHaveAccessibleName();
 
       // Check that we have the expected number of buttons
       const allButtons = screen.getAllByRole("button");
-      expect(allButtons.length).toBe(3); // 2 Play buttons + 1 Menu button
+      expect(allButtons).toHaveLength(3); // 2 Play buttons + 1 Menu button
     });
   });
 });

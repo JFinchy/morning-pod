@@ -5,7 +5,7 @@ import {
   QueueStatusV2,
   QueueStatusV3,
 } from "@/components/internal/variants";
-import { mockQueueItems, mockGenerationStats } from "@/lib/mock-data/queue";
+import { mockGenerationStats, mockQueueItems } from "@/lib/mock-data/queue";
 
 export default function QueueStatusShowcase() {
   return (

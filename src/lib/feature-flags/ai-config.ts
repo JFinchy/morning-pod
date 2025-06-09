@@ -4,80 +4,80 @@
  */
 
 export interface AIServiceConfig {
-  // Summarization model selection
-  summarizationModel: "gpt-4o" | "gpt-4o-mini" | "gpt-3.5-turbo";
-
-  // TTS provider selection
-  ttsProvider: "openai" | "google-cloud";
-
   // Content generation mode
   contentMode: "podcast" | "summary";
 
-  // Voice style for conversational mode
-  voiceStyle: "upbeat" | "professional" | "budget";
+  // Budget controls
+  dailyBudgetLimit?: number;
 
   // Cost optimization features
   enableCaching: boolean;
+
   enableContentFiltering: boolean;
 
-  // Budget controls
-  dailyBudgetLimit?: number;
   monthlyBudgetLimit?: number;
+  // Summarization model selection
+  summarizationModel: "gpt-3.5-turbo" | "gpt-4o-mini" | "gpt-4o";
+
+  // TTS provider selection
+  ttsProvider: "google-cloud" | "openai";
+  // Voice style for conversational mode
+  voiceStyle: "budget" | "professional" | "upbeat";
 }
 
 /**
  * Default AI configuration optimized for cost efficiency
  */
 export const DEFAULT_AI_CONFIG: AIServiceConfig = {
+  // Default to podcast mode for engagement
+  contentMode: "podcast",
+
+  // Conservative budget limits for POC
+  dailyBudgetLimit: 5.0, // $5/day max
+
+  // Enable basic optimizations
+  enableCaching: true,
+
+  enableContentFiltering: true,
+
+  monthlyBudgetLimit: 100.0, // $100/month max
   // Default to cheapest model for POC
   summarizationModel: "gpt-4o-mini",
 
   // Default to Google Cloud TTS for cost savings
   ttsProvider: "google-cloud",
-
-  // Default to podcast mode for engagement
-  contentMode: "podcast",
-
   // Use fun, uplifting voices like Upfirst podcast
   voiceStyle: "upbeat",
-
-  // Enable basic optimizations
-  enableCaching: true,
-  enableContentFiltering: true,
-
-  // Conservative budget limits for POC
-  dailyBudgetLimit: 5.0, // $5/day max
-  monthlyBudgetLimit: 100.0, // $100/month max
 };
 
 /**
  * Feature flag keys for PostHog integration
  */
 export const AI_FEATURE_FLAGS = {
-  // Model selection flags
-  USE_GPT4O_MINI: "use-gpt4o-mini",
-  USE_GPT4O: "use-gpt4o",
-  USE_GPT35_TURBO: "use-gpt35-turbo",
-
-  // TTS provider flags
-  USE_GOOGLE_TTS: "use-google-tts",
-  USE_OPENAI_TTS: "use-openai-tts",
-
   // Content mode flags
   DEFAULT_TO_PODCAST: "default-to-podcast",
-  ENABLE_SUMMARY_MODE: "enable-summary-mode",
-
-  // Voice style flags
-  USE_UPBEAT_VOICES: "use-upbeat-voices",
-  USE_PROFESSIONAL_VOICES: "use-professional-voices",
-
-  // Optimization flags
-  ENABLE_CONTENT_CACHING: "enable-content-caching",
-  ENABLE_QUALITY_FILTERING: "enable-quality-filtering",
-
   // Budget control flags
   ENABLE_BUDGET_LIMITS: "enable-budget-limits",
+  // Optimization flags
+  ENABLE_CONTENT_CACHING: "enable-content-caching",
+
+  ENABLE_QUALITY_FILTERING: "enable-quality-filtering",
+  ENABLE_SUMMARY_MODE: "enable-summary-mode",
+
   STRICT_COST_CONTROLS: "strict-cost-controls",
+  // TTS provider flags
+  USE_GOOGLE_TTS: "use-google-tts",
+
+  USE_GPT35_TURBO: "use-gpt35-turbo",
+  USE_GPT4O: "use-gpt4o",
+
+  // Model selection flags
+  USE_GPT4O_MINI: "use-gpt4o-mini",
+  USE_OPENAI_TTS: "use-openai-tts",
+
+  USE_PROFESSIONAL_VOICES: "use-professional-voices",
+  // Voice style flags
+  USE_UPBEAT_VOICES: "use-upbeat-voices",
 } as const;
 
 /**
@@ -136,13 +136,13 @@ export function getAIConfig(
  */
 export const COST_ESTIMATES = {
   summarization: {
+    "gpt-3.5-turbo": 0.008, // ~$0.008 per episode
     "gpt-4o": 0.05, // ~$0.05 per episode
     "gpt-4o-mini": 0.01, // ~$0.01 per episode (75% savings)
-    "gpt-3.5-turbo": 0.008, // ~$0.008 per episode
   },
   tts: {
-    openai: 0.45, // ~$0.45 per episode
     "google-cloud": 0.05, // ~$0.05 per episode (90% savings)
+    openai: 0.45, // ~$0.45 per episode
   },
 } as const;
 
@@ -162,8 +162,8 @@ export function calculateEstimatedCost(config: AIServiceConfig): number {
  */
 export function getCostSavings(config: AIServiceConfig): {
   absoluteSavings: number;
-  percentageSavings: number;
   comparison: string;
+  percentageSavings: number;
 } {
   const currentCost = calculateEstimatedCost(config);
   const maxCost =
@@ -174,7 +174,7 @@ export function getCostSavings(config: AIServiceConfig): {
 
   return {
     absoluteSavings,
-    percentageSavings,
     comparison: `$${currentCost.toFixed(3)} vs $${maxCost.toFixed(3)} (${percentageSavings.toFixed(0)}% savings)`,
+    percentageSavings,
   };
 }

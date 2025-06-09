@@ -1,23 +1,23 @@
 // Local storage utilities for user preferences
 export interface UserPreferences {
+  autoPlay: boolean;
   favoriteEpisodes: string[]; // Episode IDs
   hiddenSources: string[]; // Source IDs
-  playerVolume: number; // 0-1
   playbackSpeed: number; // 0.5-2
+  playerVolume: number; // 0-1
   theme: string;
-  autoPlay: boolean;
 }
 
 const STORAGE_KEY = "morning-pod-preferences";
 
 // Default preferences
 const defaultPreferences: UserPreferences = {
+  autoPlay: false,
   favoriteEpisodes: [],
   hiddenSources: [],
-  playerVolume: 0.8,
   playbackSpeed: 1,
+  playerVolume: 0.8,
   theme: "forest",
-  autoPlay: false,
 };
 
 // Get preferences from localStorage

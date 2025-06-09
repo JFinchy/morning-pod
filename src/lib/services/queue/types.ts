@@ -1,15 +1,9 @@
-import type { QueueItem } from "@/lib/db/schema";
+import { type QueueItem } from "@/lib/db/schema";
 
 /**
  * Configuration for the queue processor
  */
 export interface QueueProcessorConfig {
-  /** Maximum number of concurrent jobs */
-  maxConcurrentJobs: number;
-  /** Polling interval in milliseconds */
-  pollingInterval: number;
-  /** Maximum retry attempts for failed jobs */
-  maxRetries: number;
   /** Enable auto-start processing */
   autoStart: boolean;
   /** Cost limits */
@@ -17,46 +11,52 @@ export interface QueueProcessorConfig {
     dailyLimit: number;
     perJobLimit: number;
   };
+  /** Maximum number of concurrent jobs */
+  maxConcurrentJobs: number;
+  /** Maximum retry attempts for failed jobs */
+  maxRetries: number;
+  /** Polling interval in milliseconds */
+  pollingInterval: number;
 }
 
 /**
  * Internal processing job representation
  */
 export interface ProcessingJob {
+  /** Error details if failed */
+  error?: string;
+  /** Estimated time remaining in seconds */
+  estimatedTimeRemaining?: number;
+  /** Processing progress (0-100) */
+  progress: number;
   /** Queue item being processed */
   queueItem: QueueItem;
   /** Current retry count */
   retryCount: number;
   /** Processing start time */
   startedAt: Date;
-  /** Error details if failed */
-  error?: string;
-  /** Processing progress (0-100) */
-  progress: number;
-  /** Estimated time remaining in seconds */
-  estimatedTimeRemaining?: number;
 }
 
 /**
  * Processing step types
  */
 export type ProcessingStep =
+  | "completed"
+  | "generating-audio"
   | "scraping"
   | "summarizing"
-  | "generating-audio"
-  | "uploading"
-  | "completed";
+  | "uploading";
 
 /**
  * Processing result
  */
 export interface ProcessingResult {
-  success: boolean;
-  queueItemId: string;
-  finalStatus: "completed" | "failed";
   cost?: number;
   error?: string;
+  finalStatus: "completed" | "failed";
   processingTime: number;
+  queueItemId: string;
+  success: boolean;
 }
 
 /**
@@ -65,25 +65,25 @@ export interface ProcessingResult {
 export interface QueueProcessorStats {
   /** Currently processing jobs */
   activeJobs: number;
-  /** Total jobs processed today */
-  totalProcessedToday: number;
-  /** Success rate (0-1) */
-  successRate: number;
   /** Average processing time in seconds */
   averageProcessingTime: number;
+  /** Queue processor status */
+  status: "error" | "idle" | "paused" | "processing";
+  /** Success rate (0-1) */
+  successRate: number;
   /** Total cost today */
   totalCostToday: number;
-  /** Queue processor status */
-  status: "idle" | "processing" | "paused" | "error";
+  /** Total jobs processed today */
+  totalProcessedToday: number;
 }
 
 /**
  * Processing step update
  */
 export interface ProcessingStepUpdate {
+  error?: string;
+  estimatedTimeRemaining?: number;
+  progress: number;
   queueItemId: string;
   step: ProcessingStep;
-  progress: number;
-  estimatedTimeRemaining?: number;
-  error?: string;
 }

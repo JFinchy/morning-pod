@@ -8,18 +8,18 @@
  * @decision-by Development team for deployment validation
  */
 
-const http = require("http");
-const https = require("https");
-const { URL } = require("url");
+import http from "http";
+import https from "https";
+import { URL } from "url";
 
 /**
  * Load test configuration
  */
 const CONFIG = {
   baseUrl: process.env.LOAD_TEST_URL || "http://localhost:3000",
-  concurrency: parseInt(process.env.LOAD_TEST_CONCURRENCY) || 10,
-  duration: parseInt(process.env.LOAD_TEST_DURATION) || 60, // seconds
-  requestDelay: parseInt(process.env.LOAD_TEST_DELAY) || 1000, // ms between requests
+  concurrency: Number.parseInt(process.env.LOAD_TEST_CONCURRENCY) || 10,
+  duration: Number.parseInt(process.env.LOAD_TEST_DURATION) || 60, // seconds
+  requestDelay: Number.parseInt(process.env.LOAD_TEST_DELAY) || 1000, // ms between requests
   scenarios: [
     { path: "/", weight: 40 },
     { path: "/episodes", weight: 30 },
@@ -33,17 +33,17 @@ const CONFIG = {
  * Test statistics
  */
 const stats = {
-  totalRequests: 0,
-  successfulRequests: 0,
-  failedRequests: 0,
-  totalResponseTime: 0,
-  minResponseTime: Infinity,
-  maxResponseTime: 0,
-  responseTimes: [],
-  errorsByType: new Map(),
-  statusCodes: new Map(),
-  startTime: null,
   endTime: null,
+  errorsByType: new Map(),
+  failedRequests: 0,
+  maxResponseTime: 0,
+  minResponseTime: Infinity,
+  responseTimes: [],
+  startTime: null,
+  statusCodes: new Map(),
+  successfulRequests: 0,
+  totalRequests: 0,
+  totalResponseTime: 0,
 };
 
 /**
@@ -56,15 +56,15 @@ function makeRequest(url) {
     const client = urlObj.protocol === "https:" ? https : http;
 
     const options = {
-      hostname: urlObj.hostname,
-      port: urlObj.port,
-      path: urlObj.pathname + urlObj.search,
-      method: "GET",
       headers: {
-        "User-Agent": "CanaryLoadTest/1.0",
         Accept:
           "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "User-Agent": "CanaryLoadTest/1.0",
       },
+      hostname: urlObj.hostname,
+      method: "GET",
+      path: urlObj.pathname + urlObj.search,
+      port: urlObj.port,
       timeout: 30000, // 30 second timeout
     };
 
@@ -78,11 +78,11 @@ function makeRequest(url) {
 
       res.on("end", () => {
         resolve({
-          success: res.statusCode >= 200 && res.statusCode < 400,
-          statusCode: res.statusCode,
+          error: null,
           responseTime,
           size: data.length,
-          error: null,
+          statusCode: res.statusCode,
+          success: res.statusCode >= 200 && res.statusCode < 400,
         });
       });
     });
@@ -90,11 +90,11 @@ function makeRequest(url) {
     req.on("error", (error) => {
       const responseTime = Date.now() - startTime;
       resolve({
-        success: false,
-        statusCode: 0,
+        error: error.message,
         responseTime,
         size: 0,
-        error: error.message,
+        statusCode: 0,
+        success: false,
       });
     });
 
@@ -102,11 +102,11 @@ function makeRequest(url) {
       req.destroy();
       const responseTime = Date.now() - startTime;
       resolve({
-        success: false,
-        statusCode: 0,
+        error: "Request timeout",
         responseTime,
         size: 0,
-        error: "Request timeout",
+        statusCode: 0,
+        success: false,
       });
     });
 
@@ -270,11 +270,11 @@ async function worker(workerId) {
       }
     } catch (error) {
       updateStats({
-        success: false,
-        statusCode: 0,
+        error: error.message,
         responseTime: 0,
         size: 0,
-        error: error.message,
+        statusCode: 0,
+        success: false,
       });
     }
   }
@@ -294,19 +294,12 @@ function generateFinalReport() {
       : 0;
 
   const report = {
-    summary: {
-      duration: duration,
-      totalRequests: stats.totalRequests,
-      successfulRequests: stats.successfulRequests,
-      failedRequests: stats.failedRequests,
-      successRate: successRate,
-      requestsPerSecond: requestsPerSecond,
-      averageResponseTime: averageResponseTime,
-    },
+    config: CONFIG,
+    errors: Object.fromEntries(stats.errorsByType),
     performance: {
+      maxResponseTime: stats.maxResponseTime,
       minResponseTime:
         stats.minResponseTime === Infinity ? 0 : stats.minResponseTime,
-      maxResponseTime: stats.maxResponseTime,
       p50ResponseTime:
         stats.responseTimes.length > 0
           ? calculatePercentile(stats.responseTimes, 50)
@@ -321,9 +314,16 @@ function generateFinalReport() {
           : 0,
     },
     statusCodes: Object.fromEntries(stats.statusCodes),
-    errors: Object.fromEntries(stats.errorsByType),
+    summary: {
+      averageResponseTime,
+      duration,
+      failedRequests: stats.failedRequests,
+      requestsPerSecond,
+      successfulRequests: stats.successfulRequests,
+      successRate,
+      totalRequests: stats.totalRequests,
+    },
     timestamp: new Date().toISOString(),
-    config: CONFIG,
   };
 
   console.log("\n🎯 Final Load Test Report");
@@ -394,11 +394,11 @@ process.on("SIGTERM", () => {
 });
 
 // Start the load test
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   runLoadTest().catch((error) => {
     console.error("❌ Load test failed:", error);
     process.exit(1);
   });
 }
 
-module.exports = { runLoadTest, CONFIG };
+export { CONFIG, runLoadTest };

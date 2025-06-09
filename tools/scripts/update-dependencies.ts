@@ -27,66 +27,20 @@ import path from "path";
 
 interface UpdateOptions {
   check?: boolean;
-  patch?: boolean;
-  minor?: boolean;
-  major?: boolean;
-  interactive?: boolean;
   doctor?: boolean;
+  interactive?: boolean;
+  major?: boolean;
+  minor?: boolean;
+  patch?: boolean;
 }
 
 class DependencyUpdater {
-  private packageJsonPath: string;
   private originalPackageJson: string;
+  private packageJsonPath: string;
 
   constructor() {
     this.packageJsonPath = path.join(process.cwd(), "package.json");
     this.originalPackageJson = readFileSync(this.packageJsonPath, "utf-8");
-  }
-
-  /**
-   * Check for available updates without applying them
-   */
-  async checkUpdates(): Promise<void> {
-    console.log("🔍 Checking for available updates...\n");
-
-    try {
-      execSync("bun ncu", { stdio: "inherit" });
-    } catch (error) {
-      console.error("❌ Failed to check for updates:", error);
-      process.exit(1);
-    }
-  }
-
-  /**
-   * Update patch versions only (safest updates)
-   */
-  async updatePatch(): Promise<void> {
-    console.log("🔧 Updating patch versions...\n");
-
-    try {
-      execSync("bun ncu --target patch -u", { stdio: "inherit" });
-      await this.installAndTest();
-    } catch (error) {
-      console.error("❌ Patch update failed:", error);
-      this.restorePackageJson();
-      process.exit(1);
-    }
-  }
-
-  /**
-   * Update minor and patch versions (mostly safe)
-   */
-  async updateMinor(): Promise<void> {
-    console.log("⬆️ Updating minor and patch versions...\n");
-
-    try {
-      execSync("bun ncu --target minor -u", { stdio: "inherit" });
-      await this.installAndTest();
-    } catch (error) {
-      console.error("❌ Minor update failed:", error);
-      this.restorePackageJson();
-      process.exit(1);
-    }
   }
 
   /**
@@ -106,6 +60,73 @@ class DependencyUpdater {
       );
     } catch (error) {
       console.error("❌ Failed to check major updates:", error);
+      process.exit(1);
+    }
+  }
+
+  /**
+   * Check for available updates without applying them
+   */
+  async checkUpdates(): Promise<void> {
+    console.log("🔍 Checking for available updates...\n");
+
+    try {
+      execSync("bun ncu", { stdio: "inherit" });
+    } catch (error) {
+      console.error("❌ Failed to check for updates:", error);
+      process.exit(1);
+    }
+  }
+
+  /**
+   * Create a changeset for the dependency updates
+   */
+  async createChangeset(updateType: string): Promise<void> {
+    const changesetPath = path.join(process.cwd(), ".changeset");
+    if (!existsSync(changesetPath)) {
+      console.log(
+        "ℹ️ Changeset directory not found. Skipping changeset creation."
+      );
+      return;
+    }
+
+    const changesetContent = `---
+"morning-pod": patch
+---
+
+chore: update dependencies (${updateType})
+
+Automated dependency update maintaining compatibility and security.
+- Updated ${updateType} versions
+- All tests passing
+- Type checking verified
+`;
+
+    const timestamp = new Date().toISOString().replace(/[.:]/gu, "-");
+    const changesetFile = path.join(
+      changesetPath,
+      `dependency-update-${timestamp}.md`
+    );
+
+    writeFileSync(changesetFile, changesetContent);
+    console.log(`📝 Created changeset: ${path.basename(changesetFile)}`);
+  }
+
+  /**
+   * Use ncu doctor mode for automated safe updates
+   */
+  async doctorUpdate(): Promise<void> {
+    console.log("🏥 Running dependency doctor (automated safe updates)...\n");
+    console.log(
+      "This will iteratively update dependencies and run tests to ensure compatibility.\n"
+    );
+
+    try {
+      execSync("bun ncu --doctor -u", { stdio: "inherit" });
+      console.log("✅ Doctor mode completed successfully!");
+    } catch (error) {
+      console.error("❌ Doctor mode failed:", error);
+      this.restorePackageJson();
       process.exit(1);
     }
   }
@@ -134,19 +155,32 @@ class DependencyUpdater {
   }
 
   /**
-   * Use ncu doctor mode for automated safe updates
+   * Update minor and patch versions (mostly safe)
    */
-  async doctorUpdate(): Promise<void> {
-    console.log("🏥 Running dependency doctor (automated safe updates)...\n");
-    console.log(
-      "This will iteratively update dependencies and run tests to ensure compatibility.\n"
-    );
+  async updateMinor(): Promise<void> {
+    console.log("⬆️ Updating minor and patch versions...\n");
 
     try {
-      execSync("bun ncu --doctor -u", { stdio: "inherit" });
-      console.log("✅ Doctor mode completed successfully!");
+      execSync("bun ncu --target minor -u", { stdio: "inherit" });
+      await this.installAndTest();
     } catch (error) {
-      console.error("❌ Doctor mode failed:", error);
+      console.error("❌ Minor update failed:", error);
+      this.restorePackageJson();
+      process.exit(1);
+    }
+  }
+
+  /**
+   * Update patch versions only (safest updates)
+   */
+  async updatePatch(): Promise<void> {
+    console.log("🔧 Updating patch versions...\n");
+
+    try {
+      execSync("bun ncu --target patch -u", { stdio: "inherit" });
+      await this.installAndTest();
+    } catch (error) {
+      console.error("❌ Patch update failed:", error);
       this.restorePackageJson();
       process.exit(1);
     }
@@ -192,40 +226,6 @@ class DependencyUpdater {
     } catch (error) {
       console.error("❌ Failed to restore dependencies:", error);
     }
-  }
-
-  /**
-   * Create a changeset for the dependency updates
-   */
-  async createChangeset(updateType: string): Promise<void> {
-    const changesetPath = path.join(process.cwd(), ".changeset");
-    if (!existsSync(changesetPath)) {
-      console.log(
-        "ℹ️ Changeset directory not found. Skipping changeset creation."
-      );
-      return;
-    }
-
-    const changesetContent = `---
-"morning-pod": patch
----
-
-chore: update dependencies (${updateType})
-
-Automated dependency update maintaining compatibility and security.
-- Updated ${updateType} versions
-- All tests passing
-- Type checking verified
-`;
-
-    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-    const changesetFile = path.join(
-      changesetPath,
-      `dependency-update-${timestamp}.md`
-    );
-
-    writeFileSync(changesetFile, changesetContent);
-    console.log(`📝 Created changeset: ${path.basename(changesetFile)}`);
   }
 }
 

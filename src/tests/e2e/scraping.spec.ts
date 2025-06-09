@@ -1,5 +1,5 @@
 import AxeBuilder from "@axe-core/playwright";
-import { test, expect } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
 test.describe("Scraping Page E2E", () => {
   test.beforeEach(async ({ page }) => {
@@ -12,12 +12,12 @@ test.describe("Scraping Page E2E", () => {
 
     // Check for main heading
     await expect(
-      page.getByRole("heading", { name: /content scraping/i, level: 1 })
+      page.getByRole("heading", { level: 1, name: /content scraping/i })
     ).toBeVisible();
 
     // Check for metrics cards
     await expect(page.getByText(/available scrapers/i)).toBeVisible();
-    await expect(page.getByText(/cached content/i)).toBeVisible();
+    await expect(page.getByText(/cached content/iu)).toBeVisible();
     await expect(page.getByText(/last activity/i)).toBeVisible();
 
     // Check for navigation
@@ -38,7 +38,7 @@ test.describe("Scraping Page E2E", () => {
       const externalOverlays = document.querySelectorAll(
         '[data-headlessui-state], .pointer-events-none, [class*="stagewise"]'
       );
-      externalOverlays.forEach((el) => {
+      for (const el of externalOverlays) {
         if (
           el.getAttribute("data-headlessui-state") !== null ||
           el.classList.contains("pointer-events-none") ||
@@ -46,7 +46,7 @@ test.describe("Scraping Page E2E", () => {
         ) {
           el.remove();
         }
-      });
+      }
     });
 
     const accessibilityScanResults = await new AxeBuilder({ page })
@@ -83,9 +83,9 @@ test.describe("Scraping Page E2E", () => {
         "Accessibility violations found:",
         accessibilityScanResults.violations.length
       );
-      accessibilityScanResults.violations.forEach((violation) => {
+      for (const violation of accessibilityScanResults.violations) {
         console.log(`- ${violation.id}: ${violation.help}`);
-      });
+      }
     }
 
     expect(criticalViolations).toEqual([]);
@@ -117,20 +117,20 @@ test.describe("Scraping Page E2E", () => {
     // Mock the tRPC call to prevent actual scraping
     await page.route("**/api/trpc/scraping.scrapeAll**", async (route) => {
       await route.fulfill({
-        status: 200,
-        contentType: "application/json",
         body: JSON.stringify({
           result: {
             data: {
-              success: true,
               results: [
-                { source: "tldr", success: true, itemsFound: 5 },
-                { source: "hackernews", success: true, itemsFound: 8 },
-                { source: "morningbrew", success: true, itemsFound: 3 },
+                { itemsFound: 5, source: "tldr", success: true },
+                { itemsFound: 8, source: "hackernews", success: true },
+                { itemsFound: 3, source: "morningbrew", success: true },
               ],
+              success: true,
             },
           },
         }),
+        contentType: "application/json",
+        status: 200,
       });
     });
 
@@ -156,24 +156,24 @@ test.describe("Scraping Page E2E", () => {
     // Mock individual scraper call
     await page.route("**/api/trpc/scraping.scrapeSource**", async (route) => {
       await route.fulfill({
-        status: 200,
-        contentType: "application/json",
         body: JSON.stringify({
           result: {
             data: {
-              success: true,
               content: [
                 {
                   id: "test-1",
-                  title: "Test Article",
-                  summary: "Test summary",
-                  url: "https://example.com",
                   source: "tldr",
+                  summary: "Test summary",
+                  title: "Test Article",
+                  url: "https://example.com",
                 },
               ],
+              success: true,
             },
           },
         }),
+        contentType: "application/json",
+        status: 200,
       });
     });
 
@@ -204,21 +204,21 @@ test.describe("Scraping Page E2E", () => {
     await expect(page.getByText(/items scraped/i)).toBeVisible();
 
     // Check for source rows (with mock data)
-    await expect(page.getByText(/tldr/i)).toBeVisible();
+    await expect(page.getByText(/tldr/iu)).toBeVisible();
     await expect(page.getByText(/hacker news/i)).toBeVisible();
-    await expect(page.getByText(/morning brew/i)).toBeVisible();
+    await expect(page.getByText(/morning brew/iu)).toBeVisible();
   });
 
   test("should display recent content", async ({ page }) => {
     await page.waitForLoadState("networkidle");
 
     // Check for recent content section
-    await expect(page.getByText(/recent content/i)).toBeVisible();
+    await expect(page.getByText(/recent content/iu)).toBeVisible();
 
     // Should show content cards or empty state
     const contentSection = page
       .locator('[data-testid="recent-content"]')
-      .or(page.getByText(/no content available/i))
+      .or(page.getByText(/no content available/iu))
       .or(page.getByText(/start by scraping/i));
 
     await expect(contentSection).toBeVisible();
@@ -231,7 +231,7 @@ test.describe("Scraping Page E2E", () => {
     await page.keyboard.press("Tab");
 
     // Verify focus is visible
-    const focusedElement = await page.locator(":focus");
+    const focusedElement = page.locator(":focus");
     await expect(focusedElement).toBeVisible();
 
     // Continue tabbing through scraping buttons
@@ -239,13 +239,13 @@ test.describe("Scraping Page E2E", () => {
     await page.keyboard.press("Tab");
 
     // Should be able to navigate to all buttons
-    const secondFocusedElement = await page.locator(":focus");
+    const secondFocusedElement = page.locator(":focus");
     await expect(secondFocusedElement).toBeVisible();
   });
 
   test("should be responsive on mobile", async ({ page }) => {
     // Test mobile viewport
-    await page.setViewportSize({ width: 375, height: 667 });
+    await page.setViewportSize({ height: 667, width: 375 });
     await page.reload();
     await page.waitForLoadState("networkidle");
 
@@ -254,7 +254,7 @@ test.describe("Scraping Page E2E", () => {
 
     // Metrics should stack vertically on mobile
     await expect(page.getByText(/available scrapers/i)).toBeVisible();
-    await expect(page.getByText(/cached content/i)).toBeVisible();
+    await expect(page.getByText(/cached content/iu)).toBeVisible();
 
     // Buttons should be accessible
     await expect(
@@ -299,14 +299,14 @@ test.describe("Scraping Page E2E", () => {
     // Mock API error
     await page.route("**/api/trpc/scraping.scrapeAll**", async (route) => {
       await route.fulfill({
-        status: 500,
-        contentType: "application/json",
         body: JSON.stringify({
           error: {
-            message: "Network error",
             code: "INTERNAL_SERVER_ERROR",
+            message: "Network error",
           },
         }),
+        contentType: "application/json",
+        status: 500,
       });
     });
 
@@ -320,6 +320,9 @@ test.describe("Scraping Page E2E", () => {
 
     // Should show error state (implementation dependent)
     await page.waitForTimeout(1000);
+
+    // Verify the page still loads correctly despite the error
+    await expect(page.locator("h1")).toContainText(/Scraping/u);
 
     // Clean up routes
     await page.unrouteAll({ behavior: "ignoreErrors" });

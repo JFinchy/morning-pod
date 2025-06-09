@@ -1,23 +1,23 @@
-import { NextRequest, NextResponse } from "next/server";
+import { eq } from "drizzle-orm";
+import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
+import { db } from "@/lib/db";
+import { episodes } from "@/lib/db/schema";
 import { createSummarizationService } from "@/lib/services/ai/summarization";
 import { createTTSService } from "@/lib/services/ai/tts";
 import { createScrapingService } from "@/lib/services/scraping/scraping-service";
-import { db } from "@/lib/db";
-import { episodes } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
 
 /**
  * Request validation schema
  */
 const GenerateRequestSchema = z.object({
+  model: z.enum(["tts-1", "tts-1-hd"]).default("tts-1"),
   sourceUrl: z.string().url("Valid URL is required"),
+  title: z.string().optional(),
   voice: z
     .enum(["alloy", "echo", "fable", "onyx", "nova", "shimmer"])
     .default("alloy"),
-  model: z.enum(["tts-1", "tts-1-hd"]).default("tts-1"),
-  title: z.string().optional(),
 });
 
 type GenerateRequest = z.infer<typeof GenerateRequestSchema>;
@@ -26,17 +26,17 @@ type GenerateRequest = z.infer<typeof GenerateRequestSchema>;
  * Response types for different stages
  */
 interface GenerationProgress {
-  stage:
-    | "scraping"
-    | "summarizing"
-    | "generating_audio"
-    | "saving"
-    | "completed"
-    | "error";
-  message: string;
-  progress: number; // 0-100
   data?: any;
   error?: string;
+  message: string;
+  progress: number; // 0-100
+  stage:
+    | "completed"
+    | "error"
+    | "generating_audio"
+    | "saving"
+    | "scraping"
+    | "summarizing";
 }
 
 /**
@@ -72,10 +72,10 @@ export async function POST(request: NextRequest) {
           controller.close();
         } catch (error) {
           const errorProgress: GenerationProgress = {
-            stage: "error",
+            error: error instanceof Error ? error.message : "Unknown error",
             message: "Generation failed",
             progress: 0,
-            error: error instanceof Error ? error.message : "Unknown error",
+            stage: "error",
           };
 
           const data = `data: ${JSON.stringify(errorProgress)}\n\n`;
@@ -87,9 +87,9 @@ export async function POST(request: NextRequest) {
 
     return new Response(stream, {
       headers: {
-        "Content-Type": "text/event-stream",
         "Cache-Control": "no-cache",
         Connection: "keep-alive",
+        "Content-Type": "text/event-stream",
       },
     });
   } catch (error) {
@@ -98,8 +98,8 @@ export async function POST(request: NextRequest) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         {
-          error: "Invalid request data",
           details: error.errors,
+          error: "Invalid request data",
         },
         { status: 400 }
       );
@@ -140,9 +140,9 @@ async function generateEpisode(
   try {
     // Stage 1: Scraping
     onProgress({
-      stage: "scraping",
       message: "Scraping content from source...",
       progress: 10,
+      stage: "scraping",
     });
 
     scrapedContent = await scrapingService.scrapeUrl(request.sourceUrl);
@@ -152,60 +152,60 @@ async function generateEpisode(
     }
 
     onProgress({
-      stage: "scraping",
-      message: "Content scraped successfully",
-      progress: 25,
       data: {
-        title: scrapedContent.title,
         contentLength: scrapedContent.content.length,
         source: scrapedContent.source,
+        title: scrapedContent.title,
       },
+      message: "Content scraped successfully",
+      progress: 25,
+      stage: "scraping",
     });
 
     // Stage 2: Summarization
     onProgress({
-      stage: "summarizing",
-      message: "Creating podcast-friendly summary...",
+      message: "Creating podcast-friendly summary...", // eslint-disable-line no-secrets/no-secrets
       progress: 35,
+      stage: "summarizing",
     });
 
     const summaryResult = await summarizationService.generateSummary({
-      title: scrapedContent.title,
       content: scrapedContent.content,
-      source: scrapedContent.source || "Unknown",
-      url: request.sourceUrl,
       publishedAt: scrapedContent.publishedAt
         ? new Date(scrapedContent.publishedAt)
         : undefined,
+      source: scrapedContent.source || "Unknown",
+      title: scrapedContent.title,
+      url: request.sourceUrl,
     });
 
     summary = summaryResult.summary;
 
     onProgress({
-      stage: "summarizing",
-      message: "Summary generated successfully",
-      progress: 55,
       data: {
-        title: summary.title,
+        cost: summaryResult.cost.totalCost,
         estimatedReadTime: summary.estimatedReadTime,
         keyPoints: summary.keyPoints,
-        cost: summaryResult.cost.totalCost,
+        title: summary.title,
       },
+      message: "Summary generated successfully",
+      progress: 55,
+      stage: "summarizing",
     });
 
     // Stage 3: Text-to-Speech
     onProgress({
-      stage: "generating_audio",
       message: "Converting text to speech...",
       progress: 65,
+      stage: "generating_audio",
     });
 
     audioResult = await ttsService.generateSpeech({
-      text: summary.ttsOptimizedContent,
       options: {
-        voice: request.voice,
         model: request.model,
+        voice: request.voice,
       },
+      text: summary.ttsOptimizedContent,
     });
 
     if (!audioResult.success) {
@@ -213,36 +213,36 @@ async function generateEpisode(
     }
 
     onProgress({
-      stage: "generating_audio",
-      message: "Audio generated successfully",
-      progress: 85,
       data: {
+        audioUrl: audioResult.audioUrl,
+        cost: audioResult.cost,
         duration: audioResult.duration,
         fileSize: audioResult.fileSize,
-        cost: audioResult.cost,
-        audioUrl: audioResult.audioUrl,
       },
+      message: "Audio generated successfully",
+      progress: 85,
+      stage: "generating_audio",
     });
 
     // Stage 4: Save to Database
     onProgress({
-      stage: "saving",
       message: "Saving episode to database...",
       progress: 90,
+      stage: "saving",
     });
 
     const episodeData = {
-      sourceId: "temp-source-id", // TODO: Create proper source management
-      title: request.title || summary.title,
-      summary: summary.summary,
-      contentHash: `hash-${Date.now()}`, // TODO: Generate proper content hash
-      audioUrl: audioResult.audioUrl || "",
       audioSize: audioResult.fileSize || 0,
+      audioUrl: audioResult.audioUrl || "",
+      contentHash: `hash-${Date.now()}`, // TODO: Generate proper content hash
       duration: audioResult.duration || 0,
       generationCost: String(
         summaryResult.cost.totalCost + (audioResult.cost || 0)
       ),
+      sourceId: "temp-source-id", // TODO: Create proper source management
       status: "ready" as const,
+      summary: summary.summary,
+      title: request.title || summary.title,
     };
 
     const [newEpisode] = await db
@@ -253,17 +253,17 @@ async function generateEpisode(
 
     // Stage 5: Completed
     onProgress({
-      stage: "completed",
+      data: {
+        audioUrl: newEpisode.audioUrl,
+        duration: newEpisode.duration,
+        episodeId: newEpisode.id,
+        processingTime: Date.now() - startTime,
+        title: newEpisode.title,
+        totalCost: newEpisode.generationCost,
+      },
       message: "Episode generated successfully!",
       progress: 100,
-      data: {
-        episodeId: newEpisode.id,
-        title: newEpisode.title,
-        duration: newEpisode.duration,
-        audioUrl: newEpisode.audioUrl,
-        totalCost: newEpisode.generationCost,
-        processingTime: Date.now() - startTime,
-      },
+      stage: "completed",
     });
   } catch (error) {
     console.error("Generation pipeline error:", error);
@@ -304,18 +304,18 @@ export async function GET() {
     ]);
 
     return NextResponse.json({
-      status: "healthy",
+      configuration: {
+        maxTextLength: 100000, // characters
+        supportedModels: createTTSService().getAvailableModels(),
+        supportedVoices: Object.keys(createTTSService().getAvailableVoices()),
+      },
       services: {
+        database: "available", // Assume available if we reach this point
+        scraping: "available", // Always available (no external API)
         summarization: summarizationOk ? "available" : "unavailable",
         tts: ttsOk ? "available" : "unavailable",
-        scraping: "available", // Always available (no external API)
-        database: "available", // Assume available if we reach this point
       },
-      configuration: {
-        supportedVoices: Object.keys(createTTSService().getAvailableVoices()),
-        supportedModels: createTTSService().getAvailableModels(),
-        maxTextLength: 100000, // characters
-      },
+      status: "healthy",
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
@@ -323,8 +323,8 @@ export async function GET() {
 
     return NextResponse.json(
       {
-        status: "unhealthy",
         error: error instanceof Error ? error.message : "Unknown error",
+        status: "unhealthy",
         timestamp: new Date().toISOString(),
       },
       { status: 500 }

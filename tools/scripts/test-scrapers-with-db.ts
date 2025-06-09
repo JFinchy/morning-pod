@@ -14,8 +14,8 @@ async function testScrapersWithDatabase() {
   console.log(`📊 Initial database content count: ${initialCount.count}`);
 
   const manager = new ScraperManager({
-    persistToDatabase: true, // Enable database persistence
     deduplicationEnabled: true,
+    persistToDatabase: true, // Enable database persistence
   });
 
   try {
@@ -39,24 +39,24 @@ async function testScrapersWithDatabase() {
     // Show some sample content from database
     const sampleContent = await db
       .select({
-        id: scrapedContent.id,
-        title: scrapedContent.title,
-        source: scrapedContent.source,
         category: scrapedContent.category,
-        status: scrapedContent.status,
+        id: scrapedContent.id,
         scrapedAt: scrapedContent.scrapedAt,
+        source: scrapedContent.source,
+        status: scrapedContent.status,
+        title: scrapedContent.title,
       })
       .from(scrapedContent)
       .orderBy(scrapedContent.scrapedAt)
       .limit(5);
 
     console.log("\n📋 Sample Database Content:");
-    sampleContent.forEach((item, index) => {
+    for (const [index, item] of sampleContent.entries()) {
       console.log(`${index + 1}. [${item.source}] ${item.title}`);
       console.log(`   Category: ${item.category} | Status: ${item.status}`);
       console.log(`   Scraped: ${item.scrapedAt?.toISOString()}`);
       console.log("");
-    });
+    }
 
     // Test deduplication by running again
     console.log("🔄 Testing deduplication by running scrapers again...");

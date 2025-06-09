@@ -9,26 +9,27 @@
  */
 
 import { z } from "zod";
+
 import {
-  SyntheticUserTesting,
-  TestScenario,
-  SyntheticUserType,
-  type SyntheticTestReport,
-} from "./synthetic-users";
-import {
-  CanaryAutomation,
   type AutomationConfig,
+  CanaryAutomation,
 } from "../../tests/synthetic/canary-automation";
+import {
+  type SyntheticTestReport,
+  SyntheticUserTesting,
+  SyntheticUserType,
+  TestScenario,
+} from "./synthetic-users";
 
 /**
  * Vercel deployment context for testing
  */
 export interface VercelDeploymentContext {
-  deploymentUrl: string;
-  deploymentId: string;
   branchName: string;
   commitSha: string;
-  environment: "preview" | "production" | "development";
+  deploymentId: string;
+  deploymentUrl: string;
+  environment: "development" | "preview" | "production";
   isCanary: boolean;
 }
 
@@ -36,23 +37,23 @@ export interface VercelDeploymentContext {
  * PostHog feature flag configuration for canary testing
  */
 export interface PostHogCanaryConfig {
+  description: string;
+  enabledForSynthetic: boolean;
   flagKey: string;
   rolloutPercentage: number;
   targetGroups: string[];
-  description: string;
-  enabledForSynthetic: boolean;
 }
 
 /**
  * Canary validation criteria
  */
 export interface CanaryValidationCriteria {
-  minSuccessRate: number; // 0-1
-  maxErrorRate: number; // 0-1
+  criticalPaths: string[];
   maxAvgResponseTime: number; // milliseconds
+  maxErrorRate: number; // 0-1
+  minSuccessRate: number; // 0-1
   minTestDuration: number; // seconds
   requiredScenarios: TestScenario[];
-  criticalPaths: string[];
 }
 
 /**
@@ -61,59 +62,112 @@ export interface CanaryValidationCriteria {
 export interface CanaryTestResult {
   deploymentContext: VercelDeploymentContext;
   featureFlags: PostHogCanaryConfig[];
-  testReport: SyntheticTestReport;
-  validationResult: CanaryValidationResult;
-  timestamp: Date;
   recommendations: CanaryRecommendation[];
+  testReport: SyntheticTestReport;
+  timestamp: Date;
+  validationResult: CanaryValidationResult;
 }
 
 export interface CanaryValidationResult {
-  passed: boolean;
-  score: number; // 0-100
   criteria: Record<
     string,
-    { passed: boolean; value: number; threshold: number }
+    { passed: boolean; threshold: number; value: number }
   >;
+  passed: boolean;
+  score: number; // 0-100
   summary: string;
 }
 
 export interface CanaryRecommendation {
-  type: "rollout" | "rollback" | "investigate" | "optimize";
-  priority: "high" | "medium" | "low";
-  message: string;
   action: string;
   flagKey?: string;
+  message: string;
+  priority: "high" | "low" | "medium";
+  type: "investigate" | "optimize" | "rollback" | "rollout";
 }
 
 /**
  * Main integration class for Vercel and PostHog synthetic testing
  */
 export class VercelPostHogCanaryTesting {
-  private syntheticTesting: SyntheticUserTesting;
   private canaryAutomation: CanaryAutomation;
   private posthogApiKey: string;
   private posthogProjectId: string;
+  private syntheticTesting: SyntheticUserTesting;
   private vercelApiKey: string;
 
   constructor(config: {
+    baseUrl?: string;
     posthogApiKey: string;
     posthogProjectId: string;
     vercelApiKey: string;
-    baseUrl?: string;
   }) {
     this.posthogApiKey = config.posthogApiKey;
     this.posthogProjectId = config.posthogProjectId;
     this.vercelApiKey = config.vercelApiKey;
     this.syntheticTesting = new SyntheticUserTesting(config.baseUrl);
     this.canaryAutomation = new CanaryAutomation({
-      headless: true,
       baseUrl: config.baseUrl || "http://localhost:3000",
-      timeout: 30000,
-      screenshotOnFailure: true,
+      headless: true,
       recordVideo: false,
-      slowMo: 0,
       retryAttempts: 2,
+      screenshotOnFailure: true,
+      slowMo: 0,
+      timeout: 30000,
     });
+  }
+
+  /**
+   * Execute automated canary rollout based on test results
+   *
+   * @business-context Automatically adjusts feature flag rollout percentages
+   *                   based on canary test performance and validation criteria
+   */
+  async executeAutomatedRollout(
+    canaryResult: CanaryTestResult,
+    autoRolloutConfig: {
+      enabled: boolean;
+      incrementPercentage: number;
+      maxRolloutPercentage: number;
+      rollbackThreshold: number;
+    }
+  ): Promise<void> {
+    if (!autoRolloutConfig.enabled) {
+      console.log(
+        "🔒 Automated rollout disabled. Manual intervention required."
+      );
+      return;
+    }
+
+    for (const recommendation of canaryResult.recommendations) {
+      if (recommendation.type === "rollout" && recommendation.flagKey) {
+        const currentFlag = canaryResult.featureFlags.find(
+          (f) => f.flagKey === recommendation.flagKey
+        );
+        if (!currentFlag) continue;
+
+        const newRolloutPercentage = Math.min(
+          currentFlag.rolloutPercentage + autoRolloutConfig.incrementPercentage,
+          autoRolloutConfig.maxRolloutPercentage
+        );
+
+        await this.updateFeatureFlagRollout(
+          recommendation.flagKey,
+          newRolloutPercentage
+        );
+
+        console.log(
+          `🎯 Auto-increased rollout for ${recommendation.flagKey}: ` +
+            `${currentFlag.rolloutPercentage}% → ${newRolloutPercentage}%`
+        );
+      } else if (recommendation.type === "rollback" && recommendation.flagKey) {
+        await this.updateFeatureFlagRollout(recommendation.flagKey, 0);
+
+        console.log(
+          `🛑 Auto-disabled feature flag ${recommendation.flagKey} due to poor performance`
+        );
+      }
+    }
   }
 
   /**
@@ -168,18 +222,18 @@ export class VercelPostHogCanaryTesting {
     // 8. Send results to PostHog for monitoring
     await this.reportCanaryResultsToPostHog({
       deploymentContext,
+      featureFlags,
       testReport,
       validationResult,
-      featureFlags,
     });
 
     const result: CanaryTestResult = {
       deploymentContext,
       featureFlags,
-      testReport,
-      validationResult,
-      timestamp: new Date(),
       recommendations,
+      testReport,
+      timestamp: new Date(),
+      validationResult,
     };
 
     console.log(
@@ -187,365 +241,6 @@ export class VercelPostHogCanaryTesting {
     );
 
     return result;
-  }
-
-  /**
-   * Configure PostHog feature flags specifically for synthetic user testing
-   *
-   * @business-context Ensures synthetic users get proper feature flag values
-   *                   for comprehensive testing without affecting real users
-   */
-  private async configureFeatureFlagsForTesting(
-    flags: PostHogCanaryConfig[]
-  ): Promise<void> {
-    for (const flag of flags) {
-      if (!flag.enabledForSynthetic) continue;
-
-      try {
-        // Create or update feature flag for synthetic testing
-        await this.updatePostHogFeatureFlag({
-          key: flag.flagKey,
-          name: `Canary: ${flag.description}`,
-          filters: {
-            groups: [
-              {
-                properties: [
-                  {
-                    key: "email",
-                    operator: "icontains",
-                    value: "@synthetic.morning-pod.com", // Synthetic user emails
-                  },
-                ],
-                rollout_percentage: 100, // Always enabled for synthetic users
-              },
-              {
-                properties: [], // Real users
-                rollout_percentage: flag.rolloutPercentage,
-              },
-            ],
-          },
-        });
-
-        console.log(
-          `🎯 Configured feature flag: ${flag.flagKey} (${flag.rolloutPercentage}% rollout)`
-        );
-      } catch (error) {
-        console.error(
-          `❌ Failed to configure feature flag ${flag.flagKey}:`,
-          error
-        );
-      }
-    }
-  }
-
-  /**
-   * Validate canary test results against defined criteria
-   */
-  private validateCanaryResults(
-    report: SyntheticTestReport,
-    criteria: CanaryValidationCriteria,
-    testDuration: number
-  ): CanaryValidationResult {
-    const validations = {
-      successRate: {
-        passed: report.summary.successRate >= criteria.minSuccessRate,
-        value: report.summary.successRate,
-        threshold: criteria.minSuccessRate,
-      },
-      errorRate: {
-        passed: 1 - report.summary.successRate <= criteria.maxErrorRate,
-        value: 1 - report.summary.successRate,
-        threshold: criteria.maxErrorRate,
-      },
-      avgResponseTime: {
-        passed: report.summary.averageDuration <= criteria.maxAvgResponseTime,
-        value: report.summary.averageDuration,
-        threshold: criteria.maxAvgResponseTime,
-      },
-      testDuration: {
-        passed: testDuration >= criteria.minTestDuration * 1000,
-        value: testDuration,
-        threshold: criteria.minTestDuration * 1000,
-      },
-      requiredScenarios: {
-        passed: criteria.requiredScenarios.every(
-          (scenario) => report.scenarioBreakdown[scenario]?.total > 0
-        ),
-        value: Object.keys(report.scenarioBreakdown).length,
-        threshold: criteria.requiredScenarios.length,
-      },
-    };
-
-    const passedCount = Object.values(validations).filter(
-      (v) => v.passed
-    ).length;
-    const totalCount = Object.keys(validations).length;
-    const score = Math.round((passedCount / totalCount) * 100);
-    const passed = score >= 80; // 80% threshold for canary approval
-
-    return {
-      passed,
-      score,
-      criteria: validations,
-      summary: passed
-        ? `✅ Canary validation passed (${score}/100). Safe to rollout.`
-        : `⚠️ Canary validation failed (${score}/100). Review required.`,
-    };
-  }
-
-  /**
-   * Generate actionable recommendations based on canary results
-   */
-  private generateCanaryRecommendations(
-    validation: CanaryValidationResult,
-    flags: PostHogCanaryConfig[],
-    deployment: VercelDeploymentContext
-  ): CanaryRecommendation[] {
-    const recommendations: CanaryRecommendation[] = [];
-
-    if (validation.passed && validation.score >= 90) {
-      recommendations.push({
-        type: "rollout",
-        priority: "high",
-        message: "Excellent canary results. Safe to increase rollout.",
-        action: "Increase feature flag rollout to 50-100%",
-        flagKey: flags[0]?.flagKey,
-      });
-    } else if (validation.passed && validation.score >= 80) {
-      recommendations.push({
-        type: "rollout",
-        priority: "medium",
-        message: "Good canary results. Gradual rollout recommended.",
-        action: "Increase feature flag rollout to 25-50%",
-        flagKey: flags[0]?.flagKey,
-      });
-    } else if (validation.score < 60) {
-      recommendations.push({
-        type: "rollback",
-        priority: "high",
-        message: "Poor canary results. Immediate attention required.",
-        action: "Disable feature flags and investigate issues",
-        flagKey: flags[0]?.flagKey,
-      });
-    } else {
-      recommendations.push({
-        type: "investigate",
-        priority: "medium",
-        message: "Mixed canary results. Further investigation needed.",
-        action: "Review detailed test results and fix identified issues",
-      });
-    }
-
-    // Performance-specific recommendations
-    if (!validation.criteria.avgResponseTime.passed) {
-      recommendations.push({
-        type: "optimize",
-        priority: "high",
-        message: "Performance issues detected in canary testing.",
-        action: "Optimize slow endpoints and review resource usage",
-      });
-    }
-
-    // Error rate recommendations
-    if (!validation.criteria.errorRate.passed) {
-      recommendations.push({
-        type: "investigate",
-        priority: "high",
-        message: "High error rate detected in canary testing.",
-        action: "Review error logs and fix critical bugs before rollout",
-      });
-    }
-
-    return recommendations;
-  }
-
-  /**
-   * Report canary testing results to PostHog for monitoring and analysis
-   */
-  private async reportCanaryResultsToPostHog(data: {
-    deploymentContext: VercelDeploymentContext;
-    testReport: SyntheticTestReport;
-    validationResult: CanaryValidationResult;
-    featureFlags: PostHogCanaryConfig[];
-  }): Promise<void> {
-    try {
-      const event = {
-        event: "canary_test_completed",
-        distinct_id: `deployment_${data.deploymentContext.deploymentId}`,
-        properties: {
-          deployment_id: data.deploymentContext.deploymentId,
-          deployment_url: data.deploymentContext.deploymentUrl,
-          branch_name: data.deploymentContext.branchName,
-          commit_sha: data.deploymentContext.commitSha,
-          environment: data.deploymentContext.environment,
-          is_canary: data.deploymentContext.isCanary,
-          test_score: data.validationResult.score,
-          test_passed: data.validationResult.passed,
-          success_rate: data.testReport.summary.successRate,
-          total_tests: data.testReport.summary.totalTests,
-          failed_tests: data.testReport.summary.failedTests,
-          avg_duration: data.testReport.summary.averageDuration,
-          feature_flags: data.featureFlags.map((f) => f.flagKey),
-          timestamp: new Date().toISOString(),
-        },
-      };
-
-      // Send to PostHog via API
-      await this.sendEventToPostHog(event);
-
-      console.log("📊 Canary results reported to PostHog for monitoring");
-    } catch (error) {
-      console.error("❌ Failed to report canary results to PostHog:", error);
-    }
-  }
-
-  /**
-   * Update PostHog feature flag configuration
-   */
-  private async updatePostHogFeatureFlag(config: {
-    key: string;
-    name: string;
-    filters: any;
-  }): Promise<void> {
-    const response = await fetch(
-      `https://app.posthog.com/api/projects/${this.posthogProjectId}/feature_flags/`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${this.posthogApiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          key: config.key,
-          name: config.name,
-          filters: config.filters,
-          active: true,
-        }),
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error(
-        `Failed to update PostHog feature flag: ${response.statusText}`
-      );
-    }
-  }
-
-  /**
-   * Send event to PostHog for tracking
-   */
-  private async sendEventToPostHog(event: any): Promise<void> {
-    const response = await fetch("https://app.posthog.com/capture/", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        api_key: this.posthogApiKey,
-        event: event.event,
-        properties: event.properties,
-        distinct_id: event.distinct_id,
-        timestamp: new Date().toISOString(),
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error(
-        `Failed to send event to PostHog: ${response.statusText}`
-      );
-    }
-  }
-
-  /**
-   * Execute automated canary rollout based on test results
-   *
-   * @business-context Automatically adjusts feature flag rollout percentages
-   *                   based on canary test performance and validation criteria
-   */
-  async executeAutomatedRollout(
-    canaryResult: CanaryTestResult,
-    autoRolloutConfig: {
-      enabled: boolean;
-      maxRolloutPercentage: number;
-      incrementPercentage: number;
-      rollbackThreshold: number;
-    }
-  ): Promise<void> {
-    if (!autoRolloutConfig.enabled) {
-      console.log(
-        "🔒 Automated rollout disabled. Manual intervention required."
-      );
-      return;
-    }
-
-    for (const recommendation of canaryResult.recommendations) {
-      if (recommendation.type === "rollout" && recommendation.flagKey) {
-        const currentFlag = canaryResult.featureFlags.find(
-          (f) => f.flagKey === recommendation.flagKey
-        );
-        if (!currentFlag) continue;
-
-        const newRolloutPercentage = Math.min(
-          currentFlag.rolloutPercentage + autoRolloutConfig.incrementPercentage,
-          autoRolloutConfig.maxRolloutPercentage
-        );
-
-        await this.updateFeatureFlagRollout(
-          recommendation.flagKey,
-          newRolloutPercentage
-        );
-
-        console.log(
-          `🎯 Auto-increased rollout for ${recommendation.flagKey}: ` +
-            `${currentFlag.rolloutPercentage}% → ${newRolloutPercentage}%`
-        );
-      } else if (recommendation.type === "rollback" && recommendation.flagKey) {
-        await this.updateFeatureFlagRollout(recommendation.flagKey, 0);
-
-        console.log(
-          `🛑 Auto-disabled feature flag ${recommendation.flagKey} due to poor performance`
-        );
-      }
-    }
-  }
-
-  /**
-   * Update feature flag rollout percentage
-   */
-  private async updateFeatureFlagRollout(
-    flagKey: string,
-    percentage: number
-  ): Promise<void> {
-    try {
-      const response = await fetch(
-        `https://app.posthog.com/api/projects/${this.posthogProjectId}/feature_flags/${flagKey}/`,
-        {
-          method: "PATCH",
-          headers: {
-            Authorization: `Bearer ${this.posthogApiKey}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            filters: {
-              groups: [
-                {
-                  properties: [],
-                  rollout_percentage: percentage,
-                },
-              ],
-            },
-          }),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(
-          `Failed to update feature flag rollout: ${response.statusText}`
-        );
-      }
-    } catch (error) {
-      console.error(`❌ Failed to update rollout for ${flagKey}:`, error);
-    }
   }
 
   /**
@@ -572,12 +267,318 @@ export class VercelPostHogCanaryTesting {
     const deployment = await response.json();
 
     return {
-      deploymentUrl: deployment.url,
-      deploymentId: deployment.uid,
       branchName: deployment.meta?.githubCommitRef || "unknown",
       commitSha: deployment.meta?.githubCommitSha || "unknown",
+      deploymentId: deployment.uid,
+      deploymentUrl: deployment.url,
       environment: deployment.target || "preview",
       isCanary: deployment.meta?.canary || false,
+    };
+  }
+
+  /**
+   * Configure PostHog feature flags specifically for synthetic user testing
+   *
+   * @business-context Ensures synthetic users get proper feature flag values
+   *                   for comprehensive testing without affecting real users
+   */
+  private async configureFeatureFlagsForTesting(
+    flags: PostHogCanaryConfig[]
+  ): Promise<void> {
+    for (const flag of flags) {
+      if (!flag.enabledForSynthetic) continue;
+
+      try {
+        // Create or update feature flag for synthetic testing
+        await this.updatePostHogFeatureFlag({
+          filters: {
+            groups: [
+              {
+                properties: [
+                  {
+                    key: "email",
+                    operator: "icontains",
+                    value: "@synthetic.morning-pod.com", // Synthetic user emails
+                  },
+                ],
+                rollout_percentage: 100, // Always enabled for synthetic users
+              },
+              {
+                properties: [], // Real users
+                rollout_percentage: flag.rolloutPercentage,
+              },
+            ],
+          },
+          key: flag.flagKey,
+          name: `Canary: ${flag.description}`,
+        });
+
+        console.log(
+          `🎯 Configured feature flag: ${flag.flagKey} (${flag.rolloutPercentage}% rollout)`
+        );
+      } catch (error) {
+        console.error(
+          `❌ Failed to configure feature flag ${flag.flagKey}:`,
+          error
+        );
+      }
+    }
+  }
+
+  /**
+   * Generate actionable recommendations based on canary results
+   */
+  private generateCanaryRecommendations(
+    validation: CanaryValidationResult,
+    flags: PostHogCanaryConfig[],
+    deployment: VercelDeploymentContext
+  ): CanaryRecommendation[] {
+    const recommendations: CanaryRecommendation[] = [];
+
+    if (validation.passed && validation.score >= 90) {
+      recommendations.push({
+        action: "Increase feature flag rollout to 50-100%",
+        flagKey: flags[0]?.flagKey,
+        message: "Excellent canary results. Safe to increase rollout.",
+        priority: "high",
+        type: "rollout",
+      });
+    } else if (validation.passed && validation.score >= 80) {
+      recommendations.push({
+        action: "Increase feature flag rollout to 25-50%",
+        flagKey: flags[0]?.flagKey,
+        message: "Good canary results. Gradual rollout recommended.",
+        priority: "medium",
+        type: "rollout",
+      });
+    } else if (validation.score < 60) {
+      recommendations.push({
+        action: "Disable feature flags and investigate issues",
+        flagKey: flags[0]?.flagKey,
+        message: "Poor canary results. Immediate attention required.",
+        priority: "high",
+        type: "rollback",
+      });
+    } else {
+      recommendations.push({
+        action: "Review detailed test results and fix identified issues",
+        message: "Mixed canary results. Further investigation needed.",
+        priority: "medium",
+        type: "investigate",
+      });
+    }
+
+    // Performance-specific recommendations
+    if (!validation.criteria.avgResponseTime.passed) {
+      recommendations.push({
+        action: "Optimize slow endpoints and review resource usage",
+        message: "Performance issues detected in canary testing.",
+        priority: "high",
+        type: "optimize",
+      });
+    }
+
+    // Error rate recommendations
+    if (!validation.criteria.errorRate.passed) {
+      recommendations.push({
+        action: "Review error logs and fix critical bugs before rollout",
+        message: "High error rate detected in canary testing.",
+        priority: "high",
+        type: "investigate",
+      });
+    }
+
+    return recommendations;
+  }
+
+  /**
+   * Report canary testing results to PostHog for monitoring and analysis
+   */
+  private async reportCanaryResultsToPostHog(data: {
+    deploymentContext: VercelDeploymentContext;
+    featureFlags: PostHogCanaryConfig[];
+    testReport: SyntheticTestReport;
+    validationResult: CanaryValidationResult;
+  }): Promise<void> {
+    try {
+      const event = {
+        distinct_id: `deployment_${data.deploymentContext.deploymentId}`,
+        event: "canary_test_completed",
+        properties: {
+          avg_duration: data.testReport.summary.averageDuration,
+          branch_name: data.deploymentContext.branchName,
+          commit_sha: data.deploymentContext.commitSha,
+          deployment_id: data.deploymentContext.deploymentId,
+          deployment_url: data.deploymentContext.deploymentUrl,
+          environment: data.deploymentContext.environment,
+          failed_tests: data.testReport.summary.failedTests,
+          feature_flags: data.featureFlags.map((f) => f.flagKey),
+          is_canary: data.deploymentContext.isCanary,
+          success_rate: data.testReport.summary.successRate,
+          test_passed: data.validationResult.passed,
+          test_score: data.validationResult.score,
+          timestamp: new Date().toISOString(),
+          total_tests: data.testReport.summary.totalTests,
+        },
+      };
+
+      // Send to PostHog via API
+      await this.sendEventToPostHog(event);
+
+      console.log("📊 Canary results reported to PostHog for monitoring");
+    } catch (error) {
+      console.error("❌ Failed to report canary results to PostHog:", error);
+    }
+  }
+
+  /**
+   * Send event to PostHog for tracking
+   */
+  private async sendEventToPostHog(event: any): Promise<void> {
+    const response = await fetch("https://app.posthog.com/capture/", {
+      body: JSON.stringify({
+        api_key: this.posthogApiKey,
+        distinct_id: event.distinct_id,
+        event: event.event,
+        properties: event.properties,
+        timestamp: new Date().toISOString(),
+      }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+      method: "POST",
+    });
+
+    if (!response.ok) {
+      throw new Error(
+        `Failed to send event to PostHog: ${response.statusText}`
+      );
+    }
+  }
+
+  /**
+   * Update feature flag rollout percentage
+   */
+  private async updateFeatureFlagRollout(
+    flagKey: string,
+    percentage: number
+  ): Promise<void> {
+    try {
+      const response = await fetch(
+        `https://app.posthog.com/api/projects/${this.posthogProjectId}/feature_flags/${flagKey}/`,
+        {
+          body: JSON.stringify({
+            filters: {
+              groups: [
+                {
+                  properties: [],
+                  rollout_percentage: percentage,
+                },
+              ],
+            },
+          }),
+          headers: {
+            Authorization: `Bearer ${this.posthogApiKey}`,
+            "Content-Type": "application/json",
+          },
+          method: "PATCH",
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(
+          `Failed to update feature flag rollout: ${response.statusText}`
+        );
+      }
+    } catch (error) {
+      console.error(`❌ Failed to update rollout for ${flagKey}:`, error);
+    }
+  }
+
+  /**
+   * Update PostHog feature flag configuration
+   */
+  private async updatePostHogFeatureFlag(config: {
+    filters: any;
+    key: string;
+    name: string;
+  }): Promise<void> {
+    const response = await fetch(
+      `https://app.posthog.com/api/projects/${this.posthogProjectId}/feature_flags/`,
+      {
+        body: JSON.stringify({
+          active: true,
+          filters: config.filters,
+          key: config.key,
+          name: config.name,
+        }),
+        headers: {
+          Authorization: `Bearer ${this.posthogApiKey}`,
+          "Content-Type": "application/json",
+        },
+        method: "POST",
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `Failed to update PostHog feature flag: ${response.statusText}`
+      );
+    }
+  }
+
+  /**
+   * Validate canary test results against defined criteria
+   */
+  private validateCanaryResults(
+    report: SyntheticTestReport,
+    criteria: CanaryValidationCriteria,
+    testDuration: number
+  ): CanaryValidationResult {
+    const validations = {
+      avgResponseTime: {
+        passed: report.summary.averageDuration <= criteria.maxAvgResponseTime,
+        threshold: criteria.maxAvgResponseTime,
+        value: report.summary.averageDuration,
+      },
+      errorRate: {
+        passed: 1 - report.summary.successRate <= criteria.maxErrorRate,
+        threshold: criteria.maxErrorRate,
+        value: 1 - report.summary.successRate,
+      },
+      requiredScenarios: {
+        passed: criteria.requiredScenarios.every(
+          (scenario) => report.scenarioBreakdown[scenario]?.total > 0
+        ),
+        threshold: criteria.requiredScenarios.length,
+        value: Object.keys(report.scenarioBreakdown).length,
+      },
+      successRate: {
+        passed: report.summary.successRate >= criteria.minSuccessRate,
+        threshold: criteria.minSuccessRate,
+        value: report.summary.successRate,
+      },
+      testDuration: {
+        passed: testDuration >= criteria.minTestDuration * 1000,
+        threshold: criteria.minTestDuration * 1000,
+        value: testDuration,
+      },
+    };
+
+    const passedCount = Object.values(validations).filter(
+      (v) => v.passed
+    ).length;
+    const totalCount = Object.keys(validations).length;
+    const score = Math.round((passedCount / totalCount) * 100);
+    const passed = score >= 80; // 80% threshold for canary approval
+
+    return {
+      criteria: validations,
+      passed,
+      score,
+      summary: passed
+        ? `✅ Canary validation passed (${score}/100). Safe to rollout.`
+        : `⚠️ Canary validation failed (${score}/100). Review required.`,
     };
   }
 }
@@ -607,10 +608,10 @@ export function createVercelPostHogCanaryTesting(
   }
 
   return new VercelPostHogCanaryTesting({
+    baseUrl,
     posthogApiKey,
     posthogProjectId,
     vercelApiKey,
-    baseUrl,
   });
 }
 
@@ -627,25 +628,25 @@ export async function runQuickCanaryValidation(
   const canaryTesting = createVercelPostHogCanaryTesting(deploymentUrl);
 
   const deploymentContext: VercelDeploymentContext = {
-    deploymentUrl,
-    deploymentId: "quick-validation",
     branchName: process.env.GITHUB_HEAD_REF || "main",
     commitSha: process.env.GITHUB_SHA || "unknown",
+    deploymentId: "quick-validation",
+    deploymentUrl,
     environment: "preview",
     isCanary: true,
   };
 
   const criteria: CanaryValidationCriteria = {
-    minSuccessRate: 0.95,
-    maxErrorRate: 0.05,
+    criticalPaths: ["/episodes", "/queue", "/sources"],
     maxAvgResponseTime: 5000,
+    maxErrorRate: 0.05,
+    minSuccessRate: 0.95,
     minTestDuration: 30,
     requiredScenarios: [
       TestScenario.NAVIGATION_FLOW,
       TestScenario.EPISODE_GENERATION,
       TestScenario.AUDIO_PLAYBACK,
     ],
-    criticalPaths: ["/episodes", "/queue", "/sources"],
   };
 
   const result = await canaryTesting.executeCanaryTesting(

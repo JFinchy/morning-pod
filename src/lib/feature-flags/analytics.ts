@@ -3,129 +3,129 @@
  * Provides utilities for user identification, event tracking, and analytics
  */
 
-import type { PostHog } from "posthog-js";
+import { type PostHog } from "posthog-js";
 
 // Event types for type safety
 export interface AnalyticsEvents {
-  // User events
-  "user-signed-in": {
-    userId: string;
-    email?: string;
-    method: "email" | "oauth" | "magic-link";
-  };
-  "user-signed-out": {
-    userId: string;
-    sessionDuration?: number;
-  };
-  "user-profile-updated": {
-    userId: string;
-    fields: string[];
-  };
-
-  // Podcast Generation Events
-  "podcast-generation-started": {
-    sourceId: string;
-    sourceName: string;
-    estimatedDuration?: number;
-  };
-  "podcast-generation-completed": {
-    sourceId: string;
-    sourceName: string;
-    duration: number;
-    audioLength?: number;
-    cost?: number;
-  };
-  "podcast-generation-failed": {
-    sourceId: string;
-    sourceName: string;
-    error: string;
-    duration?: number;
-  };
-
-  // Content Events
-  "content-scraped": {
-    sourceId: string;
-    sourceName: string;
-    articlesCount: number;
-    duration: number;
-  };
-  "content-summarized": {
-    sourceId: string;
-    wordCount: number;
-    summaryLength: number;
-    model: string;
-    cost?: number;
-    qualityScore?: number;
-  };
   "audio-generated": {
+    audioLength: number;
+    cost?: number;
     sourceId: string;
     textLength: number;
-    audioLength: number;
     voice: string;
-    cost?: number;
+  };
+  "component-interacted": {
+    action: string;
+    component: string;
+    variant?: string;
+  };
+  // Content Events
+  "content-scraped": {
+    articlesCount: number;
+    duration: number;
+    sourceId: string;
+    sourceName: string;
   };
 
-  // Player Events
-  "episode-played": {
-    episodeId: string;
+  "content-summarized": {
+    cost?: number;
+    model: string;
+    qualityScore?: number;
     sourceId: string;
-    position?: number;
-  };
-  "episode-paused": {
-    episodeId: string;
-    position: number;
-    watchTime: number;
+    summaryLength: number;
+    wordCount: number;
   };
   "episode-completed": {
+    completionRate: number;
     episodeId: string;
     totalDuration: number;
     watchTime: number;
-    completionRate: number;
   };
   "episode-downloaded": {
     episodeId: string;
     sourceId: string;
   };
 
-  // Feature Flag Events
-  "feature-flag-evaluated": {
-    flagKey: string;
-    flagValue: boolean | string;
-    source: "posthog" | "environment" | "default";
+  "episode-paused": {
+    episodeId: string;
+    position: number;
+    watchTime: number;
+  };
+  // Player Events
+  "episode-played": {
+    episodeId: string;
+    position?: number;
+    sourceId: string;
+  };
+  "error-occurred": {
+    component?: string;
+    error: string;
+    page?: string;
+    userId?: string;
+  };
+
+  "experiment-converted": {
+    conversionType: string;
+    experimentKey: string;
+    variant: string;
   };
   "experiment-viewed": {
     experimentKey: string;
     variant: string;
   };
-  "experiment-converted": {
-    experimentKey: string;
-    variant: string;
-    conversionType: string;
+  // Feature Flag Events
+  "feature-flag-evaluated": {
+    flagKey: string;
+    flagValue: boolean | string;
+    source: "default" | "environment" | "posthog";
   };
-
   // UI Events
   "page-viewed": {
     page: string;
     referrer?: string;
   };
-  "component-interacted": {
-    component: string;
-    action: string;
-    variant?: string;
-  };
-  "error-occurred": {
-    error: string;
-    component?: string;
-    page?: string;
-    userId?: string;
-  };
 
   // Performance Events
   "performance-metric": {
-    metric: string;
-    value: number;
-    page?: string;
     component?: string;
+    metric: string;
+    page?: string;
+    value: number;
+  };
+  "podcast-generation-completed": {
+    audioLength?: number;
+    cost?: number;
+    duration: number;
+    sourceId: string;
+    sourceName: string;
+  };
+  "podcast-generation-failed": {
+    duration?: number;
+    error: string;
+    sourceId: string;
+    sourceName: string;
+  };
+
+  // Podcast Generation Events
+  "podcast-generation-started": {
+    estimatedDuration?: number;
+    sourceId: string;
+    sourceName: string;
+  };
+  "user-profile-updated": {
+    fields: string[];
+    userId: string;
+  };
+  // User events
+  "user-signed-in": {
+    email?: string;
+    method: "email" | "magic-link" | "oauth";
+    userId: string;
+  };
+
+  "user-signed-out": {
+    sessionDuration?: number;
+    userId: string;
   };
 }
 
@@ -136,25 +136,25 @@ export type EventProperties<T extends EventName> = AnalyticsEvents[T];
  * User properties for identification
  */
 export interface UserProperties {
-  userId: string;
   email?: string;
-  name?: string;
-  subscriptionTier?: "free" | "premium";
-  signupDate?: string;
   lastActiveDate?: string;
-  totalEpisodesGenerated?: number;
-  totalListenTime?: number;
+  name?: string;
   preferredSources?: string[];
   preferredVoices?: string[];
+  signupDate?: string;
+  subscriptionTier?: "free" | "premium";
+  totalEpisodesGenerated?: number;
+  totalListenTime?: number;
+  userId: string;
 }
 
 /**
  * Analytics service class
  */
 export class AnalyticsService {
-  private posthog: PostHog | null;
+  private posthog: null | PostHog;
 
-  constructor(posthog: PostHog | null) {
+  constructor(posthog: null | PostHog) {
     this.posthog = posthog;
   }
 
@@ -178,29 +178,15 @@ export class AnalyticsService {
   }
 
   /**
-   * Track an analytics event
+   * Reset user session (on logout)
    */
-  track<T extends EventName>(
-    eventName: T,
-    properties: EventProperties<T>
-  ): void {
+  reset(): void {
     if (!this.posthog) {
-      console.warn(`PostHog not initialized - skipping event: ${eventName}`);
+      console.warn("PostHog not initialized - skipping reset");
       return;
     }
 
-    // Add common properties
-    const enrichedProperties = {
-      ...properties,
-      timestamp: new Date().toISOString(),
-      userAgent:
-        typeof window !== "undefined" ? navigator.userAgent : undefined,
-      url: typeof window !== "undefined" ? window.location.href : undefined,
-    };
-
-    this.posthog.capture(eventName, enrichedProperties);
-
-    console.log(`Event tracked: ${eventName}`, enrichedProperties);
+    this.posthog.reset();
   }
 
   /**
@@ -216,15 +202,104 @@ export class AnalyticsService {
   }
 
   /**
-   * Reset user session (on logout)
+   * Track an analytics event
    */
-  reset(): void {
+  track<T extends EventName>(
+    eventName: T,
+    properties: EventProperties<T>
+  ): void {
     if (!this.posthog) {
-      console.warn("PostHog not initialized - skipping reset");
+      console.warn(`PostHog not initialized - skipping event: ${eventName}`);
       return;
     }
 
-    this.posthog.reset();
+    // Add common properties
+    const enrichedProperties = {
+      ...properties,
+      timestamp: new Date().toISOString(),
+      url: typeof window !== "undefined" ? window.location.href : undefined,
+      userAgent:
+        typeof window !== "undefined" ? navigator.userAgent : undefined,
+    };
+
+    this.posthog.capture(eventName, enrichedProperties);
+
+    console.log(`Event tracked: ${eventName}`, enrichedProperties);
+  }
+
+  /**
+   * Track error
+   */
+  trackError(
+    error: Error | string,
+    context?: {
+      component?: string;
+      page?: string;
+      userId?: string;
+    }
+  ): void {
+    const errorMessage = error instanceof Error ? error.message : error;
+
+    this.track("error-occurred", {
+      component: context?.component,
+      error: errorMessage,
+      page: context?.page,
+      userId: context?.userId,
+    });
+  }
+
+  trackExperimentConversion(
+    experimentKey: string,
+    variant: string,
+    conversionType: string
+  ): void {
+    this.track("experiment-converted", {
+      conversionType,
+      experimentKey,
+      variant,
+    });
+  }
+
+  /**
+   * Track experiment events
+   */
+  trackExperimentView(experimentKey: string, variant: string): void {
+    this.track("experiment-viewed", {
+      experimentKey,
+      variant,
+    });
+  }
+
+  /**
+   * Track feature flag evaluation
+   */
+  trackFeatureFlag(
+    flagKey: string,
+    flagValue: boolean | string,
+    source: "default" | "environment" | "posthog"
+  ): void {
+    this.track("feature-flag-evaluated", {
+      flagKey,
+      flagValue,
+      source,
+    });
+  }
+
+  /**
+   * Track component interaction
+   */
+  trackInteraction(
+    component: string,
+    action: string,
+    variant?: string,
+    properties?: Record<string, unknown>
+  ): void {
+    this.track("component-interacted", {
+      action,
+      component,
+      variant,
+      ...properties,
+    });
   }
 
   /**
@@ -239,96 +314,21 @@ export class AnalyticsService {
   }
 
   /**
-   * Track component interaction
-   */
-  trackInteraction(
-    component: string,
-    action: string,
-    variant?: string,
-    properties?: Record<string, unknown>
-  ): void {
-    this.track("component-interacted", {
-      component,
-      action,
-      variant,
-      ...properties,
-    });
-  }
-
-  /**
-   * Track error
-   */
-  trackError(
-    error: string | Error,
-    context?: {
-      component?: string;
-      page?: string;
-      userId?: string;
-    }
-  ): void {
-    const errorMessage = error instanceof Error ? error.message : error;
-
-    this.track("error-occurred", {
-      error: errorMessage,
-      component: context?.component,
-      page: context?.page,
-      userId: context?.userId,
-    });
-  }
-
-  /**
    * Track performance metric
    */
   trackPerformance(
     metric: string,
     value: number,
     context?: {
-      page?: string;
       component?: string;
+      page?: string;
     }
   ): void {
     this.track("performance-metric", {
-      metric,
-      value,
-      page: context?.page,
       component: context?.component,
-    });
-  }
-
-  /**
-   * Track feature flag evaluation
-   */
-  trackFeatureFlag(
-    flagKey: string,
-    flagValue: boolean | string,
-    source: "posthog" | "environment" | "default"
-  ): void {
-    this.track("feature-flag-evaluated", {
-      flagKey,
-      flagValue,
-      source,
-    });
-  }
-
-  /**
-   * Track experiment events
-   */
-  trackExperimentView(experimentKey: string, variant: string): void {
-    this.track("experiment-viewed", {
-      experimentKey,
-      variant,
-    });
-  }
-
-  trackExperimentConversion(
-    experimentKey: string,
-    variant: string,
-    conversionType: string
-  ): void {
-    this.track("experiment-converted", {
-      experimentKey,
-      variant,
-      conversionType,
+      metric,
+      page: context?.page,
+      value,
     });
   }
 }
@@ -337,7 +337,7 @@ export class AnalyticsService {
  * Create analytics service instance
  */
 export function createAnalyticsService(
-  posthog: PostHog | null
+  posthog: null | PostHog
 ): AnalyticsService {
   return new AnalyticsService(posthog);
 }
@@ -346,8 +346,8 @@ export function createAnalyticsService(
  * Analytics context for user identification
  */
 export interface AnalyticsUser {
-  id: string;
   email?: string;
+  id: string;
   name?: string;
   tier?: "free" | "premium";
 }
@@ -361,14 +361,14 @@ export function getCommonEventProperties() {
   }
 
   return {
-    url: window.location.href,
     pathname: window.location.pathname,
     referrer: document.referrer,
-    userAgent: navigator.userAgent,
     timestamp: new Date().toISOString(),
+    url: window.location.href,
+    userAgent: navigator.userAgent,
     viewport: {
-      width: window.innerWidth,
       height: window.innerHeight,
+      width: window.innerWidth,
     },
   };
 }

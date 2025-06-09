@@ -3,8 +3,8 @@
  * @description Tests the ProcessKiller class functionality
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { execSync } from "child_process";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
 // Mock child_process
 vi.mock("child_process", () => ({
@@ -13,16 +13,16 @@ vi.mock("child_process", () => ({
 
 // Mock @clack/prompts
 vi.mock("@clack/prompts", () => ({
-  intro: vi.fn(),
-  outro: vi.fn(),
-  multiselect: vi.fn(),
   confirm: vi.fn(),
+  intro: vi.fn(),
+  multiselect: vi.fn(),
+  outro: vi.fn(),
 }));
 
 // Mock console methods
 const consoleSpy = {
-  log: vi.spyOn(console, "log").mockImplementation(() => {}),
   error: vi.spyOn(console, "error").mockImplementation(() => {}),
+  log: vi.spyOn(console, "log").mockImplementation(() => {}),
 };
 
 // Import the ProcessKiller class (we need to dynamically import it)
@@ -32,8 +32,10 @@ beforeEach(async () => {
   vi.clearAllMocks();
 
   // Dynamic import to avoid issues with mocked modules
-  const module = await import("../../../tools/scripts/kill-processes");
-  ProcessKiller = (module as any).ProcessKiller;
+  const killProcessesModule = await import(
+    "../../../tools/scripts/kill-processes"
+  );
+  ProcessKiller = (killProcessesModule as any).ProcessKiller;
 });
 
 afterEach(() => {
@@ -48,7 +50,7 @@ describe("ProcessKiller", () => {
   });
 
   describe("findProcesses", () => {
-    it("should return empty array when no processes found", () => {
+    test("should return empty array when no processes found", () => {
       vi.mocked(execSync).mockImplementation(() => {
         throw new Error("No processes found");
       });
@@ -57,7 +59,7 @@ describe("ProcessKiller", () => {
       expect(result).toEqual([]);
     });
 
-    it("should parse process output correctly", () => {
+    test("should parse process output correctly", () => {
       const mockOutput = `user     12345  0.1  0.5  12345  67890 s001  S+   10:30AM   0:01.23 node vitest
 user     12346  0.2  0.4  23456  78901 s002  S+   10:31AM   0:02.34 bun playwright`;
 
@@ -66,16 +68,16 @@ user     12346  0.2  0.4  23456  78901 s002  S+   10:31AM   0:02.34 bun playwrig
       const result = killer.findProcesses();
       expect(result).toHaveLength(2);
       expect(result[0]).toEqual({
-        pid: "12345",
         command: "node vitest",
+        pid: "12345",
       });
       expect(result[1]).toEqual({
-        pid: "12346",
         command: "bun playwright",
+        pid: "12346",
       });
     });
 
-    it("should filter out empty lines", () => {
+    test("should filter out empty lines", () => {
       const mockOutput = `user     12345  0.1  0.5  12345  67890 s001  S+   10:30AM   0:01.23 node vitest
 
 user     12346  0.2  0.4  23456  78901 s002  S+   10:31AM   0:02.34 bun eslint`;
@@ -89,11 +91,11 @@ user     12346  0.2  0.4  23456  78901 s002  S+   10:31AM   0:02.34 bun eslint`;
 
   describe("killSelectedProcesses", () => {
     const mockProcesses = [
-      { pid: "12345", command: "node vitest" },
-      { pid: "12346", command: "bun playwright" },
+      { command: "node vitest", pid: "12345" },
+      { command: "bun playwright", pid: "12346" },
     ];
 
-    it("should kill processes gracefully by default", () => {
+    test("should kill processes gracefully by default", () => {
       killer.killSelectedProcesses(mockProcesses, false);
 
       expect(vi.mocked(execSync)).toHaveBeenCalledWith("kill 12345 12346", {
@@ -104,14 +106,14 @@ user     12346  0.2  0.4  23456  78901 s002  S+   10:31AM   0:02.34 bun eslint`;
       );
     });
 
-    it("should force kill when requested", () => {
+    test("should force kill when requested", () => {
       const forceKillSpy = vi.spyOn(killer, "forceKillPids" as any);
       killer.killSelectedProcesses(mockProcesses, true);
 
       expect(forceKillSpy).toHaveBeenCalledWith(["12345", "12346"]);
     });
 
-    it("should fallback to force kill on graceful failure", () => {
+    test("should fallback to force kill on graceful failure", () => {
       vi.mocked(execSync).mockImplementation(() => {
         throw new Error("Kill failed");
       });
@@ -124,7 +126,7 @@ user     12346  0.2  0.4  23456  78901 s002  S+   10:31AM   0:02.34 bun eslint`;
   });
 
   describe("killProcesses", () => {
-    it("should log message when no processes found", () => {
+    test("should log message when no processes found", () => {
       vi.spyOn(killer, "findProcesses").mockReturnValue([]);
 
       killer.killProcesses();
@@ -134,8 +136,8 @@ user     12346  0.2  0.4  23456  78901 s002  S+   10:31AM   0:02.34 bun eslint`;
       );
     });
 
-    it("should attempt graceful kill by default", () => {
-      const mockProcesses = [{ pid: "12345", command: "node vitest" }];
+    test("should attempt graceful kill by default", () => {
+      const mockProcesses = [{ command: "node vitest", pid: "12345" }];
       vi.spyOn(killer, "findProcesses").mockReturnValue(mockProcesses);
 
       killer.killProcesses(false);
@@ -145,8 +147,8 @@ user     12346  0.2  0.4  23456  78901 s002  S+   10:31AM   0:02.34 bun eslint`;
       });
     });
 
-    it("should force kill when requested", () => {
-      const mockProcesses = [{ pid: "12345", command: "node vitest" }];
+    test("should force kill when requested", () => {
+      const mockProcesses = [{ command: "node vitest", pid: "12345" }];
       vi.spyOn(killer, "findProcesses").mockReturnValue(mockProcesses);
       const forceKillSpy = vi.spyOn(killer, "forceKillPids" as any);
 
@@ -157,7 +159,7 @@ user     12346  0.2  0.4  23456  78901 s002  S+   10:31AM   0:02.34 bun eslint`;
   });
 
   describe("listProcesses", () => {
-    it("should log message when no processes found", () => {
+    test("should log message when no processes found", () => {
       vi.spyOn(killer, "findProcesses").mockReturnValue([]);
 
       killer.listProcesses();
@@ -167,10 +169,10 @@ user     12346  0.2  0.4  23456  78901 s002  S+   10:31AM   0:02.34 bun eslint`;
       );
     });
 
-    it("should list found processes", () => {
+    test("should list found processes", () => {
       const mockProcesses = [
-        { pid: "12345", command: "node vitest --watch" },
-        { pid: "12346", command: "bun playwright test" },
+        { command: "node vitest --watch", pid: "12345" },
+        { command: "bun playwright test", pid: "12346" },
       ];
       vi.spyOn(killer, "findProcesses").mockReturnValue(mockProcesses);
 
@@ -197,25 +199,25 @@ user     12346  0.2  0.4  23456  78901 s002  S+   10:31AM   0:02.34 bun eslint`;
       });
     });
 
-    it("should run listProcesses when --list flag provided", async () => {
+    test("should run listProcesses when --list flag provided", async () => {
       process.argv = ["node", "script.ts", "--list"];
       const listSpy = vi.spyOn(killer, "listProcesses");
 
       await killer.run();
 
-      expect(listSpy).toHaveBeenCalled();
+      expect(listSpy).toHaveBeenCalledWith();
     });
 
-    it("should run interactive mode by default", async () => {
+    test("should run interactive mode by default", async () => {
       process.argv = ["node", "script.ts"];
       const interactiveSpy = vi.spyOn(killer, "killProcessesInteractive");
 
       await killer.run();
 
-      expect(interactiveSpy).toHaveBeenCalled();
+      expect(interactiveSpy).toHaveBeenCalledWith();
     });
 
-    it("should run killProcesses when --force flag provided", async () => {
+    test("should run killProcesses when --force flag provided", async () => {
       process.argv = ["node", "script.ts", "--force"];
       const killSpy = vi.spyOn(killer, "killProcesses");
 
@@ -226,20 +228,20 @@ user     12346  0.2  0.4  23456  78901 s002  S+   10:31AM   0:02.34 bun eslint`;
   });
 
   describe("process patterns", () => {
-    it("should include test-related patterns", () => {
+    test("should include test-related patterns", () => {
       expect(killer.processPatterns).toContain("vitest");
       expect(killer.processPatterns).toContain("playwright");
       expect(killer.processPatterns).toContain("eslint");
     });
 
-    it("should include VSCode-related patterns", () => {
+    test("should include VSCode-related patterns", () => {
       expect(killer.processPatterns).toContain("tsserver");
       expect(killer.processPatterns).toContain("typescript-language-server");
       expect(killer.processPatterns).toContain("vscode-helper");
       expect(killer.processPatterns).toContain("extensionHost");
     });
 
-    it("should include runtime patterns", () => {
+    test("should include runtime patterns", () => {
       expect(killer.processPatterns).toContain("node.*vitest");
       expect(killer.processPatterns).toContain("bun.*playwright");
       expect(killer.processPatterns).toContain("node.*typescript");

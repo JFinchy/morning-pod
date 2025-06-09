@@ -1,41 +1,41 @@
 "use client";
 
-import { Palette, Check } from "lucide-react";
-import { useState, useEffect, useRef } from "react";
+import { Check, Palette } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 
 const themes = [
-  { name: "light", label: "Light", category: "Light" },
-  { name: "dark", label: "Dark", category: "Dark" },
-  { name: "cupcake", label: "Cupcake", category: "Light" },
-  { name: "bumblebee", label: "Bumblebee", category: "Light" },
-  { name: "emerald", label: "Emerald", category: "Light" },
-  { name: "corporate", label: "Corporate", category: "Light" },
-  { name: "synthwave", label: "Synthwave", category: "Dark" },
-  { name: "retro", label: "Retro", category: "Light" },
-  { name: "cyberpunk", label: "Cyberpunk", category: "Dark" },
-  { name: "valentine", label: "Valentine", category: "Light" },
-  { name: "halloween", label: "Halloween", category: "Dark" },
-  { name: "garden", label: "Garden", category: "Light" },
-  { name: "forest", label: "Forest", category: "Dark" },
-  { name: "aqua", label: "Aqua", category: "Light" },
-  { name: "lofi", label: "Lo-Fi", category: "Light" },
-  { name: "pastel", label: "Pastel", category: "Light" },
-  { name: "fantasy", label: "Fantasy", category: "Light" },
-  { name: "wireframe", label: "Wireframe", category: "Light" },
-  { name: "black", label: "Black", category: "Dark" },
-  { name: "luxury", label: "Luxury", category: "Dark" },
-  { name: "dracula", label: "Dracula", category: "Dark" },
-  { name: "cmyk", label: "CMYK", category: "Light" },
-  { name: "autumn", label: "Autumn", category: "Light" },
-  { name: "business", label: "Business", category: "Light" },
-  { name: "acid", label: "Acid", category: "Light" },
-  { name: "lemonade", label: "Lemonade", category: "Light" },
-  { name: "night", label: "Night", category: "Dark" },
-  { name: "coffee", label: "Coffee", category: "Dark" },
-  { name: "winter", label: "Winter", category: "Light" },
-  { name: "dim", label: "Dim", category: "Dark" },
-  { name: "nord", label: "Nord", category: "Light" },
-  { name: "sunset", label: "Sunset", category: "Dark" },
+  { category: "Light", label: "Light", name: "light" },
+  { category: "Dark", label: "Dark", name: "dark" },
+  { category: "Light", label: "Cupcake", name: "cupcake" },
+  { category: "Light", label: "Bumblebee", name: "bumblebee" },
+  { category: "Light", label: "Emerald", name: "emerald" },
+  { category: "Light", label: "Corporate", name: "corporate" },
+  { category: "Dark", label: "Synthwave", name: "synthwave" },
+  { category: "Light", label: "Retro", name: "retro" },
+  { category: "Dark", label: "Cyberpunk", name: "cyberpunk" },
+  { category: "Light", label: "Valentine", name: "valentine" },
+  { category: "Dark", label: "Halloween", name: "halloween" },
+  { category: "Light", label: "Garden", name: "garden" },
+  { category: "Dark", label: "Forest", name: "forest" },
+  { category: "Light", label: "Aqua", name: "aqua" },
+  { category: "Light", label: "Lo-Fi", name: "lofi" },
+  { category: "Light", label: "Pastel", name: "pastel" },
+  { category: "Light", label: "Fantasy", name: "fantasy" },
+  { category: "Light", label: "Wireframe", name: "wireframe" },
+  { category: "Dark", label: "Black", name: "black" },
+  { category: "Dark", label: "Luxury", name: "luxury" },
+  { category: "Dark", label: "Dracula", name: "dracula" },
+  { category: "Light", label: "CMYK", name: "cmyk" },
+  { category: "Light", label: "Autumn", name: "autumn" },
+  { category: "Light", label: "Business", name: "business" },
+  { category: "Light", label: "Acid", name: "acid" },
+  { category: "Light", label: "Lemonade", name: "lemonade" },
+  { category: "Dark", label: "Night", name: "night" },
+  { category: "Dark", label: "Coffee", name: "coffee" },
+  { category: "Light", label: "Winter", name: "winter" },
+  { category: "Dark", label: "Dim", name: "dim" },
+  { category: "Light", label: "Nord", name: "nord" },
+  { category: "Dark", label: "Sunset", name: "sunset" },
 ];
 
 export function ThemeSwitcherCompact() {
@@ -84,11 +84,11 @@ export function ThemeSwitcherCompact() {
   return (
     <div className="relative">
       <button
-        ref={buttonRef}
+        aria-label="Change Theme"
         className="btn btn-ghost btn-circle tooltip tooltip-left"
         data-tip="Change Theme"
-        aria-label="Change Theme"
         onClick={() => setIsOpen(!isOpen)}
+        ref={buttonRef}
       >
         <Palette className="w-5 h-5" />
       </button>
@@ -127,12 +127,12 @@ export function ThemeSwitcherCompact() {
               {/* Dark Theme Items */}
               {darkThemes.map((theme) => (
                 <button
-                  key={theme.name}
                   className={`flex items-center gap-1.5 w-full text-xs py-1 px-2 rounded hover:bg-base-200 transition-colors ${
                     currentTheme === theme.name
                       ? "bg-primary/10 text-primary"
                       : ""
                   }`}
+                  key={theme.name}
                   onClick={() => handleThemeChange(theme.name)}
                 >
                   <div
@@ -158,12 +158,12 @@ export function ThemeSwitcherCompact() {
               {/* Light Theme Items */}
               {lightThemes.map((theme) => (
                 <button
-                  key={theme.name}
                   className={`flex items-center gap-1.5 w-full text-xs py-1 px-2 rounded hover:bg-base-200 transition-colors ${
                     currentTheme === theme.name
                       ? "bg-primary/10 text-primary"
                       : ""
                   }`}
+                  key={theme.name}
                   onClick={() => handleThemeChange(theme.name)}
                 >
                   <div
@@ -186,14 +186,14 @@ export function ThemeSwitcherCompact() {
       {/* Hidden theme controller inputs for daisyUI */}
       {themes.map((theme) => (
         <input
-          key={theme.name}
-          type="radio"
-          name="theme-dropdown"
-          className="theme-controller sr-only"
           aria-label={theme.label}
-          value={theme.name}
           checked={currentTheme === theme.name}
+          className="theme-controller sr-only"
+          key={theme.name}
+          name="theme-dropdown"
           onChange={() => handleThemeChange(theme.name)}
+          type="radio"
+          value={theme.name}
         />
       ))}
     </div>

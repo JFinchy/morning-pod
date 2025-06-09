@@ -1,29 +1,29 @@
 "use client";
 
 import {
-  Eye,
-  EyeOff,
-  Settings,
-  Globe,
-  Clock,
-  Zap,
-  MoreVertical,
-  Heart,
-  TrendingUp,
   AlertCircle,
   CheckCircle2,
+  Clock,
+  Eye,
+  EyeOff,
+  Globe,
+  Heart,
+  MoreVertical,
+  Settings,
+  TrendingUp,
+  Zap,
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import { MainLayout } from "@/components/layouts";
 import { Button } from "@/components/ui";
-import type { Source } from "@/lib/db/schema";
+import { type Source } from "@/lib/db/schema";
 import { api } from "@/lib/trpc/client";
 import {
   getHiddenSources,
   hideSource,
-  showSource,
   isSourceHidden,
+  showSource,
 } from "@/lib/utils/local-storage";
 
 interface SourceWithStats extends Source {
@@ -40,8 +40,8 @@ export default function SourcesPage() {
   // Fetch sources
   const {
     data: sourcesData,
-    isLoading,
     error,
+    isLoading,
   } = api.sources.getAll.useQuery({});
 
   useEffect(() => {
@@ -79,7 +79,7 @@ export default function SourcesPage() {
       <MainLayout>
         <div className="container mx-auto px-4 py-8">
           <div className="flex items-center justify-center min-h-96">
-            <div className="loading loading-spinner loading-lg text-primary"></div>
+            <div className="loading loading-spinner loading-lg text-primary" />
           </div>
         </div>
       </MainLayout>
@@ -137,10 +137,10 @@ export default function SourcesPage() {
             <div className="flex gap-2">
               {hiddenCount > 0 && (
                 <Button
+                  className="gap-2"
+                  onClick={() => setShowHidden(!showHidden)}
                   size="sm"
                   variant={showHidden ? "primary" : "secondary"}
-                  onClick={() => setShowHidden(!showHidden)}
-                  className="gap-2"
                 >
                   {showHidden ? (
                     <Eye className="w-4 h-4" />
@@ -160,10 +160,10 @@ export default function SourcesPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {visibleSources.map((source) => (
             <SourceCard
-              key={source.id}
-              source={source}
               isHidden={isSourceHidden(source.id)}
+              key={source.id}
               onToggleVisibility={toggleSourceVisibility}
+              source={source}
             />
           ))}
         </div>
@@ -189,12 +189,12 @@ export default function SourcesPage() {
 }
 
 interface SourceCardProps {
-  source: SourceWithStats;
   isHidden: boolean;
   onToggleVisibility: (sourceId: string) => void;
+  source: SourceWithStats;
 }
 
-function SourceCard({ source, isHidden, onToggleVisibility }: SourceCardProps) {
+function SourceCard({ isHidden, onToggleVisibility, source }: SourceCardProps) {
   const getStatusIcon = () => {
     if (!source.active) return <AlertCircle className="w-5 h-5 text-error" />;
     return <CheckCircle2 className="w-5 h-5 text-success" />;
@@ -235,10 +235,10 @@ function SourceCard({ source, isHidden, onToggleVisibility }: SourceCardProps) {
           </div>
 
           <Button
-            size="sm"
             btnStyle="ghost"
             className="w-8 h-8 p-0"
             onClick={() => onToggleVisibility(source.id)}
+            size="sm"
             title={isHidden ? "Show source" : "Hide source"}
           >
             {isHidden ? (

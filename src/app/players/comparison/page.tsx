@@ -22,10 +22,10 @@ export default function PlayerComparisonPage() {
 
   const playerVariants = [
     {
-      name: "Traditional Player with Header (V1)",
       component: EpisodePlayerV1,
       description:
         "Classic audio player design with colored header and traditional controls",
+      name: "Traditional Player with Header (V1)",
       strengths: [
         "Familiar interface",
         "Clear time display",
@@ -36,10 +36,10 @@ export default function PlayerComparisonPage() {
         "Users who prefer traditional audio player interfaces with modern visual appeal",
     },
     {
-      name: "Spotify-Inspired (V2)",
       component: EpisodePlayerV2,
       description:
         "Modern streaming-style player with visual emphasis and premium feel",
+      name: "Spotify-Inspired (V2)",
       strengths: [
         "Modern aesthetic",
         "Rich visual feedback",
@@ -48,10 +48,10 @@ export default function PlayerComparisonPage() {
       useCase: "Users who want a premium, visually rich experience",
     },
     {
-      name: "Minimalist Waveform (V3)",
       component: EpisodePlayerV3,
       description:
         "Compact design with waveform visualization and space efficiency",
+      name: "Minimalist Waveform (V3)",
       strengths: ["Space efficient", "Visual waveform", "Clean minimal design"],
       useCase: "Users who prefer compact, functional interfaces",
     },
@@ -64,7 +64,7 @@ export default function PlayerComparisonPage() {
         <div className="container mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Link href="/" className="btn btn-ghost btn-sm">
+              <Link className="btn btn-ghost btn-sm" href="/">
                 <ArrowLeft className="w-4 h-4" />
                 Back
               </Link>
@@ -96,12 +96,12 @@ export default function PlayerComparisonPage() {
             <div className="flex flex-wrap gap-2">
               {mockEpisodes.map((ep, index) => (
                 <button
-                  key={ep.id}
                   className={`btn btn-sm ${
                     selectedEpisodeIndex === index
                       ? "btn-primary"
                       : "btn-outline"
                   }`}
+                  key={ep.id}
                   onClick={() => setSelectedEpisodeIndex(index)}
                 >
                   {ep.title}
@@ -120,12 +120,12 @@ export default function PlayerComparisonPage() {
               <div className="flex items-center gap-2">
                 <span className="text-sm">Current Time:</span>
                 <input
-                  type="range"
-                  min="0"
-                  max={duration}
-                  value={currentTime}
-                  onChange={(e) => setCurrentTime(Number(e.target.value))}
                   className="range range-primary range-sm"
+                  max={duration}
+                  min="0"
+                  onChange={(e) => setCurrentTime(Number(e.target.value))}
+                  type="range"
+                  value={currentTime}
                 />
                 <span className="text-sm text-base-content/60">
                   {Math.floor(currentTime / 60)}:
@@ -142,7 +142,7 @@ export default function PlayerComparisonPage() {
             const PlayerComponent = variant.component;
 
             return (
-              <div key={index} className="space-y-4">
+              <div className="space-y-4" key={index}>
                 {/* Variant Info */}
                 <div className="card bg-base-100 shadow-sm">
                   <div className="card-body p-4">
@@ -180,14 +180,14 @@ export default function PlayerComparisonPage() {
                 {/* Player Component */}
                 <div className="space-y-2">
                   <PlayerComponent
+                    currentTime={currentTime}
+                    duration={duration}
                     episode={episode}
                     isPlaying={isPlaying}
                     onPlayPause={() => setIsPlaying(!isPlaying)}
-                    currentTime={currentTime}
-                    duration={duration}
                     onSeek={setCurrentTime}
-                    volume={volume}
                     onVolumeChange={setVolume}
+                    volume={volume}
                   />
                 </div>
               </div>

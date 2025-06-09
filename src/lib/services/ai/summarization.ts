@@ -11,11 +11,11 @@ import { z } from "zod";
  * @decision-by Product team after quality comparison testing
  */
 const AI_CONFIG = {
-  model: "gpt-4" as const,
-  maxTokens: 2000, // ~1600 words, optimal for 5-10 min TTS audio
-  temperature: 0.3, // Consistent, factual tone
-  maxRetries: 3,
   baseDelay: 1000, // 1 second base retry delay
+  maxRetries: 3,
+  maxTokens: 2000, // ~1600 words, optimal for 5-10 min TTS audio
+  model: "gpt-4" as const,
+  temperature: 0.3, // Consistent, factual tone
 } as const;
 
 /**
@@ -33,18 +33,18 @@ const PRICING = {
  * Validation schemas for summarization inputs and outputs
  */
 const ContentSchema = z.object({
-  title: z.string().min(1, "Title is required"),
   content: z.string().min(100, "Content must be at least 100 characters"),
-  source: z.string().min(1, "Source is required"),
-  url: z.string().url("Valid URL is required"),
   publishedAt: z.date().optional(),
+  source: z.string().min(1, "Source is required"),
+  title: z.string().min(1, "Title is required"),
+  url: z.string().url("Valid URL is required"),
 });
 
 const SummarySchema = z.object({
-  title: z.string().min(1),
-  summary: z.string().min(50),
-  keyPoints: z.array(z.string()).min(1).max(5),
   estimatedReadTime: z.number().positive(),
+  keyPoints: z.array(z.string()).min(1).max(5),
+  summary: z.string().min(50),
+  title: z.string().min(1),
   ttsOptimizedContent: z.string().min(50),
 });
 
@@ -55,14 +55,14 @@ export type SummaryOutput = z.infer<typeof SummarySchema>;
  * Cost tracking interface for summarization operations
  */
 export interface SummarizationCost {
-  inputTokens: number;
-  outputTokens: number;
-  totalTokens: number;
   inputCost: number;
-  outputCost: number;
-  totalCost: number;
+  inputTokens: number;
   model: string;
+  outputCost: number;
+  outputTokens: number;
   timestamp: Date;
+  totalCost: number;
+  totalTokens: number;
 }
 
 /**
@@ -72,10 +72,10 @@ export class SummarizationError extends Error {
   constructor(
     message: string,
     public readonly code:
-      | "VALIDATION_ERROR"
       | "API_ERROR"
+      | "CONTENT_TOO_LONG"
       | "RETRY_EXHAUSTED"
-      | "CONTENT_TOO_LONG",
+      | "VALIDATION_ERROR",
     public readonly originalError?: Error
   ) {
     super(message);
@@ -93,8 +93,8 @@ export class SummarizationError extends Error {
  *                   smooth transitions for better listener experience.
  */
 export class SummarizationService {
-  private openai: OpenAI;
   private costTracker: SummarizationCost[] = [];
+  private openai: OpenAI;
 
   constructor(apiKey?: string) {
     if (!apiKey && !process.env.OPENAI_API_KEY) {
@@ -110,6 +110,30 @@ export class SummarizationService {
   }
 
   /**
+   * Get service configuration
+   * @business-context Exposed for monitoring and debugging
+   */
+  static getConfig() {
+    return AI_CONFIG;
+  }
+
+  /**
+   * Get current pricing information
+   * @business-context Exposed for cost monitoring and budgeting
+   */
+  static getPricing() {
+    return PRICING;
+  }
+
+  /**
+   * Clear cost tracking history
+   * @business-context Used for periodic cleanup and memory management
+   */
+  clearCostHistory(): void {
+    this.costTracker = [];
+  }
+
+  /**
    * Generate a podcast-friendly summary from content
    *
    * @business-context Creates summaries optimized for voice synthesis with
@@ -121,8 +145,8 @@ export class SummarizationService {
    * @throws SummarizationError for validation or API failures
    */
   async generateSummary(content: ContentInput): Promise<{
-    summary: SummaryOutput;
     cost: SummarizationCost;
+    summary: SummaryOutput;
   }> {
     // Validate input
     const validatedContent = ContentSchema.parse(content);
@@ -147,25 +171,25 @@ export class SummarizationService {
         const startTime = Date.now();
 
         const completion = await this.openai.chat.completions.create({
-          model: AI_CONFIG.model,
+          max_tokens: AI_CONFIG.maxTokens,
           messages: [
             {
-              role: "system",
               content: `You are a professional podcast script writer specializing in tech news. 
                        Create engaging, conversational summaries optimized for AI voice synthesis.
                        Use natural speech patterns, clear pronunciation, and smooth transitions.`,
+              role: "system",
             },
             {
-              role: "user",
               content: prompt,
+              role: "user",
             },
           ],
-          max_tokens: AI_CONFIG.maxTokens,
-          temperature: AI_CONFIG.temperature,
+          model: AI_CONFIG.model,
           response_format: { type: "json_object" },
+          temperature: AI_CONFIG.temperature,
         });
 
-        const usage = completion.usage;
+        const { usage } = completion;
         if (!usage) {
           throw new SummarizationError(
             "No usage information returned",
@@ -194,23 +218,23 @@ export class SummarizationService {
 
         // Calculate costs
         const cost: SummarizationCost = {
-          inputTokens: usage.prompt_tokens,
-          outputTokens: usage.completion_tokens,
-          totalTokens: usage.total_tokens,
           inputCost:
             (usage.prompt_tokens / 1000) * PRICING[AI_CONFIG.model].input,
+          inputTokens: usage.prompt_tokens,
+          model: AI_CONFIG.model,
           outputCost:
             (usage.completion_tokens / 1000) * PRICING[AI_CONFIG.model].output,
-          totalCost: 0, // Will be calculated below
-          model: AI_CONFIG.model,
+          outputTokens: usage.completion_tokens,
           timestamp: new Date(startTime),
+          totalCost: 0, // Will be calculated below
+          totalTokens: usage.total_tokens,
         };
         cost.totalCost = cost.inputCost + cost.outputCost;
 
         // Track cost for monitoring
         this.costTracker.push(cost);
 
-        return { summary, cost };
+        return { cost, summary };
       } catch (error) {
         lastError = error as Error;
 
@@ -219,7 +243,7 @@ export class SummarizationService {
         }
 
         // Exponential backoff delay
-        const delay = AI_CONFIG.baseDelay * Math.pow(2, attempt - 1);
+        const delay = AI_CONFIG.baseDelay * 2 ** (attempt - 1);
         await this.sleep(delay);
       }
     }
@@ -229,6 +253,63 @@ export class SummarizationService {
       "RETRY_EXHAUSTED",
       lastError || undefined
     );
+  }
+
+  /**
+   * Get cost tracking history
+   * @business-context Provides cost analytics and budget monitoring
+   */
+  getCostHistory(): SummarizationCost[] {
+    return [...this.costTracker];
+  }
+
+  /**
+   * Get total costs for a date range
+   * @business-context Used for budget reporting and cost analysis
+   */
+  getTotalCosts(
+    startDate?: Date,
+    endDate?: Date
+  ): {
+    requestCount: number;
+    totalCost: number;
+    totalTokens: number;
+  } {
+    let filteredCosts = this.costTracker;
+
+    if (startDate) {
+      filteredCosts = filteredCosts.filter(
+        (cost) => cost.timestamp >= startDate
+      );
+    }
+
+    if (endDate) {
+      filteredCosts = filteredCosts.filter((cost) => cost.timestamp <= endDate);
+    }
+
+    return {
+      requestCount: filteredCosts.length,
+      totalCost: filteredCosts.reduce((sum, cost) => sum + cost.totalCost, 0),
+      totalTokens: filteredCosts.reduce(
+        (sum, cost) => sum + cost.totalTokens,
+        0
+      ),
+    };
+  }
+
+  /**
+   * Validate API key and connection
+   *
+   * @business-context Used during service initialization to ensure
+   *                   configuration is correct before attempting operations
+   */
+  async validateConnection(): Promise<boolean> {
+    try {
+      await this.openai.models.list();
+      return true;
+    } catch (error) {
+      return false;
+    }
   }
 
   /**
@@ -294,87 +375,6 @@ Create a JSON response with the following structure:
    */
   private sleep(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
-  }
-
-  /**
-   * Validate API key and connection
-   *
-   * @business-context Used during service initialization to ensure
-   *                   configuration is correct before attempting operations
-   */
-  async validateConnection(): Promise<boolean> {
-    try {
-      await this.openai.models.list();
-      return true;
-    } catch (error) {
-      return false;
-    }
-  }
-
-  /**
-   * Get cost tracking history
-   * @business-context Provides cost analytics and budget monitoring
-   */
-  getCostHistory(): SummarizationCost[] {
-    return [...this.costTracker];
-  }
-
-  /**
-   * Get total costs for a date range
-   * @business-context Used for budget reporting and cost analysis
-   */
-  getTotalCosts(
-    startDate?: Date,
-    endDate?: Date
-  ): {
-    totalCost: number;
-    totalTokens: number;
-    requestCount: number;
-  } {
-    let filteredCosts = this.costTracker;
-
-    if (startDate) {
-      filteredCosts = filteredCosts.filter(
-        (cost) => cost.timestamp >= startDate
-      );
-    }
-
-    if (endDate) {
-      filteredCosts = filteredCosts.filter((cost) => cost.timestamp <= endDate);
-    }
-
-    return {
-      totalCost: filteredCosts.reduce((sum, cost) => sum + cost.totalCost, 0),
-      totalTokens: filteredCosts.reduce(
-        (sum, cost) => sum + cost.totalTokens,
-        0
-      ),
-      requestCount: filteredCosts.length,
-    };
-  }
-
-  /**
-   * Clear cost tracking history
-   * @business-context Used for periodic cleanup and memory management
-   */
-  clearCostHistory(): void {
-    this.costTracker = [];
-  }
-
-  /**
-   * Get current pricing information
-   * @business-context Exposed for cost monitoring and budgeting
-   */
-  static getPricing() {
-    return PRICING;
-  }
-
-  /**
-   * Get service configuration
-   * @business-context Exposed for monitoring and debugging
-   */
-  static getConfig() {
-    return AI_CONFIG;
   }
 }
 

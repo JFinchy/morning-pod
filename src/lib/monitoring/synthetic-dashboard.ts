@@ -8,74 +8,75 @@
  * @decision-by Development team for operational visibility
  */
 
-import { useState, useEffect, useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
+
 import {
-  SyntheticTestReport,
-  TestExecutionResult,
-  TestScenario,
-  SyntheticUserType,
   PerformanceMetrics,
+  type SyntheticTestReport,
+  SyntheticUserType,
+  type TestExecutionResult,
+  type TestScenario,
 } from "@/lib/testing/synthetic-users";
 
 /**
  * Dashboard metrics aggregation
  */
 export interface DashboardMetrics {
+  alerts: DashboardAlert[];
   overview: {
-    totalTests: number;
-    successRate: number;
-    averageExecutionTime: number;
     activeUsers: number;
+    averageExecutionTime: number;
     lastUpdated: Date;
+    successRate: number;
+    totalTests: number;
   };
   performance: {
-    averagePageLoadTime: number;
-    averageFCP: number;
-    averageLCP: number;
-    averageINP: number;
     averageCLS: number;
+    averageFCP: number;
+    averageINP: number;
+    averageLCP: number;
+    averagePageLoadTime: number;
     memoryUsage: number;
   };
   scenarios: Record<
     TestScenario,
     {
-      successRate: number;
       averageDuration: number;
       errorRate: number;
       lastRun: Date;
+      successRate: number;
     }
   >;
+  trends: {
+    errorRateHistory: TimeSeriesPoint[];
+    performanceHistory: TimeSeriesPoint[];
+    successRateHistory: TimeSeriesPoint[];
+  };
   userTypes: Record<
     SyntheticUserType,
     {
-      successRate: number;
       averageSessionDuration: number;
       errorCount: number;
+      successRate: number;
       testCount: number;
     }
   >;
-  alerts: DashboardAlert[];
-  trends: {
-    successRateHistory: TimeSeriesPoint[];
-    performanceHistory: TimeSeriesPoint[];
-    errorRateHistory: TimeSeriesPoint[];
-  };
 }
 
 export interface DashboardAlert {
   id: string;
-  severity: "low" | "medium" | "high" | "critical";
-  type: "performance" | "failure" | "error" | "timeout";
   message: string;
-  timestamp: Date;
-  resolved: boolean;
   metadata?: Record<string, any>;
+  resolved: boolean;
+  severity: "critical" | "high" | "low" | "medium";
+  timestamp: Date;
+  type: "error" | "failure" | "performance" | "timeout";
 }
 
 export interface TimeSeriesPoint {
+  metadata?: Record<string, any>;
   timestamp: Date;
   value: number;
-  metadata?: Record<string, any>;
 }
 
 /**
@@ -85,8 +86,8 @@ export interface TimeSeriesPoint {
  *                   enabling rapid response to issues and confident canary deployments
  */
 export class SyntheticDashboard {
-  private metrics: DashboardMetrics;
   private alerts: DashboardAlert[] = [];
+  private metrics: DashboardMetrics;
   private subscribers: ((metrics: DashboardMetrics) => void)[] = [];
   private updateInterval: NodeJS.Timeout | null = null;
 
@@ -95,33 +96,103 @@ export class SyntheticDashboard {
   }
 
   /**
-   * Initialize empty metrics structure
+   * Export metrics for external monitoring systems
+   *
+   * @business-context Provides data in format suitable for Grafana,
+   *                   New Relic, or other monitoring dashboards
    */
-  private initializeMetrics(): DashboardMetrics {
+  exportForMonitoring(): Record<string, any> {
     return {
-      overview: {
-        totalTests: 0,
-        successRate: 0,
-        averageExecutionTime: 0,
-        activeUsers: 0,
-        lastUpdated: new Date(),
-      },
-      performance: {
-        averagePageLoadTime: 0,
-        averageFCP: 0,
-        averageLCP: 0,
-        averageINP: 0,
-        averageCLS: 0,
-        memoryUsage: 0,
-      },
-      scenarios: {} as any,
-      userTypes: {} as any,
-      alerts: [],
-      trends: {
-        successRateHistory: [],
-        performanceHistory: [],
-        errorRateHistory: [],
-      },
+      synthetic_alerts_active: this.getActiveAlerts().length,
+      synthetic_alerts_critical: this.getActiveAlerts().filter(
+        (a) => a.severity === "critical"
+      ).length,
+      synthetic_performance_cls: this.metrics.performance.averageCLS,
+      synthetic_performance_fcp_ms: this.metrics.performance.averageFCP,
+      synthetic_performance_inp_ms: this.metrics.performance.averageINP,
+      synthetic_performance_lcp_ms: this.metrics.performance.averageLCP,
+      synthetic_performance_page_load_ms:
+        this.metrics.performance.averagePageLoadTime,
+      synthetic_tests_active_users: this.metrics.overview.activeUsers,
+      synthetic_tests_avg_duration_ms:
+        this.metrics.overview.averageExecutionTime,
+      synthetic_tests_success_rate: this.metrics.overview.successRate,
+      synthetic_tests_total: this.metrics.overview.totalTests,
+      timestamp: new Date().toISOString(),
+    };
+  }
+
+  /**
+   * Get active alerts
+   */
+  getActiveAlerts(): DashboardAlert[] {
+    return this.alerts.filter((a) => !a.resolved);
+  }
+
+  /**
+   * Get current metrics
+   */
+  getMetrics(): DashboardMetrics {
+    return { ...this.metrics };
+  }
+
+  /**
+   * Clear all metrics and alerts
+   */
+  reset(): void {
+    this.metrics = this.initializeMetrics();
+    this.alerts = [];
+    this.notifySubscribers();
+  }
+
+  /**
+   * Resolve alert
+   */
+  resolveAlert(alertId: string): void {
+    const alert = this.alerts.find((a) => a.id === alertId);
+    if (alert) {
+      alert.resolved = true;
+    }
+    this.metrics.alerts = this.alerts.filter((a) => !a.resolved);
+    this.notifySubscribers();
+  }
+
+  /**
+   * Start automatic metric updates
+   */
+  startAutoUpdate(intervalMs: number = 30000): void {
+    if (this.updateInterval) {
+      clearInterval(this.updateInterval);
+    }
+
+    this.updateInterval = setInterval(() => {
+      this.metrics.overview.lastUpdated = new Date();
+      this.notifySubscribers();
+    }, intervalMs);
+  }
+
+  /**
+   * Stop automatic updates
+   */
+  stopAutoUpdate(): void {
+    if (this.updateInterval) {
+      clearInterval(this.updateInterval);
+      this.updateInterval = null;
+    }
+  }
+
+  /**
+   * Subscribe to metric updates
+   */
+  subscribe(callback: (metrics: DashboardMetrics) => void): () => void {
+    this.subscribers.push(callback);
+
+    // Return unsubscribe function
+    return () => {
+      const index = this.subscribers.indexOf(callback);
+      if (index > -1) {
+        this.subscribers.splice(index, 1);
+      }
     };
   }
 
@@ -136,11 +207,11 @@ export class SyntheticDashboard {
 
     // Update overview metrics
     this.metrics.overview = {
-      totalTests: report.summary.totalTests,
-      successRate: report.summary.successRate,
-      averageExecutionTime: report.summary.averageDuration,
       activeUsers: Object.keys(report.userBreakdown).length,
+      averageExecutionTime: report.summary.averageDuration,
       lastUpdated: now,
+      successRate: report.summary.successRate,
+      totalTests: report.summary.totalTests,
     };
 
     // Update performance metrics
@@ -163,6 +234,129 @@ export class SyntheticDashboard {
   }
 
   /**
+   * Add new alert
+   */
+  private addAlert(alert: DashboardAlert): void {
+    // Check if similar alert already exists
+    const existingSimilar = this.alerts.find(
+      (a) =>
+        a.type === alert.type &&
+        a.severity === alert.severity &&
+        !a.resolved &&
+        Date.now() - a.timestamp.getTime() < 300000 // 5 minutes
+    );
+
+    if (!existingSimilar) {
+      this.alerts.push(alert);
+    }
+  }
+
+  /**
+   * Check for alert conditions
+   *
+   * @business-context Monitors key metrics for threshold violations
+   *                   enabling rapid response to degraded performance or failures
+   */
+  private checkAlerts(report: SyntheticTestReport): void {
+    const now = new Date();
+
+    // Success rate alert
+    if (report.summary.successRate < 0.95) {
+      this.addAlert({
+        id: `success-rate-${now.getTime()}`,
+        message: `Success rate dropped to ${(report.summary.successRate * 100).toFixed(1)}%`,
+        metadata: { successRate: report.summary.successRate },
+        resolved: false,
+        severity: report.summary.successRate < 0.8 ? "critical" : "high",
+        timestamp: now,
+        type: "failure",
+      });
+    }
+
+    // Performance alert
+    if (report.summary.averageDuration > 30000) {
+      // 30 seconds
+      this.addAlert({
+        id: `performance-${now.getTime()}`,
+        message: `Average execution time is ${Math.round(report.summary.averageDuration / 1000)}s`,
+        metadata: { averageDuration: report.summary.averageDuration },
+        resolved: false,
+        severity:
+          report.summary.averageDuration > 60000 ? "critical" : "medium",
+        timestamp: now,
+        type: "performance",
+      });
+    }
+
+    // Error rate alert
+    const errorRate =
+      report.summary.totalTests > 0
+        ? report.summary.failedTests / report.summary.totalTests
+        : 0;
+
+    if (errorRate > 0.1) {
+      // 10% error rate
+      this.addAlert({
+        id: `error-rate-${now.getTime()}`,
+        message: `Error rate is ${(errorRate * 100).toFixed(1)}%`,
+        metadata: { errorRate },
+        resolved: false,
+        severity: errorRate > 0.2 ? "critical" : "high",
+        timestamp: now,
+        type: "error",
+      });
+    }
+
+    // Clean up old alerts (keep last 50)
+    this.alerts = this.alerts.slice(-50);
+    this.metrics.alerts = this.alerts.filter((a) => !a.resolved);
+  }
+
+  /**
+   * Initialize empty metrics structure
+   */
+  private initializeMetrics(): DashboardMetrics {
+    return {
+      alerts: [],
+      overview: {
+        activeUsers: 0,
+        averageExecutionTime: 0,
+        lastUpdated: new Date(),
+        successRate: 0,
+        totalTests: 0,
+      },
+      performance: {
+        averageCLS: 0,
+        averageFCP: 0,
+        averageINP: 0,
+        averageLCP: 0,
+        averagePageLoadTime: 0,
+        memoryUsage: 0,
+      },
+      scenarios: {} as any,
+      trends: {
+        errorRateHistory: [],
+        performanceHistory: [],
+        successRateHistory: [],
+      },
+      userTypes: {} as any,
+    };
+  }
+
+  /**
+   * Notify all subscribers of updates
+   */
+  private notifySubscribers(): void {
+    for (const callback of this.subscribers) {
+      try {
+        callback(this.metrics);
+      } catch (error) {
+        console.error("Error notifying dashboard subscriber:", error);
+      }
+    }
+  }
+
+  /**
    * Update performance metrics from test results
    */
   private updatePerformanceMetrics(results: TestExecutionResult[]): void {
@@ -177,11 +371,11 @@ export class SyntheticDashboard {
     const avg = (arr: number[]) => arr.reduce((a, b) => a + b, 0) / arr.length;
 
     this.metrics.performance = {
-      averagePageLoadTime: avg(validMetrics.map((m) => m.pageLoadTime)),
-      averageFCP: avg(validMetrics.map((m) => m.firstContentfulPaint)),
-      averageLCP: avg(validMetrics.map((m) => m.largestContentfulPaint)),
-      averageINP: avg(validMetrics.map((m) => m.interactionToNextPaint)),
       averageCLS: avg(validMetrics.map((m) => m.cumulativeLayoutShift)),
+      averageFCP: avg(validMetrics.map((m) => m.firstContentfulPaint)),
+      averageINP: avg(validMetrics.map((m) => m.interactionToNextPaint)),
+      averageLCP: avg(validMetrics.map((m) => m.largestContentfulPaint)),
+      averagePageLoadTime: avg(validMetrics.map((m) => m.pageLoadTime)),
       memoryUsage: avg(validMetrics.map((m) => m.memoryUsage || 0)),
     };
   }
@@ -212,43 +406,10 @@ export class SyntheticDashboard {
           : new Date();
 
       this.metrics.scenarios[scenario as TestScenario] = {
-        successRate: stats.total > 0 ? stats.success / stats.total : 0,
         averageDuration,
         errorRate,
         lastRun,
-      };
-    }
-  }
-
-  /**
-   * Update user type metrics
-   */
-  private updateUserTypeMetrics(report: SyntheticTestReport): void {
-    // This would need to be enhanced with actual user type mapping
-    // For now, we'll create placeholder metrics
-    for (const userType of Object.values(SyntheticUserType)) {
-      const userResults = report.detailedResults.filter(
-        (r) => r.userId.includes(userType) // Simple heuristic
-      );
-
-      const successCount = userResults.filter((r) => r.success).length;
-      const averageSessionDuration =
-        userResults.length > 0
-          ? userResults.reduce((sum, r) => sum + r.duration, 0) /
-            userResults.length
-          : 0;
-
-      const errorCount = userResults.reduce(
-        (sum, r) => sum + r.errors.length,
-        0
-      );
-
-      this.metrics.userTypes[userType] = {
-        successRate:
-          userResults.length > 0 ? successCount / userResults.length : 0,
-        averageSessionDuration,
-        errorCount,
-        testCount: userResults.length,
+        successRate: stats.total > 0 ? stats.success / stats.total : 0,
       };
     }
   }
@@ -291,196 +452,36 @@ export class SyntheticDashboard {
   }
 
   /**
-   * Check for alert conditions
-   *
-   * @business-context Monitors key metrics for threshold violations
-   *                   enabling rapid response to degraded performance or failures
+   * Update user type metrics
    */
-  private checkAlerts(report: SyntheticTestReport): void {
-    const now = new Date();
+  private updateUserTypeMetrics(report: SyntheticTestReport): void {
+    // This would need to be enhanced with actual user type mapping
+    // For now, we'll create placeholder metrics
+    for (const userType of Object.values(SyntheticUserType)) {
+      const userResults = report.detailedResults.filter(
+        (r) => r.userId.includes(userType) // Simple heuristic
+      );
 
-    // Success rate alert
-    if (report.summary.successRate < 0.95) {
-      this.addAlert({
-        id: `success-rate-${now.getTime()}`,
-        severity: report.summary.successRate < 0.8 ? "critical" : "high",
-        type: "failure",
-        message: `Success rate dropped to ${(report.summary.successRate * 100).toFixed(1)}%`,
-        timestamp: now,
-        resolved: false,
-        metadata: { successRate: report.summary.successRate },
-      });
+      const successCount = userResults.filter((r) => r.success).length;
+      const averageSessionDuration =
+        userResults.length > 0
+          ? userResults.reduce((sum, r) => sum + r.duration, 0) /
+            userResults.length
+          : 0;
+
+      const errorCount = userResults.reduce(
+        (sum, r) => sum + r.errors.length,
+        0
+      );
+
+      this.metrics.userTypes[userType] = {
+        averageSessionDuration,
+        errorCount,
+        successRate:
+          userResults.length > 0 ? successCount / userResults.length : 0,
+        testCount: userResults.length,
+      };
     }
-
-    // Performance alert
-    if (report.summary.averageDuration > 30000) {
-      // 30 seconds
-      this.addAlert({
-        id: `performance-${now.getTime()}`,
-        severity:
-          report.summary.averageDuration > 60000 ? "critical" : "medium",
-        type: "performance",
-        message: `Average execution time is ${Math.round(report.summary.averageDuration / 1000)}s`,
-        timestamp: now,
-        resolved: false,
-        metadata: { averageDuration: report.summary.averageDuration },
-      });
-    }
-
-    // Error rate alert
-    const errorRate =
-      report.summary.totalTests > 0
-        ? report.summary.failedTests / report.summary.totalTests
-        : 0;
-
-    if (errorRate > 0.1) {
-      // 10% error rate
-      this.addAlert({
-        id: `error-rate-${now.getTime()}`,
-        severity: errorRate > 0.2 ? "critical" : "high",
-        type: "error",
-        message: `Error rate is ${(errorRate * 100).toFixed(1)}%`,
-        timestamp: now,
-        resolved: false,
-        metadata: { errorRate },
-      });
-    }
-
-    // Clean up old alerts (keep last 50)
-    this.alerts = this.alerts.slice(-50);
-    this.metrics.alerts = this.alerts.filter((a) => !a.resolved);
-  }
-
-  /**
-   * Add new alert
-   */
-  private addAlert(alert: DashboardAlert): void {
-    // Check if similar alert already exists
-    const existingSimilar = this.alerts.find(
-      (a) =>
-        a.type === alert.type &&
-        a.severity === alert.severity &&
-        !a.resolved &&
-        new Date().getTime() - a.timestamp.getTime() < 300000 // 5 minutes
-    );
-
-    if (!existingSimilar) {
-      this.alerts.push(alert);
-    }
-  }
-
-  /**
-   * Subscribe to metric updates
-   */
-  subscribe(callback: (metrics: DashboardMetrics) => void): () => void {
-    this.subscribers.push(callback);
-
-    // Return unsubscribe function
-    return () => {
-      const index = this.subscribers.indexOf(callback);
-      if (index > -1) {
-        this.subscribers.splice(index, 1);
-      }
-    };
-  }
-
-  /**
-   * Notify all subscribers of updates
-   */
-  private notifySubscribers(): void {
-    this.subscribers.forEach((callback) => {
-      try {
-        callback(this.metrics);
-      } catch (error) {
-        console.error("Error notifying dashboard subscriber:", error);
-      }
-    });
-  }
-
-  /**
-   * Start automatic metric updates
-   */
-  startAutoUpdate(intervalMs: number = 30000): void {
-    if (this.updateInterval) {
-      clearInterval(this.updateInterval);
-    }
-
-    this.updateInterval = setInterval(() => {
-      this.metrics.overview.lastUpdated = new Date();
-      this.notifySubscribers();
-    }, intervalMs);
-  }
-
-  /**
-   * Stop automatic updates
-   */
-  stopAutoUpdate(): void {
-    if (this.updateInterval) {
-      clearInterval(this.updateInterval);
-      this.updateInterval = null;
-    }
-  }
-
-  /**
-   * Get current metrics
-   */
-  getMetrics(): DashboardMetrics {
-    return { ...this.metrics };
-  }
-
-  /**
-   * Get active alerts
-   */
-  getActiveAlerts(): DashboardAlert[] {
-    return this.alerts.filter((a) => !a.resolved);
-  }
-
-  /**
-   * Resolve alert
-   */
-  resolveAlert(alertId: string): void {
-    const alert = this.alerts.find((a) => a.id === alertId);
-    if (alert) {
-      alert.resolved = true;
-    }
-    this.metrics.alerts = this.alerts.filter((a) => !a.resolved);
-    this.notifySubscribers();
-  }
-
-  /**
-   * Clear all metrics and alerts
-   */
-  reset(): void {
-    this.metrics = this.initializeMetrics();
-    this.alerts = [];
-    this.notifySubscribers();
-  }
-
-  /**
-   * Export metrics for external monitoring systems
-   *
-   * @business-context Provides data in format suitable for Grafana,
-   *                   New Relic, or other monitoring dashboards
-   */
-  exportForMonitoring(): Record<string, any> {
-    return {
-      timestamp: new Date().toISOString(),
-      synthetic_tests_total: this.metrics.overview.totalTests,
-      synthetic_tests_success_rate: this.metrics.overview.successRate,
-      synthetic_tests_avg_duration_ms:
-        this.metrics.overview.averageExecutionTime,
-      synthetic_tests_active_users: this.metrics.overview.activeUsers,
-      synthetic_performance_page_load_ms:
-        this.metrics.performance.averagePageLoadTime,
-      synthetic_performance_fcp_ms: this.metrics.performance.averageFCP,
-      synthetic_performance_lcp_ms: this.metrics.performance.averageLCP,
-      synthetic_performance_inp_ms: this.metrics.performance.averageINP,
-      synthetic_performance_cls: this.metrics.performance.averageCLS,
-      synthetic_alerts_active: this.getActiveAlerts().length,
-      synthetic_alerts_critical: this.getActiveAlerts().filter(
-        (a) => a.severity === "critical"
-      ).length,
-    };
   }
 }
 
@@ -501,12 +502,10 @@ export function createDashboardWidget(
     throw new Error(`Container ${containerId} not found`);
   }
 
-  const unsubscribe = syntheticDashboard.subscribe((metrics) => {
+  return syntheticDashboard.subscribe((metrics) => {
     const value = getNestedValue(metrics, metricPath);
     container.textContent = formatMetricValue(value, metricPath);
   });
-
-  return unsubscribe;
 }
 
 function getNestedValue(obj: any, path: string): any {
@@ -538,11 +537,9 @@ export function useSyntheticDashboard() {
     setMetrics(syntheticDashboard.getMetrics());
     setIsLoading(false);
 
-    const unsubscribe = syntheticDashboard.subscribe((newMetrics) => {
+    return syntheticDashboard.subscribe((newMetrics) => {
       setMetrics(newMetrics);
     });
-
-    return unsubscribe;
   }, []);
 
   const subscribe = useCallback(
@@ -557,10 +554,10 @@ export function useSyntheticDashboard() {
   }, []);
 
   return {
-    metrics,
-    isLoading,
     alerts: metrics?.alerts || [],
     isConnected,
+    isLoading,
+    metrics,
     subscribe,
     unsubscribe,
   };

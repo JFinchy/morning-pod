@@ -1,99 +1,99 @@
 "use client";
 
 import {
-  ExternalLink,
-  Palette,
-  Code,
-  Eye,
-  Search,
-  Brain,
-  Layout,
-  Volume2,
   Activity,
+  Brain,
+  Code,
+  ExternalLink,
+  Eye,
   Flag,
+  Layout,
+  Palette,
+  Search,
+  Volume2,
 } from "lucide-react";
 import Link from "next/link";
 
+import { CanaryMonitoringDashboard } from "@/components/internal/canary-monitoring-dashboard";
 import { MainLayout } from "@/components/layouts";
 import { Button } from "@/components/ui";
-import { CanaryMonitoringDashboard } from "@/components/internal/canary-monitoring-dashboard";
 
 export default function InternalPage() {
   const componentVariants = [
     {
-      name: "Episode Cards",
       description: "Different styles for displaying episode information",
       href: "/internal/comparison/episode-cards",
-      variants: ["Minimal", "Visual", "Compact"],
+      name: "Episode Cards",
       status: "Complete",
+      variants: ["Minimal", "Visual", "Compact"],
     },
     {
-      name: "Episode Players",
       description: "Audio player components with different UX approaches",
       href: "/internal/comparison/episode-players",
-      variants: ["Traditional", "Spotify-style", "Waveform"],
+      name: "Episode Players",
       status: "Complete",
+      variants: ["Traditional", "Spotify-style", "Waveform"],
     },
     {
-      name: "Queue Status",
       description: "Real-time queue monitoring with different layouts",
       href: "/internal/comparison/queue-status",
-      variants: ["Progress Bar", "Dashboard", "Timeline"],
+      name: "Queue Status",
       status: "Complete",
+      variants: ["Progress Bar", "Dashboard", "Timeline"],
     },
   ];
 
   const developmentPages = [
     {
-      name: "Scraping Development Tools",
+      category: "Content Pipeline",
       description:
         "Debug and monitor content scraping services with real-time metrics",
       href: "/internal/scraping",
-      category: "Content Pipeline",
+      name: "Scraping Development Tools",
       status: "Active",
     },
     {
-      name: "Scraping Strategy Comparison",
+      category: "Content Pipeline",
       description:
         "Compare content sources and scraping strategies for optimal results",
       href: "/internal/scraping/comparison",
-      category: "Content Pipeline",
+      name: "Scraping Strategy Comparison",
       status: "Active",
     },
     {
-      name: "Analytics Dashboard",
+      category: "Analytics",
       description:
         "Test PostHog integration and monitor analytics events in real-time",
       href: "/internal/analytics",
-      category: "Analytics",
+      name: "Analytics Dashboard",
       status: "Active",
     },
     {
-      name: "Canary Monitoring",
+      category: "Deployment",
       description:
         "Real-time monitoring of canary deployments and feature flag rollouts",
       href: "#canary-monitoring",
-      category: "Deployment",
+      name: "Canary Monitoring",
       status: "Active",
     },
   ];
 
   const designPrinciples = [
     {
-      title: "Component-First Development",
       description:
         "Build UI components with multiple variants before backend integration",
       icon: Code,
+      title: "Component-First Development",
     },
     {
-      title: "Modern Design Language",
       description: "Clean, minimalist interfaces with purposeful animations",
       icon: Palette,
+      title: "Modern Design Language",
     },
     {
-      title: "Iterative Selection",
       description: "Compare variants side-by-side to choose the best approach",
       icon: Eye,
+      title: "Iterative Selection",
     },
   ];
 
@@ -120,7 +120,7 @@ export default function InternalPage() {
               {designPrinciples.map((principle) => {
                 const Icon = principle.icon;
                 return (
-                  <div key={principle.title} className="text-center">
+                  <div className="text-center" key={principle.title}>
                     <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3">
                       <Icon className="w-6 h-6 text-primary" />
                     </div>
@@ -143,9 +143,9 @@ export default function InternalPage() {
             <h2 className="text-xl font-semibold mb-4">Development Tools</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Link
+                className="block p-4 border border-base-300 rounded-lg hover:bg-base-200/50 transition-colors"
                 href="/api/trpc-ui"
                 target="_blank"
-                className="block p-4 border border-base-300 rounded-lg hover:bg-base-200/50 transition-colors"
               >
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
@@ -186,8 +186,8 @@ export default function InternalPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {componentVariants.map((component) => (
               <div
-                key={component.name}
                 className="card bg-base-100 shadow-sm border border-base-300 hover:shadow-md transition-all duration-200"
+                key={component.name}
               >
                 <div className="card-body p-6">
                   <div className="flex items-start justify-between mb-3">
@@ -210,8 +210,8 @@ export default function InternalPage() {
                     <div className="flex flex-wrap gap-1">
                       {component.variants.map((variant) => (
                         <span
-                          key={variant}
                           className="badge badge-outline badge-sm"
+                          key={variant}
                         >
                           {variant}
                         </span>
@@ -220,11 +220,11 @@ export default function InternalPage() {
                   </div>
 
                   <div className="card-actions">
-                    <Link href={component.href} className="w-full">
+                    <Link className="w-full" href={component.href}>
                       <Button
                         btnStyle="outline"
-                        size="sm"
                         className="w-full gap-2"
+                        size="sm"
                       >
                         <ExternalLink className="w-3 h-3" />
                         View Comparison
@@ -243,8 +243,8 @@ export default function InternalPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {developmentPages.map((page) => (
               <div
-                key={page.name}
                 className="card bg-base-100 shadow-sm border border-base-300 hover:shadow-md transition-all duration-200"
+                key={page.name}
               >
                 <div className="card-body p-6">
                   <div className="flex items-start justify-between mb-3">
@@ -264,11 +264,11 @@ export default function InternalPage() {
                   </p>
 
                   <div className="card-actions">
-                    <Link href={page.href} className="w-full">
+                    <Link className="w-full" href={page.href}>
                       <Button
-                        variant="primary"
-                        size="sm"
                         className="w-full gap-2"
+                        size="sm"
+                        variant="primary"
                       >
                         <ExternalLink className="w-3 h-3" />
                         Open Tools
@@ -372,7 +372,7 @@ export default function InternalPage() {
             </p>
             <div className="flex flex-wrap justify-center gap-2">
               <Link href="/">
-                <Button variant="primary" size="sm">
+                <Button size="sm" variant="primary">
                   Dashboard
                 </Button>
               </Link>
@@ -398,7 +398,7 @@ export default function InternalPage() {
         {/* Development Tools Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {/* Scraping Tools */}
-          <Link href="/internal/scraping" className="group">
+          <Link className="group" href="/internal/scraping">
             <div className="card bg-base-200 shadow-sm hover:shadow-md transition-all duration-200 group-hover:scale-[1.02]">
               <div className="card-body">
                 <div className="flex items-center gap-3 mb-3">
@@ -424,7 +424,7 @@ export default function InternalPage() {
           </Link>
 
           {/* AI Summarization Lab */}
-          <Link href="/internal/summarization" className="group">
+          <Link className="group" href="/internal/summarization">
             <div className="card bg-base-200 shadow-sm hover:shadow-md transition-all duration-200 group-hover:scale-[1.02]">
               <div className="card-body">
                 <div className="flex items-center gap-3 mb-3">
@@ -450,7 +450,7 @@ export default function InternalPage() {
           </Link>
 
           {/* TTS Lab */}
-          <Link href="/internal/tts" className="group">
+          <Link className="group" href="/internal/tts">
             <div className="card bg-base-200 shadow-sm hover:shadow-md transition-all duration-200 group-hover:scale-[1.02]">
               <div className="card-body">
                 <div className="flex items-center gap-3 mb-3">
@@ -475,7 +475,7 @@ export default function InternalPage() {
           </Link>
 
           {/* Component Comparison */}
-          <Link href="/internal/comparison/episode-cards" className="group">
+          <Link className="group" href="/internal/comparison/episode-cards">
             <div className="card bg-base-200 shadow-sm hover:shadow-md transition-all duration-200 group-hover:scale-[1.02]">
               <div className="card-body">
                 <div className="flex items-center gap-3 mb-3">
@@ -503,8 +503,8 @@ export default function InternalPage() {
 
         {/* Canary Monitoring Dashboard */}
         <div
-          id="canary-monitoring"
           className="card bg-base-100 shadow-sm border border-base-300"
+          id="canary-monitoring"
         >
           <div className="card-body p-6">
             <div className="flex items-center gap-3 mb-6">

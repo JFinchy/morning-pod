@@ -1,42 +1,42 @@
 "use client";
 
 import {
-  Clock,
-  Globe,
-  FileText,
-  Mic,
-  Upload,
   CheckCircle,
-  XCircle,
+  Clock,
+  FileText,
+  Globe,
+  Mic,
   TrendingUp,
+  Upload,
+  XCircle,
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import {
-  QueueItem,
-  GenerationStats,
+  formatTimeRemaining,
+  type GenerationStats,
   getStatusColor,
   getStatusLabel,
-  formatTimeRemaining,
+  type QueueItem,
 } from "@/lib/mock-data";
 
 interface QueueStatusV2Props {
-  queueItems: QueueItem[];
-  stats: GenerationStats;
-  showDetails?: boolean;
   maxVisible?: number;
+  queueItems: QueueItem[];
+  showDetails?: boolean;
+  stats: GenerationStats;
 }
 
 const CircularProgress = ({
   progress,
   size = 60,
-  strokeWidth = 4,
   status = "pending",
+  strokeWidth = 4,
 }: {
   progress: number;
   size?: number;
-  strokeWidth?: number;
   status?: QueueItem["status"];
+  strokeWidth?: number;
 }) => {
   const [animatedProgress, setAnimatedProgress] = useState(0);
 
@@ -57,29 +57,29 @@ const CircularProgress = ({
 
   return (
     <div className="relative flex items-center justify-center">
-      <svg width={size} height={size} className="transform -rotate-90">
+      <svg className="transform -rotate-90" height={size} width={size}>
         {/* Background circle */}
         <circle
+          className="text-base-300"
           cx={size / 2}
           cy={size / 2}
+          fill="none"
           r={radius}
           stroke="currentColor"
           strokeWidth={strokeWidth}
-          fill="none"
-          className="text-base-300"
         />
         {/* Progress circle */}
         <circle
+          className="transition-all duration-1000 ease-out"
           cx={size / 2}
           cy={size / 2}
+          fill="none"
           r={radius}
           stroke={getStrokeColor()}
-          strokeWidth={strokeWidth}
-          fill="none"
           strokeDasharray={circumference}
           strokeDashoffset={offset}
           strokeLinecap="round"
-          className="transition-all duration-1000 ease-out"
+          strokeWidth={strokeWidth}
         />
       </svg>
       <div className="absolute inset-0 flex items-center justify-center">
@@ -93,13 +93,13 @@ const CircularProgress = ({
 
 const StatusIcon = ({ status }: { status: QueueItem["status"] }) => {
   const iconMap = {
+    completed: CheckCircle,
+    failed: XCircle,
+    "generating-audio": Mic,
     pending: Clock,
     scraping: Globe,
     summarizing: FileText,
-    "generating-audio": Mic,
     uploading: Upload,
-    completed: CheckCircle,
-    failed: XCircle,
   };
 
   const IconComponent = iconMap[status];
@@ -109,10 +109,10 @@ const StatusIcon = ({ status }: { status: QueueItem["status"] }) => {
 };
 
 export function QueueStatusV2({
-  queueItems,
-  stats,
-  showDetails = true,
   maxVisible = 4,
+  queueItems,
+  showDetails = true,
+  stats,
 }: QueueStatusV2Props) {
   const [currentTime, setCurrentTime] = useState(new Date());
 
@@ -123,7 +123,7 @@ export function QueueStatusV2({
   }, []);
 
   const activeItems = queueItems.filter((item) =>
-    ["scraping", "summarizing", "generating-audio", "uploading"].includes(
+    ["generating-audio", "scraping", "summarizing", "uploading"].includes(
       item.status
     )
   );
@@ -141,7 +141,7 @@ export function QueueStatusV2({
               Processing Queue
             </h3>
             <div className="flex items-center gap-1 px-2 py-1 bg-success/10 rounded-full">
-              <div className="w-2 h-2 bg-success rounded-full animate-pulse"></div>
+              <div className="w-2 h-2 bg-success rounded-full animate-pulse" />
               <span className="text-xs text-success font-medium">Live</span>
             </div>
           </div>
@@ -196,19 +196,19 @@ export function QueueStatusV2({
         {activeItems.length > 0 && (
           <div className="mb-6">
             <h4 className="font-semibold text-base-content mb-4 flex items-center gap-2">
-              <div className="w-3 h-3 bg-primary rounded-full animate-pulse"></div>
+              <div className="w-3 h-3 bg-primary rounded-full animate-pulse" />
               Currently Processing
             </h4>
             <div className="grid gap-4">
               {activeItems.map((item) => (
                 <div
-                  key={item.id}
                   className="flex items-center gap-4 p-4 bg-primary/5 rounded-xl border border-primary/20"
+                  key={item.id}
                 >
                   <CircularProgress
                     progress={item.progress}
-                    status={item.status}
                     size={70}
+                    status={item.status}
                   />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
@@ -249,8 +249,8 @@ export function QueueStatusV2({
                 .filter((item) => !activeItems.includes(item))
                 .map((item, index) => (
                   <div
-                    key={item.id}
                     className="flex items-center gap-3 p-3 rounded-lg hover:bg-base-200/50 transition-colors"
+                    key={item.id}
                   >
                     <div className="flex items-center gap-2">
                       <span className="text-xs font-mono text-base-content/40 w-6">

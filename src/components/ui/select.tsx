@@ -1,24 +1,24 @@
-import { SelectHTMLAttributes, forwardRef } from "react";
+import { forwardRef, type SelectHTMLAttributes } from "react";
 
 import { cn } from "@/lib/utils";
 
 interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
+  selectSize?: "lg" | "md" | "sm" | "xl" | "xs";
+  selectStyle?: "ghost";
   variant?:
+    | "accent"
+    | "error"
+    | "info"
     | "neutral"
     | "primary"
     | "secondary"
-    | "accent"
-    | "info"
     | "success"
-    | "warning"
-    | "error";
-  selectStyle?: "ghost";
-  selectSize?: "xs" | "sm" | "md" | "lg" | "xl";
+    | "warning";
 }
 
 const Select = forwardRef<HTMLSelectElement, SelectProps>(
   (
-    { className, variant, selectStyle, selectSize = "md", children, ...props },
+    { children, className, selectSize = "md", selectStyle, variant, ...props },
     ref
   ) => {
     return (

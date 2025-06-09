@@ -1,35 +1,35 @@
 "use client";
 
 import {
-  Play,
-  Pause,
-  Volume2,
-  VolumeX,
-  SkipBack,
-  SkipForward,
-  RotateCcw,
   Loader2,
   Music,
+  Pause,
+  Play,
+  RotateCcw,
+  SkipBack,
+  SkipForward,
+  Volume2,
+  VolumeX,
 } from "lucide-react";
-import { useState, useRef, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui";
-import type { Episode } from "@/lib/db/schema";
+import { type Episode } from "@/lib/db/schema";
 
 interface AudioPlayerProps {
-  episode: Episode;
   autoPlay?: boolean;
+  className?: string;
+  episode: Episode;
   onEpisodeEnd?: () => void;
   onTimeUpdate?: (currentTime: number, duration: number) => void;
-  className?: string;
 }
 
 export function AudioPlayer({
-  episode,
   autoPlay = false,
+  className = "",
+  episode,
   onEpisodeEnd,
   onTimeUpdate,
-  className = "",
 }: AudioPlayerProps) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -38,7 +38,7 @@ export function AudioPlayer({
   const [volume, setVolume] = useState(0.8);
   const [isMuted, setIsMuted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<null | string>(null);
   const [playbackRate, setPlaybackRate] = useState(1);
 
   // Initialize audio element
@@ -120,8 +120,8 @@ export function AudioPlayer({
         await audio.play();
         setIsPlaying(true);
       }
-    } catch (err) {
-      console.error("Playback error:", err);
+    } catch (error_) {
+      console.error("Playback error:", error_);
       setError("Playback failed");
     }
   };
@@ -214,7 +214,13 @@ export function AudioPlayer({
       className={`bg-gradient-to-r from-base-100 to-base-200 rounded-xl shadow-lg overflow-hidden ${className}`}
     >
       {/* Hidden HTML5 Audio Element */}
-      <audio ref={audioRef} src={episode.audioUrl} preload="metadata" />
+      <audio
+        controlsList="nodownload nofullscreen noremoteplayback"
+        crossOrigin="anonymous"
+        preload="metadata"
+        ref={audioRef}
+        src={episode.audioUrl}
+      />
 
       {/* Episode Header */}
       <div className="bg-primary/10 px-6 py-4 border-b border-primary/20">
@@ -240,11 +246,11 @@ export function AudioPlayer({
           <div className="mb-4 p-3 bg-error/10 border border-error/20 rounded-lg">
             <p className="text-sm text-error">{error}</p>
             <Button
-              size="sm"
               btnStyle="outline"
-              variant="error"
-              onClick={() => setError(null)}
               className="mt-2"
+              onClick={() => setError(null)}
+              size="sm"
+              variant="error"
             >
               Retry
             </Button>
@@ -254,20 +260,20 @@ export function AudioPlayer({
         {/* Main Controls */}
         <div className="flex items-center justify-center gap-4 mb-6">
           <Button
-            size="sm"
             btnStyle="ghost"
-            onClick={() => skipTime(-10)}
             disabled={!duration}
+            onClick={() => skipTime(-10)}
+            size="sm"
           >
             <SkipBack className="w-5 h-5" />
           </Button>
 
           <Button
+            className="btn-circle shadow-lg hover:scale-105 transition-transform"
+            disabled={isLoading || !duration}
+            onClick={togglePlayPause}
             size="lg"
             variant="primary"
-            className="btn-circle shadow-lg hover:scale-105 transition-transform"
-            onClick={togglePlayPause}
-            disabled={isLoading || !duration}
           >
             {isLoading ? (
               <Loader2 className="w-7 h-7 animate-spin" />
@@ -279,10 +285,10 @@ export function AudioPlayer({
           </Button>
 
           <Button
-            size="sm"
             btnStyle="ghost"
-            onClick={() => skipTime(10)}
             disabled={!duration}
+            onClick={() => skipTime(10)}
+            size="sm"
           >
             <SkipForward className="w-5 h-5" />
           </Button>
@@ -314,17 +320,17 @@ export function AudioPlayer({
         <div className="flex items-center justify-between">
           {/* Playback Speed */}
           <Button
-            size="sm"
             btnStyle="ghost"
-            onClick={changePlaybackRate}
             className="text-xs font-mono"
+            onClick={changePlaybackRate}
+            size="sm"
           >
             {playbackRate}x
           </Button>
 
           {/* Volume Control */}
           <div className="flex items-center gap-3 flex-1 max-w-xs mx-4">
-            <Button size="sm" btnStyle="ghost" onClick={toggleMute}>
+            <Button btnStyle="ghost" onClick={toggleMute} size="sm">
               {isMuted || volume === 0 ? (
                 <VolumeX className="w-5 h-5" />
               ) : (
@@ -352,10 +358,10 @@ export function AudioPlayer({
           </div>
 
           <Button
-            size="sm"
             btnStyle="ghost"
-            onClick={() => skipTime(-currentTime)}
             disabled={!duration || currentTime === 0}
+            onClick={() => skipTime(-currentTime)}
+            size="sm"
           >
             <RotateCcw className="w-4 h-4" />
           </Button>

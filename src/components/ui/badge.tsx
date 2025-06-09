@@ -1,5 +1,6 @@
+import { type ReactNode } from "react";
+
 import { cn } from "@/lib/utils";
-import { ReactNode } from "react";
 
 /**
  * Badge Component
@@ -10,37 +11,37 @@ import { ReactNode } from "react";
 
 interface BadgeProps {
   children: ReactNode;
+  className?: string;
+  size?: "lg" | "md" | "sm";
   variant?:
     | "default"
+    | "destructive"
+    | "outline"
     | "secondary"
     | "success"
-    | "warning"
-    | "destructive"
-    | "outline";
-  size?: "sm" | "md" | "lg";
-  className?: string;
+    | "warning";
 }
 
 const badgeVariants = {
   default: "bg-primary text-primary-content",
+  destructive: "bg-error text-error-content",
+  outline: "border border-base-300 text-base-content bg-transparent",
   secondary: "bg-secondary text-secondary-content",
   success: "bg-success text-success-content",
   warning: "bg-warning text-warning-content",
-  destructive: "bg-error text-error-content",
-  outline: "border border-base-300 text-base-content bg-transparent",
 };
 
 const badgeSizes = {
-  sm: "px-2 py-0.5 text-xs",
-  md: "px-3 py-1 text-sm",
   lg: "px-4 py-1.5 text-base",
+  md: "px-3 py-1 text-sm",
+  sm: "px-2 py-0.5 text-xs",
 };
 
 export function Badge({
   children,
-  variant = "default",
-  size = "sm",
   className = "",
+  size = "sm",
+  variant = "default",
 }: BadgeProps) {
   return (
     <span

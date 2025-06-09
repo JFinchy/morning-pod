@@ -1,21 +1,21 @@
 "use client";
 
 import {
-  Settings,
   Brain,
-  Mic,
   DollarSign,
-  Zap,
-  Save,
-  RotateCcw,
   Eye,
   EyeOff,
-  Volume2,
-  Palette,
   Globe,
   Info,
+  Mic,
+  Palette,
+  RotateCcw,
+  Save,
+  Settings,
+  Volume2,
+  Zap,
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import { AIProviderSelector } from "@/components/features";
 import { MainLayout } from "@/components/layouts";
@@ -26,11 +26,11 @@ import {
   type UserPreferences,
 } from "@/lib/utils/local-storage";
 
-type SettingsTab = "ai-models" | "playback" | "interface" | "privacy";
+type SettingsTab = "ai-models" | "interface" | "playback" | "privacy";
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState<SettingsTab>("ai-models");
-  const [preferences, setPreferences] = useState<UserPreferences | null>(null);
+  const [preferences, setPreferences] = useState<null | UserPreferences>(null);
   const [hasChanges, setHasChanges] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -64,9 +64,9 @@ export default function SettingsPage() {
       const updatedPrefs = {
         ...preferences,
         aiModels: {
+          priority: aiPriority,
           summarization: selectedSummarizationModel,
           tts: selectedTTSModel,
-          priority: aiPriority,
         },
       };
 
@@ -97,7 +97,7 @@ export default function SettingsPage() {
       <MainLayout>
         <div className="container mx-auto px-4 py-8">
           <div className="flex items-center justify-center min-h-96">
-            <div className="loading loading-spinner loading-lg text-primary"></div>
+            <div className="loading loading-spinner loading-lg text-primary" />
           </div>
         </div>
       </MainLayout>
@@ -106,28 +106,28 @@ export default function SettingsPage() {
 
   const tabs = [
     {
+      description: "Configure AI providers and model preferences",
+      icon: Brain,
       id: "ai-models" as const,
       name: "AI Models",
-      icon: Brain,
-      description: "Configure AI providers and model preferences",
     },
     {
+      description: "Audio player settings and preferences",
+      icon: Volume2,
       id: "playback" as const,
       name: "Playback",
-      icon: Volume2,
-      description: "Audio player settings and preferences",
     },
     {
+      description: "Theme, layout, and display preferences",
+      icon: Palette,
       id: "interface" as const,
       name: "Interface",
-      icon: Palette,
-      description: "Theme, layout, and display preferences",
     },
     {
+      description: "Data and privacy settings",
+      icon: Eye,
       id: "privacy" as const,
       name: "Privacy",
-      icon: Eye,
-      description: "Data and privacy settings",
     },
   ];
 
@@ -147,21 +147,21 @@ export default function SettingsPage() {
             {hasChanges && (
               <div className="flex gap-2">
                 <Button
-                  variant="secondary"
-                  onClick={resetToDefaults}
                   className="gap-2"
+                  onClick={resetToDefaults}
+                  variant="secondary"
                 >
                   <RotateCcw className="w-4 h-4" />
                   Reset
                 </Button>
                 <Button
-                  variant="primary"
-                  onClick={saveSettings}
-                  disabled={isSaving}
                   className="gap-2"
+                  disabled={isSaving}
+                  onClick={saveSettings}
+                  variant="primary"
                 >
                   {isSaving ? (
-                    <div className="loading loading-spinner loading-sm"></div>
+                    <div className="loading loading-spinner loading-sm" />
                   ) : (
                     <Save className="w-4 h-4" />
                   )}
@@ -185,13 +185,13 @@ export default function SettingsPage() {
                     const Icon = tab.icon;
                     return (
                       <button
-                        key={tab.id}
-                        onClick={() => setActiveTab(tab.id)}
                         className={`w-full text-left p-3 rounded-lg transition-colors ${
                           activeTab === tab.id
                             ? "bg-primary text-primary-content"
                             : "hover:bg-base-200"
                         }`}
+                        key={tab.id}
+                        onClick={() => setActiveTab(tab.id)}
                       >
                         <div className="flex items-center gap-3">
                           <Icon className="w-5 h-5" />
@@ -235,37 +235,37 @@ export default function SettingsPage() {
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                         {[
                           {
+                            desc: "Minimize generation costs",
+                            icon: DollarSign,
                             id: "cost",
                             name: "Cost",
-                            icon: DollarSign,
-                            desc: "Minimize generation costs",
                           },
                           {
+                            desc: "Best output quality",
+                            icon: Brain,
                             id: "quality",
                             name: "Quality",
-                            icon: Brain,
-                            desc: "Best output quality",
                           },
                           {
+                            desc: "Fastest generation",
+                            icon: Zap,
                             id: "speed",
                             name: "Speed",
-                            icon: Zap,
-                            desc: "Fastest generation",
                           },
                         ].map((priority) => {
                           const Icon = priority.icon;
                           return (
                             <button
-                              key={priority.id}
-                              onClick={() => {
-                                setAiPriority(priority.id as any);
-                                setHasChanges(true);
-                              }}
                               className={`p-4 rounded-lg border-2 transition-all ${
                                 aiPriority === priority.id
                                   ? "border-primary bg-primary/10"
                                   : "border-base-300 hover:border-primary/50"
                               }`}
+                              key={priority.id}
+                              onClick={() => {
+                                setAiPriority(priority.id as any);
+                                setHasChanges(true);
+                              }}
                             >
                               <Icon className="w-6 h-6 mx-auto mb-2 text-primary" />
                               <div className="font-medium">{priority.name}</div>
@@ -281,28 +281,28 @@ export default function SettingsPage() {
                     {/* Summarization Models */}
                     <div>
                       <AIProviderSelector
-                        type="summarization"
-                        selectedModel={selectedSummarizationModel}
+                        contentLength={2000} // Estimated content length
                         onModelSelect={(modelId) => {
                           setSelectedSummarizationModel(modelId);
                           setHasChanges(true);
                         }}
                         priority={aiPriority}
-                        contentLength={2000} // Estimated content length
+                        selectedModel={selectedSummarizationModel}
+                        type="summarization"
                       />
                     </div>
 
                     {/* TTS Models */}
                     <div>
                       <AIProviderSelector
-                        type="tts"
-                        selectedModel={selectedTTSModel}
+                        contentLength={1500} // Estimated summary length
                         onModelSelect={(modelId) => {
                           setSelectedTTSModel(modelId);
                           setHasChanges(true);
                         }}
                         priority={aiPriority}
-                        contentLength={1500} // Estimated summary length
+                        selectedModel={selectedTTSModel}
+                        type="tts"
                       />
                     </div>
                   </div>
@@ -331,18 +331,18 @@ export default function SettingsPage() {
                           </span>
                         </label>
                         <input
-                          type="range"
-                          min="0"
+                          className="range range-primary"
                           max="1"
-                          step="0.1"
-                          value={preferences.playerVolume}
+                          min="0"
                           onChange={(e) =>
                             handlePreferenceChange(
                               "playerVolume",
-                              parseFloat(e.target.value)
+                              Number.parseFloat(e.target.value)
                             )
                           }
-                          className="range range-primary"
+                          step="0.1"
+                          type="range"
+                          value={preferences.playerVolume}
                         />
                       </div>
 
@@ -357,14 +357,14 @@ export default function SettingsPage() {
                           </span>
                         </label>
                         <select
-                          value={preferences.playbackSpeed}
+                          className="select select-bordered w-full"
                           onChange={(e) =>
                             handlePreferenceChange(
                               "playbackSpeed",
-                              parseFloat(e.target.value)
+                              Number.parseFloat(e.target.value)
                             )
                           }
-                          className="select select-bordered w-full"
+                          value={preferences.playbackSpeed}
                         >
                           <option value={0.5}>0.5x</option>
                           <option value={0.75}>0.75x</option>
@@ -383,12 +383,12 @@ export default function SettingsPage() {
                           Auto-play next episode
                         </span>
                         <input
-                          type="checkbox"
                           checked={preferences.autoPlay}
+                          className="toggle toggle-primary"
                           onChange={(e) =>
                             handlePreferenceChange("autoPlay", e.target.checked)
                           }
-                          className="toggle toggle-primary"
+                          type="checkbox"
                         />
                       </label>
                     </div>
@@ -413,11 +413,11 @@ export default function SettingsPage() {
                         <span className="label-text font-medium">Theme</span>
                       </label>
                       <select
-                        value={preferences.theme}
+                        className="select select-bordered w-full max-w-xs"
                         onChange={(e) =>
                           handlePreferenceChange("theme", e.target.value)
                         }
-                        className="select select-bordered w-full max-w-xs"
+                        value={preferences.theme}
                       >
                         <option value="forest">Forest (Default)</option>
                         <option value="light">Light</option>

@@ -3,18 +3,18 @@
  */
 
 export interface PerformanceMetrics {
+  cumulativeLayoutShift?: number;
+  domContentLoaded: number;
+  firstInputDelay?: number;
+  largestContentfulPaint?: number;
   pageLoadTime: number;
   timeToFirstByte: number;
-  domContentLoaded: number;
-  largestContentfulPaint?: number;
-  firstInputDelay?: number;
-  cumulativeLayoutShift?: number;
 }
 
 /**
  * Collect Web Vitals and performance metrics
  */
-export function collectPerformanceMetrics(): PerformanceMetrics | null {
+export function collectPerformanceMetrics(): null | PerformanceMetrics {
   if (typeof window === "undefined" || !window.performance) {
     return null;
   }
@@ -28,11 +28,11 @@ export function collectPerformanceMetrics(): PerformanceMetrics | null {
   }
 
   const metrics: PerformanceMetrics = {
-    pageLoadTime: navigation.loadEventEnd - navigation.loadEventStart,
-    timeToFirstByte: navigation.responseStart - navigation.requestStart,
     domContentLoaded:
       navigation.domContentLoadedEventEnd -
       navigation.domContentLoadedEventStart,
+    pageLoadTime: navigation.loadEventEnd - navigation.loadEventStart,
+    timeToFirstByte: navigation.responseStart - navigation.requestStart,
   };
 
   // Collect Core Web Vitals if available
@@ -41,10 +41,10 @@ export function collectPerformanceMetrics(): PerformanceMetrics | null {
     try {
       const lcpObserver = new PerformanceObserver((list) => {
         const entries = list.getEntries();
-        const lastEntry = entries[entries.length - 1] as PerformancePaintTiming;
+        const lastEntry = entries.at(-1) as PerformancePaintTiming;
         metrics.largestContentfulPaint = lastEntry.startTime;
       });
-      lcpObserver.observe({ type: "largest-contentful-paint", buffered: true });
+      lcpObserver.observe({ buffered: true, type: "largest-contentful-paint" });
     } catch {
       // Observer not supported
     }
@@ -53,13 +53,13 @@ export function collectPerformanceMetrics(): PerformanceMetrics | null {
     try {
       const fidObserver = new PerformanceObserver((list) => {
         const entries = list.getEntries();
-        entries.forEach((entry) => {
+        for (const entry of entries) {
           const fidEntry = entry as PerformanceEventTiming;
           metrics.firstInputDelay =
             fidEntry.processingStart - fidEntry.startTime;
-        });
+        }
       });
-      fidObserver.observe({ type: "first-input", buffered: true });
+      fidObserver.observe({ buffered: true, type: "first-input" });
     } catch {
       // Observer not supported
     }
@@ -69,18 +69,18 @@ export function collectPerformanceMetrics(): PerformanceMetrics | null {
       let clsValue = 0;
       const clsObserver = new PerformanceObserver((list) => {
         const entries = list.getEntries();
-        entries.forEach((entry) => {
+        for (const entry of entries) {
           const clsEntry = entry as PerformanceEntry & {
-            value: number;
             hadRecentInput: boolean;
+            value: number;
           };
           if (!clsEntry.hadRecentInput) {
             clsValue += clsEntry.value;
           }
-        });
+        }
         metrics.cumulativeLayoutShift = clsValue;
       });
-      clsObserver.observe({ type: "layout-shift", buffered: true });
+      clsObserver.observe({ buffered: true, type: "layout-shift" });
     } catch {
       // Observer not supported
     }

@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
 test.describe("Performance - Core Web Vitals (POC)", () => {
   test("should meet Core Web Vitals thresholds", async ({ page }) => {
@@ -25,7 +25,7 @@ test.describe("Performance - Core Web Vitals (POC)", () => {
         // Largest Contentful Paint (LCP)
         new PerformanceObserver((entryList) => {
           const entries = entryList.getEntries();
-          const lastEntry = entries[entries.length - 1];
+          const lastEntry = entries.at(-1);
           vitals.lcp = lastEntry.startTime;
         }).observe({ entryTypes: ["largest-contentful-paint"] });
 
@@ -95,9 +95,9 @@ test.describe("Performance - Core Web Vitals (POC)", () => {
 
     page.on("response", (response) => {
       responses.push({
-        url: response.url(),
-        status: response.status(),
         size: response.headers()["content-length"] || 0,
+        status: response.status(),
+        url: response.url(),
       } as unknown);
     });
 
@@ -106,8 +106,8 @@ test.describe("Performance - Core Web Vitals (POC)", () => {
 
     // Analyze resource sizes
     const totalSize = responses.reduce((sum: number, response) => {
-      const responseObj = response as { size: string | number };
-      return sum + (parseInt(String(responseObj.size)) || 0);
+      const responseObj = response as { size: number | string };
+      return sum + (Number.parseInt(String(responseObj.size)) || 0);
     }, 0);
 
     console.log(`Total Resource Size: ${totalSize} bytes`);
@@ -118,8 +118,8 @@ test.describe("Performance - Core Web Vitals (POC)", () => {
 
     // Log large resources for optimization
     const largeResources = responses.filter((r) => {
-      const responseObj = r as { size: string | number };
-      return parseInt(String(responseObj.size)) > 100000;
+      const responseObj = r as { size: number | string };
+      return Number.parseInt(String(responseObj.size)) > 100000;
     });
     if (largeResources.length > 0) {
       console.log("Large Resources (>100KB):", largeResources);
@@ -128,9 +128,9 @@ test.describe("Performance - Core Web Vitals (POC)", () => {
 
   test("should render efficiently across viewport sizes", async ({ page }) => {
     const viewports = [
-      { width: 375, height: 667, name: "Mobile" },
-      { width: 768, height: 1024, name: "Tablet" },
-      { width: 1920, height: 1080, name: "Desktop" },
+      { height: 667, name: "Mobile", width: 375 },
+      { height: 1024, name: "Tablet", width: 768 },
+      { height: 1080, name: "Desktop", width: 1920 },
     ];
 
     for (const viewport of viewports) {

@@ -1,53 +1,53 @@
 // Scraping service types and interfaces
 
 export interface ScrapedContent {
-  id: string;
-  title: string;
-  summary: string;
+  category: string;
   content: string;
-  url: string;
+  contentHash: string;
+  id: string;
   publishedAt: Date;
   source: string;
-  category: string;
+  summary: string;
   tags: string[];
-  contentHash: string;
+  title: string;
+  url: string;
 }
 
 export interface ScraperConfig {
-  name: string;
   baseUrl: string;
   category: string;
+  name: string;
   rateLimit: number; // requests per minute
-  timeout: number; // milliseconds
   retries: number;
   selectors?: {
-    title?: string;
     content?: string;
-    summary?: string;
     date?: string;
+    summary?: string;
+    title?: string;
     url?: string;
   };
+  timeout: number; // milliseconds
 }
 
 export interface ScrapingResult {
-  success: boolean;
   content?: ScrapedContent[];
   error?: string;
   metadata: {
-    scrapedAt: Date;
-    source: string;
     itemsFound: number;
     processingTime: number;
+    scrapedAt: Date;
+    source: string;
   };
+  success: boolean;
 }
 
 export interface ScrapingMetrics {
-  totalRequests: number;
-  successfulRequests: number;
-  failedRequests: number;
   averageResponseTime: number;
-  lastScrapeTime: Date;
+  failedRequests: number;
   itemsScraped: number;
+  lastScrapeTime: Date;
+  successfulRequests: number;
+  totalRequests: number;
 }
 
 export abstract class BaseScraper {
@@ -57,30 +57,35 @@ export abstract class BaseScraper {
   constructor(config: ScraperConfig) {
     this.config = config;
     this.metrics = {
-      totalRequests: 0,
-      successfulRequests: 0,
-      failedRequests: 0,
       averageResponseTime: 0,
-      lastScrapeTime: new Date(),
+      failedRequests: 0,
       itemsScraped: 0,
+      lastScrapeTime: new Date(),
+      successfulRequests: 0,
+      totalRequests: 0,
     };
+  }
+
+  // Get current metrics
+  getMetrics(): ScrapingMetrics {
+    return { ...this.metrics };
   }
 
   abstract scrape(): Promise<ScrapingResult>;
 
+  abstract transformContent(rawContent: unknown): ScrapedContent[];
+
   abstract validateContent(content: unknown): boolean;
 
-  abstract transformContent(rawContent: unknown): ScrapedContent[];
+  // Content hash generation
+  protected generateContentHash(content: string): string {
+    return Buffer.from(content).toString("base64").slice(0, 16);
+  }
 
   // Rate limiting helper
   protected async rateLimit(): Promise<void> {
     const delayMs = (60 * 1000) / this.config.rateLimit;
     await new Promise((resolve) => setTimeout(resolve, delayMs));
-  }
-
-  // Content hash generation
-  protected generateContentHash(content: string): string {
-    return Buffer.from(content).toString("base64").substring(0, 16);
   }
 
   // Metrics tracking
@@ -103,10 +108,5 @@ export abstract class BaseScraper {
       (this.metrics.averageResponseTime * (total - 1) + responseTime) / total;
 
     this.metrics.lastScrapeTime = new Date();
-  }
-
-  // Get current metrics
-  getMetrics(): ScrapingMetrics {
-    return { ...this.metrics };
   }
 }

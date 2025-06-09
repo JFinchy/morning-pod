@@ -2,22 +2,9 @@ const { getCSP } = require("../tooling/security.config");
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  serverExternalPackages: ["posthog-node"],
-  webpack: (config, { isServer }) => {
-    if (!isServer) {
-      config.resolve.fallback = {
-        ...config.resolve.fallback,
-        fs: false,
-        net: false,
-        tls: false,
-      };
-    }
-    return config;
-  },
   async headers() {
     return [
       {
-        source: "/(.*)",
         headers: [
           // Security headers for protection against common attacks
           {
@@ -32,40 +19,55 @@ const nextConfig = {
             key: "Referrer-Policy",
             value: "strict-origin-when-cross-origin", // Controls referrer information
           },
-          {
-            key: "X-XSS-Protection",
-            value: "1; mode=block", // Legacy XSS protection
-          },
+          // Note: X-XSS-Protection is deprecated and can conflict with CSP
+          // {
+          //   key: "X-XSS-Protection",
+          //   value: "1; mode=block",
+          // },
           {
             key: "Permissions-Policy",
-            value: "camera=(), microphone=(), geolocation=()", // Disable unnecessary APIs
+            value:
+              "camera=(), microphone=(), geolocation=(), autoplay=(self), encrypted-media=(self), fullscreen=(self), picture-in-picture=(self)", // Disable mic/camera, allow audio playback
           },
           {
             key: "Content-Security-Policy",
             value: getCSP(), // Environment-specific CSP rules
           },
         ],
+        source: "/(.*)",
       },
     ];
   },
   async rewrites() {
     return [
       {
-        source: "/ingest/static/:path*",
         destination: "https://us-assets.i.posthog.com/static/:path*",
+        source: "/ingest/static/:path*",
       },
       {
-        source: "/ingest/:path*",
         destination: "https://us.i.posthog.com/:path*",
+        source: "/ingest/:path*",
       },
       {
-        source: "/ingest/decide",
         destination: "https://us.i.posthog.com/decide",
+        source: "/ingest/decide",
       },
     ];
   },
+  serverExternalPackages: ["posthog-node"],
   // This is required to support PostHog trailing slash API requests
   skipTrailingSlashRedirect: true,
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        net: false,
+        tls: false,
+      };
+    }
+    return config;
+  },
 };
 
 module.exports = nextConfig;

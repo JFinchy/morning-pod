@@ -10,16 +10,16 @@
 import { VercelPostHogCanaryTesting } from "../src/lib/testing/vercel-posthog-integration";
 
 interface RolloutConfig {
-  deploymentUrl: string;
-  testScore: number;
   branchName: string;
-  rolloutStrategy: "conservative" | "aggressive" | "instant";
+  deploymentUrl: string;
+  rolloutStrategy: "aggressive" | "conservative" | "instant";
+  testScore: number;
 }
 
 interface RolloutStep {
-  percentage: number;
   duration: number; // minutes
   monitoringMetrics: string[];
+  percentage: number;
 }
 
 async function main() {
@@ -34,10 +34,10 @@ async function main() {
 
   // Initialize integration
   const integration = new VercelPostHogCanaryTesting({
+    baseUrl: config.deploymentUrl,
     posthogApiKey: process.env.POSTHOG_PERSONAL_API_KEY!,
     posthogProjectId: process.env.NEXT_PUBLIC_POSTHOG_PROJECT_ID!,
     vercelApiKey: process.env.VERCEL_API_KEY!,
-    baseUrl: config.deploymentUrl,
   });
 
   try {
@@ -58,9 +58,9 @@ async function main() {
     }
 
     console.log(`🎯 Found ${featureFlags.length} feature flags to rollout:`);
-    featureFlags.forEach((flag) => {
+    for (const flag of featureFlags) {
       console.log(`  - ${flag.flagKey}: ${flag.description}`);
-    });
+    }
 
     // Execute rollout steps
     for (const step of strategy.steps) {
@@ -86,9 +86,9 @@ async function main() {
 
     // Send success notification
     await sendRolloutNotification({
-      status: "success",
       config,
-      finalPercentage: strategy.steps[strategy.steps.length - 1].percentage,
+      finalPercentage: strategy.steps.at(-1).percentage,
+      status: "success",
     });
   } catch (error) {
     console.error("❌ Automated rollout failed:", error);
@@ -99,9 +99,9 @@ async function main() {
 
     // Send failure notification
     await sendRolloutNotification({
-      status: "failed",
       config,
       error: error instanceof Error ? error.message : "Unknown error",
+      status: "failed",
     });
 
     process.exit(1);
@@ -118,15 +118,15 @@ function parseArguments(args: string[]): RolloutConfig {
       config.deploymentUrl = args[i + 1];
       i++;
     } else if (arg === "--test-score" && args[i + 1]) {
-      config.testScore = parseFloat(args[i + 1]);
+      config.testScore = Number.parseFloat(args[i + 1]);
       i++;
     } else if (arg === "--branch-name" && args[i + 1]) {
       config.branchName = args[i + 1];
       i++;
     } else if (arg === "--strategy" && args[i + 1]) {
       config.rolloutStrategy = args[i + 1] as
-        | "conservative"
         | "aggressive"
+        | "conservative"
         | "instant";
       i++;
     }
@@ -142,10 +142,10 @@ function parseArguments(args: string[]): RolloutConfig {
   }
 
   return {
-    deploymentUrl: config.deploymentUrl,
-    testScore: config.testScore,
     branchName: config.branchName,
+    deploymentUrl: config.deploymentUrl,
     rolloutStrategy: config.rolloutStrategy || "conservative",
+    testScore: config.testScore,
   };
 }
 
@@ -158,38 +158,38 @@ function determineRolloutStrategy(
     return {
       steps: [
         {
-          percentage: 5,
           duration: 15,
           monitoringMetrics: ["error_rate", "page_load_time"],
+          percentage: 5,
         },
         {
-          percentage: 10,
           duration: 15,
           monitoringMetrics: [
             "error_rate",
             "page_load_time",
             "user_engagement",
           ],
+          percentage: 10,
         },
         {
+          duration: 30,
+          monitoringMetrics: [
+            "error_rate",
+            "page_load_time",
+            "user_engagement",
+          ],
           percentage: 25,
-          duration: 30,
-          monitoringMetrics: [
-            "error_rate",
-            "page_load_time",
-            "user_engagement",
-          ],
         },
         {
-          percentage: 50,
           duration: 30,
           monitoringMetrics: [
             "error_rate",
             "page_load_time",
             "user_engagement",
           ],
+          percentage: 50,
         },
-        { percentage: 100, duration: 0, monitoringMetrics: [] },
+        { duration: 0, monitoringMetrics: [], percentage: 100 },
       ],
     };
   }
@@ -198,13 +198,13 @@ function determineRolloutStrategy(
   if (strategy === "aggressive" && testScore >= 95) {
     return {
       steps: [
-        { percentage: 10, duration: 10, monitoringMetrics: ["error_rate"] },
+        { duration: 10, monitoringMetrics: ["error_rate"], percentage: 10 },
         {
-          percentage: 50,
           duration: 15,
           monitoringMetrics: ["error_rate", "page_load_time"],
+          percentage: 50,
         },
-        { percentage: 100, duration: 0, monitoringMetrics: [] },
+        { duration: 0, monitoringMetrics: [], percentage: 100 },
       ],
     };
   }
@@ -212,7 +212,7 @@ function determineRolloutStrategy(
   // Instant strategy (perfect test scores or emergency fixes)
   if (strategy === "instant" && testScore >= 98) {
     return {
-      steps: [{ percentage: 100, duration: 0, monitoringMetrics: [] }],
+      steps: [{ duration: 0, monitoringMetrics: [], percentage: 100 }],
     };
   }
 
@@ -222,22 +222,22 @@ function determineRolloutStrategy(
 
 async function getFeatureFlagsForBranch(
   branchName: string
-): Promise<Array<{ flagKey: string; description: string }>> {
+): Promise<Array<{ description: string; flagKey: string }>> {
   // In a real implementation, this would query your feature flag system
   // For now, return mock flags based on branch name patterns
 
   const mockFlags = [
     {
-      flagKey: "new-episode-generation",
       description: "New episode generation pipeline",
+      flagKey: "new-episode-generation",
     },
     {
-      flagKey: "enhanced-audio-player",
       description: "Enhanced audio player with waveform",
+      flagKey: "enhanced-audio-player",
     },
     {
-      flagKey: "improved-summarization",
       description: "Improved AI summarization",
+      flagKey: "improved-summarization",
     },
   ];
 
@@ -272,7 +272,7 @@ async function updateFeatureFlagRollout(
 async function monitorRolloutHealth(
   integration: VercelPostHogCanaryTesting,
   step: RolloutStep,
-  featureFlags: Array<{ flagKey: string; description: string }>
+  featureFlags: Array<{ description: string; flagKey: string }>
 ): Promise<void> {
   const monitoringIntervalMs = 30000; // 30 seconds
   const totalChecks = Math.ceil(
@@ -312,10 +312,10 @@ async function executeEmergencyRollback(
 }
 
 async function sendRolloutNotification(params: {
-  status: "success" | "failed";
   config: RolloutConfig;
-  finalPercentage?: number;
   error?: string;
+  finalPercentage?: number;
+  status: "failed" | "success";
 }): Promise<void> {
   // Mock notification - would send to Slack, Discord, etc.
   const emoji = params.status === "success" ? "✅" : "❌";

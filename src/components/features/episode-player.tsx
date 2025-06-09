@@ -1,32 +1,32 @@
 "use client";
 
-import { Play, Pause, Volume2, Shuffle, Repeat, Heart } from "lucide-react";
-import { useState, useRef } from "react";
+import { Heart, Pause, Play, Repeat, Shuffle, Volume2 } from "lucide-react";
+import { useRef, useState } from "react";
 
 import { type Episode } from "@/lib/mock-data/episodes";
 
 interface EpisodePlayerProps {
+  currentTime?: number;
+  duration?: number;
   episode: Episode;
   isPlaying?: boolean;
   onPlayPause?: () => void;
-  currentTime?: number;
-  duration?: number;
   onSeek?: (time: number) => void;
-  volume?: number;
   onVolumeChange?: (volume: number) => void;
-  variant?: "full" | "compact";
+  variant?: "compact" | "full";
+  volume?: number;
 }
 
 export function EpisodePlayer({
+  currentTime = 0,
+  duration = 300, // 5 minutes default
   episode,
   isPlaying = false,
   onPlayPause,
-  currentTime = 0,
-  duration = 300, // 5 minutes default
   onSeek,
-  volume = 0.8,
   onVolumeChange,
   variant = "full",
+  volume = 0.8,
 }: EpisodePlayerProps) {
   const [isLiked, setIsLiked] = useState(false);
   const [isRepeat, setIsRepeat] = useState(false);
@@ -109,16 +109,16 @@ export function EpisodePlayer({
         {/* Waveform Visualization */}
         <div className="px-4 py-2">
           <div
-            ref={progressBarRef}
             className="flex items-end gap-0.5 h-12 cursor-pointer"
             onClick={handleProgressClick}
+            ref={progressBarRef}
           >
             {waveformBars.map((bar, index) => (
               <div
-                key={index}
                 className={`flex-1 rounded-sm transition-colors duration-75 ${
                   bar.isActive ? "bg-primary" : "bg-base-300 hover:bg-base-400"
                 }`}
+                key={index}
                 style={{
                   height: `${bar.height * 100}%`,
                   minHeight: "2px",
@@ -148,9 +148,9 @@ export function EpisodePlayer({
           <div className="flex items-center gap-2">
             <Volume2 className="w-4 h-4 text-base-content/60" />
             <div
-              ref={volumeBarRef}
               className="w-16 h-1 bg-base-300 rounded-full cursor-pointer relative"
               onClick={handleVolumeClick}
+              ref={volumeBarRef}
             >
               <div
                 className="h-full bg-primary rounded-full"
@@ -196,7 +196,7 @@ export function EpisodePlayer({
       <div className="bg-primary/10 px-6 py-3 border-b border-primary/20">
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center">
-            <div className="w-6 h-6 bg-primary rounded-sm"></div>
+            <div className="w-6 h-6 bg-primary rounded-sm" />
           </div>
           <div>
             <h3 className="font-bold text-lg text-base-content">
@@ -252,9 +252,9 @@ export function EpisodePlayer({
         {/* Progress Section */}
         <div className="space-y-3">
           <div
-            ref={progressBarRef}
             className="h-1 bg-base-300 rounded-full cursor-pointer relative group"
             onClick={handleProgressClick}
+            ref={progressBarRef}
           >
             <div
               className="h-full bg-primary rounded-full transition-all duration-300"
@@ -276,9 +276,9 @@ export function EpisodePlayer({
         <div className="flex items-center gap-3 mt-6">
           <Volume2 className="w-5 h-5 text-base-content/60" />
           <div
-            ref={volumeBarRef}
             className="flex-1 h-1 bg-base-300 rounded-full cursor-pointer relative group"
             onClick={handleVolumeClick}
+            ref={volumeBarRef}
           >
             <div
               className="h-full bg-primary/70 rounded-full"

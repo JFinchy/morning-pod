@@ -1,32 +1,32 @@
 "use client";
 
 import {
-  Play,
-  Pause,
+  AlertCircle,
   Clock,
-  Headphones,
   Download,
+  Headphones,
+  Heart,
+  Loader2,
+  MoreHorizontal,
+  Music,
+  Pause,
+  Play,
   Share2,
   TrendingUp,
-  Music,
-  Loader2,
-  AlertCircle,
-  Heart,
-  MoreHorizontal,
 } from "lucide-react";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import type { Episode } from "@/lib/db/schema";
+import { type Episode } from "@/lib/db/schema";
 import { useFavorites } from "@/lib/hooks/use-favorites";
 
 interface EpisodeCardProps {
-  episode?: Episode;
-  onPlay?: (episode: Episode) => void;
-  onPause?: () => void;
-  isCurrentlyPlaying?: boolean;
   className?: string;
-  variant?: "default" | "compact";
+  episode?: Episode;
+  isCurrentlyPlaying?: boolean;
+  onPause?: () => void;
+  onPlay?: (episode: Episode) => void;
+  variant?: "compact" | "default";
 }
 
 const formatDuration = (seconds: number) => {
@@ -67,15 +67,15 @@ const getStatusText = (status: string) => {
 };
 
 export function EpisodeCard({
-  episode,
-  onPlay,
-  onPause,
-  isCurrentlyPlaying = false,
   className = "",
+  episode,
+  isCurrentlyPlaying = false,
+  onPause,
+  onPlay,
   variant = "default",
 }: EpisodeCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
-  const { toggleFavorite, isFavorite } = useFavorites();
+  const { isFavorite, toggleFavorite } = useFavorites();
 
   // Handle undefined episode data with loading skeleton
   if (!episode) {
@@ -83,9 +83,9 @@ export function EpisodeCard({
       <div className="card bg-base-100 shadow-sm border-0">
         <div className="card-body p-4">
           <div className="animate-pulse space-y-2">
-            <div className="h-4 bg-base-300 rounded w-3/4"></div>
-            <div className="h-3 bg-base-300 rounded w-full"></div>
-            <div className="h-3 bg-base-300 rounded w-2/3"></div>
+            <div className="h-4 bg-base-300 rounded w-3/4" />
+            <div className="h-3 bg-base-300 rounded w-full" />
+            <div className="h-3 bg-base-300 rounded w-2/3" />
           </div>
         </div>
       </div>
@@ -139,10 +139,10 @@ export function EpisodeCard({
         </div>
         {canPlay && (
           <Button
-            size="sm"
             btnStyle="ghost"
-            onClick={handlePlayPause}
             className="h-8 w-8 p-0 hover:scale-110 transition-transform duration-200 active:scale-95"
+            onClick={handlePlayPause}
+            size="sm"
           >
             {isCurrentlyPlaying ? (
               <Pause className="w-4 h-4" />
@@ -205,8 +205,8 @@ export function EpisodeCard({
           </p>
           {episode.summary && episode.summary.length > 120 && (
             <button
-              onClick={() => setIsExpanded(!isExpanded)}
               className="text-primary text-xs font-medium mt-1 hover:underline"
+              onClick={() => setIsExpanded(!isExpanded)}
             >
               {isExpanded ? "Show less" : "Show more"}
             </button>
@@ -224,9 +224,9 @@ export function EpisodeCard({
             </div>
             <progress
               className="progress progress-warning w-full"
-              value={30}
               max="100"
-            ></progress>
+              value={30}
+            />
             <div className="text-xs text-base-content/60 mt-1">
               30% complete
             </div>
@@ -246,11 +246,11 @@ export function EpisodeCard({
           <div className="flex items-center gap-2">
             {/* Main play/pause button */}
             <Button
+              className="transition-all duration-200 hover:scale-105 active:scale-95"
+              disabled={!canPlay}
+              onClick={handlePlayPause}
               size="sm"
               variant={canPlay ? "primary" : "secondary"}
-              onClick={handlePlayPause}
-              disabled={!canPlay}
-              className="transition-all duration-200 hover:scale-105 active:scale-95"
             >
               {isCurrentlyPlaying ? (
                 <Pause className="w-4 h-4 mr-1" />
@@ -264,10 +264,10 @@ export function EpisodeCard({
             {canPlay && (
               <>
                 <Button
-                  size="sm"
                   btnStyle="ghost"
-                  onClick={() => toggleFavorite(episode.id)}
                   className="transition-all duration-200 hover:scale-110 active:scale-95"
+                  onClick={() => toggleFavorite(episode.id)}
+                  size="sm"
                 >
                   <Heart
                     className={`w-4 h-4 ${
@@ -279,17 +279,17 @@ export function EpisodeCard({
                 </Button>
 
                 <Button
-                  size="sm"
                   btnStyle="ghost"
                   className="transition-all duration-200 hover:scale-110 active:scale-95"
+                  size="sm"
                 >
                   <Download className="w-4 h-4" />
                 </Button>
 
                 <Button
-                  size="sm"
                   btnStyle="ghost"
                   className="transition-all duration-200 hover:scale-110 active:scale-95"
+                  size="sm"
                 >
                   <Share2 className="w-4 h-4" />
                 </Button>
@@ -317,8 +317,8 @@ export function EpisodeCard({
         {/* Audio waveform visualization (placeholder) */}
         {canPlay && isCurrentlyPlaying && (
           <div className="mt-4 h-8 bg-base-300 rounded overflow-hidden relative">
-            <div className="absolute inset-0 bg-primary/20"></div>
-            <div className="absolute left-0 top-0 h-full bg-primary/60 transition-all duration-300 w-1/3"></div>
+            <div className="absolute inset-0 bg-primary/20" />
+            <div className="absolute left-0 top-0 h-full bg-primary/60 transition-all duration-300 w-1/3" />
             <div className="absolute inset-0 flex items-center justify-center">
               <span className="text-xs font-mono text-base-content/60">
                 ♪♫♪ Playing ♪♫♪

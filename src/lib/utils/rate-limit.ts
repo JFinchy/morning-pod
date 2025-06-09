@@ -1,11 +1,11 @@
-import { NextRequest } from "next/server";
+import { type NextRequest } from "next/server";
 
 import { securityConfig } from "../config/security";
 
 interface RateLimitOptions {
+  keyGenerator?: (req: NextRequest) => string;
   maxRequests: number;
   windowMs: number;
-  keyGenerator?: (req: NextRequest) => string;
 }
 
 interface RateLimitEntry {
@@ -24,7 +24,7 @@ const store = new Map<string, RateLimitEntry>();
  * and to support horizontal scaling across multiple server instances.
  */
 export function rateLimit(options: RateLimitOptions) {
-  const { maxRequests, windowMs, keyGenerator = getDefaultKey } = options;
+  const { keyGenerator = getDefaultKey, maxRequests, windowMs } = options;
 
   return (req: NextRequest) => {
     const key = keyGenerator(req);
@@ -43,17 +43,17 @@ export function rateLimit(options: RateLimitOptions) {
         resetTime: now + windowMs,
       });
       return {
-        success: true,
         remaining: maxRequests - 1,
         resetTime: now + windowMs,
+        success: true,
       };
     }
 
     if (entry.count >= maxRequests) {
       return {
-        success: false,
         remaining: 0,
         resetTime: entry.resetTime,
+        success: false,
       };
     }
 
@@ -62,9 +62,9 @@ export function rateLimit(options: RateLimitOptions) {
     store.set(key, entry);
 
     return {
-      success: true,
       remaining: maxRequests - entry.count,
       resetTime: entry.resetTime,
+      success: true,
     };
   };
 }

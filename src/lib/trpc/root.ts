@@ -15,11 +15,11 @@ import { createTRPCRouter } from "./server";
  */
 export const appRouter = createTRPCRouter({
   episodes: episodesRouter,
-  sources: sourcesRouter,
   queue: queueRouter,
   queueProcessor: queueProcessorRouter,
   scrapedContent: scrapedContentRouter,
   scraping: scrapingRouter,
+  sources: sourcesRouter,
   // summarization: summarizationRouter, // Temporarily disabled - needs refactoring to match new API
   // tts: ttsRouter, // Temporarily disabled - needs refactoring to match new API
 });

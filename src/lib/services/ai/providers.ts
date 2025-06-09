@@ -1,196 +1,196 @@
 // AI Provider configuration and management
 export interface AIProvider {
-  id: string;
-  name: string;
-  type: "summarization" | "tts" | "both";
-  models: AIModel[];
   apiKeyRequired: boolean;
   baseUrl?: string;
+  id: string;
+  models: AIModel[];
+  name: string;
   rateLimit?: {
     requestsPerMinute: number;
     tokensPerMinute: number;
   };
+  type: "both" | "summarization" | "tts";
 }
 
 export interface AIModel {
-  id: string;
-  name: string;
-  provider: string;
-  type: "summarization" | "tts";
+  contextWindow?: number;
   costPer1kTokens?: number; // For summarization models
   costPerCharacter?: number; // For TTS models
-  maxTokens?: number;
-  contextWindow?: number;
-  quality: "basic" | "standard" | "premium";
-  speed: "fast" | "medium" | "slow";
   features: string[];
+  id: string;
+  maxTokens?: number;
+  name: string;
+  provider: string;
+  quality: "basic" | "premium" | "standard";
+  speed: "fast" | "medium" | "slow";
+  type: "summarization" | "tts";
 }
 
 // Available AI Providers
 export const AI_PROVIDERS: AIProvider[] = [
   {
-    id: "openai",
-    name: "OpenAI",
-    type: "both",
     apiKeyRequired: true,
+    id: "openai",
+    models: [
+      // Summarization Models
+      {
+        contextWindow: 128000,
+        costPer1kTokens: 0.00015, // $0.15 per 1M tokens
+        features: ["fast", "cost-effective", "good-quality"],
+        id: "gpt-4o-mini",
+        maxTokens: 16384,
+        name: "GPT-4o Mini",
+        provider: "openai",
+        quality: "standard",
+        speed: "fast",
+        type: "summarization",
+      },
+      {
+        contextWindow: 128000,
+        costPer1kTokens: 0.005, // $5 per 1M tokens
+        features: ["highest-quality", "advanced-reasoning", "multimodal"],
+        id: "gpt-4o",
+        maxTokens: 4096,
+        name: "GPT-4o",
+        provider: "openai",
+        quality: "premium",
+        speed: "medium",
+        type: "summarization",
+      },
+      {
+        contextWindow: 16385,
+        costPer1kTokens: 0.0005, // $0.5 per 1M tokens
+        features: ["very-fast", "cheapest", "reliable"],
+        id: "gpt-3.5-turbo",
+        maxTokens: 4096,
+        name: "GPT-3.5 Turbo",
+        provider: "openai",
+        quality: "basic",
+        speed: "fast",
+        type: "summarization",
+      },
+      // TTS Models
+      {
+        costPerCharacter: 0.000015, // $15 per 1M characters
+        features: ["fast", "natural-voices", "multiple-voices"],
+        id: "tts-1",
+        name: "TTS-1",
+        provider: "openai",
+        quality: "standard",
+        speed: "fast",
+        type: "tts",
+      },
+      {
+        costPerCharacter: 0.00003, // $30 per 1M characters
+        features: ["high-quality", "natural-voices", "multiple-voices"],
+        id: "tts-1-hd",
+        name: "TTS-1 HD",
+        provider: "openai",
+        quality: "premium",
+        speed: "medium",
+        type: "tts",
+      },
+    ],
+    name: "OpenAI",
     rateLimit: {
       requestsPerMinute: 500,
       tokensPerMinute: 150000,
     },
-    models: [
-      // Summarization Models
-      {
-        id: "gpt-4o-mini",
-        name: "GPT-4o Mini",
-        provider: "openai",
-        type: "summarization",
-        costPer1kTokens: 0.00015, // $0.15 per 1M tokens
-        maxTokens: 16384,
-        contextWindow: 128000,
-        quality: "standard",
-        speed: "fast",
-        features: ["fast", "cost-effective", "good-quality"],
-      },
-      {
-        id: "gpt-4o",
-        name: "GPT-4o",
-        provider: "openai",
-        type: "summarization",
-        costPer1kTokens: 0.005, // $5 per 1M tokens
-        maxTokens: 4096,
-        contextWindow: 128000,
-        quality: "premium",
-        speed: "medium",
-        features: ["highest-quality", "advanced-reasoning", "multimodal"],
-      },
-      {
-        id: "gpt-3.5-turbo",
-        name: "GPT-3.5 Turbo",
-        provider: "openai",
-        type: "summarization",
-        costPer1kTokens: 0.0005, // $0.5 per 1M tokens
-        maxTokens: 4096,
-        contextWindow: 16385,
-        quality: "basic",
-        speed: "fast",
-        features: ["very-fast", "cheapest", "reliable"],
-      },
-      // TTS Models
-      {
-        id: "tts-1",
-        name: "TTS-1",
-        provider: "openai",
-        type: "tts",
-        costPerCharacter: 0.000015, // $15 per 1M characters
-        quality: "standard",
-        speed: "fast",
-        features: ["fast", "natural-voices", "multiple-voices"],
-      },
-      {
-        id: "tts-1-hd",
-        name: "TTS-1 HD",
-        provider: "openai",
-        type: "tts",
-        costPerCharacter: 0.00003, // $30 per 1M characters
-        quality: "premium",
-        speed: "medium",
-        features: ["high-quality", "natural-voices", "multiple-voices"],
-      },
-    ],
+    type: "both",
   },
   {
-    id: "anthropic",
-    name: "Anthropic",
-    type: "summarization",
     apiKeyRequired: true,
+    id: "anthropic",
+    models: [
+      {
+        contextWindow: 200000,
+        costPer1kTokens: 0.00025, // $0.25 per 1M tokens
+        features: ["fast", "cost-effective", "large-context"],
+        id: "claude-3-haiku",
+        maxTokens: 4096,
+        name: "Claude 3 Haiku",
+        provider: "anthropic",
+        quality: "standard",
+        speed: "fast",
+        type: "summarization",
+      },
+      {
+        contextWindow: 200000,
+        costPer1kTokens: 0.003, // $3 per 1M tokens
+        features: ["high-quality", "large-context", "reasoning"],
+        id: "claude-3-sonnet",
+        maxTokens: 4096,
+        name: "Claude 3 Sonnet",
+        provider: "anthropic",
+        quality: "premium",
+        speed: "medium",
+        type: "summarization",
+      },
+    ],
+    name: "Anthropic",
     rateLimit: {
       requestsPerMinute: 50,
       tokensPerMinute: 40000,
     },
-    models: [
-      {
-        id: "claude-3-haiku",
-        name: "Claude 3 Haiku",
-        provider: "anthropic",
-        type: "summarization",
-        costPer1kTokens: 0.00025, // $0.25 per 1M tokens
-        maxTokens: 4096,
-        contextWindow: 200000,
-        quality: "standard",
-        speed: "fast",
-        features: ["fast", "cost-effective", "large-context"],
-      },
-      {
-        id: "claude-3-sonnet",
-        name: "Claude 3 Sonnet",
-        provider: "anthropic",
-        type: "summarization",
-        costPer1kTokens: 0.003, // $3 per 1M tokens
-        maxTokens: 4096,
-        contextWindow: 200000,
-        quality: "premium",
-        speed: "medium",
-        features: ["high-quality", "large-context", "reasoning"],
-      },
-    ],
+    type: "summarization",
   },
   {
-    id: "google",
-    name: "Google Cloud",
-    type: "both",
     apiKeyRequired: true,
+    id: "google",
+    models: [
+      // Summarization
+      {
+        contextWindow: 1000000,
+        costPer1kTokens: 0.000075, // $0.075 per 1M tokens
+        features: ["very-fast", "huge-context", "multimodal"],
+        id: "gemini-1.5-flash",
+        maxTokens: 8192,
+        name: "Gemini 1.5 Flash",
+        provider: "google",
+        quality: "standard",
+        speed: "fast",
+        type: "summarization",
+      },
+      {
+        contextWindow: 2000000,
+        costPer1kTokens: 0.00125, // $1.25 per 1M tokens
+        features: ["high-quality", "massive-context", "multimodal"],
+        id: "gemini-1.5-pro",
+        maxTokens: 8192,
+        name: "Gemini 1.5 Pro",
+        provider: "google",
+        quality: "premium",
+        speed: "medium",
+        type: "summarization",
+      },
+      // TTS
+      {
+        costPerCharacter: 0.000004, // $4 per 1M characters
+        features: ["many-voices", "languages", "cost-effective"],
+        id: "cloud-tts-standard",
+        name: "Cloud TTS Standard",
+        provider: "google",
+        quality: "standard",
+        speed: "fast",
+        type: "tts",
+      },
+      {
+        costPerCharacter: 0.000016, // $16 per 1M characters
+        features: ["neural-voices", "high-quality", "natural"],
+        id: "cloud-tts-wavenet",
+        name: "Cloud TTS WaveNet",
+        provider: "google",
+        quality: "premium",
+        speed: "medium",
+        type: "tts",
+      },
+    ],
+    name: "Google Cloud",
     rateLimit: {
       requestsPerMinute: 300,
       tokensPerMinute: 32000,
     },
-    models: [
-      // Summarization
-      {
-        id: "gemini-1.5-flash",
-        name: "Gemini 1.5 Flash",
-        provider: "google",
-        type: "summarization",
-        costPer1kTokens: 0.000075, // $0.075 per 1M tokens
-        maxTokens: 8192,
-        contextWindow: 1000000,
-        quality: "standard",
-        speed: "fast",
-        features: ["very-fast", "huge-context", "multimodal"],
-      },
-      {
-        id: "gemini-1.5-pro",
-        name: "Gemini 1.5 Pro",
-        provider: "google",
-        type: "summarization",
-        costPer1kTokens: 0.00125, // $1.25 per 1M tokens
-        maxTokens: 8192,
-        contextWindow: 2000000,
-        quality: "premium",
-        speed: "medium",
-        features: ["high-quality", "massive-context", "multimodal"],
-      },
-      // TTS
-      {
-        id: "cloud-tts-standard",
-        name: "Cloud TTS Standard",
-        provider: "google",
-        type: "tts",
-        costPerCharacter: 0.000004, // $4 per 1M characters
-        quality: "standard",
-        speed: "fast",
-        features: ["many-voices", "languages", "cost-effective"],
-      },
-      {
-        id: "cloud-tts-wavenet",
-        name: "Cloud TTS WaveNet",
-        provider: "google",
-        type: "tts",
-        costPerCharacter: 0.000016, // $16 per 1M characters
-        quality: "premium",
-        speed: "medium",
-        features: ["neural-voices", "high-quality", "natural"],
-      },
-    ],
+    type: "both",
   },
 ];
 
@@ -250,18 +250,18 @@ export function calculateTTSCost(
 
 // Model recommendation system
 export interface ModelRecommendation {
-  model: AIModel;
-  score: number;
-  reasons: string[];
   estimatedCost: number;
+  model: AIModel;
+  reasons: string[];
+  score: number;
 }
 
 export function recommendModels(
   type: "summarization" | "tts",
   criteria: {
-    priority: "cost" | "quality" | "speed";
-    maxCost?: number;
     contentLength?: number; // characters for TTS, tokens for summarization
+    maxCost?: number;
+    priority: "cost" | "quality" | "speed";
   }
 ): ModelRecommendation[] {
   const models = getModelsByType(type);
@@ -308,10 +308,10 @@ export function recommendModels(
     if (model.features.includes("high-quality")) score += 15;
 
     return {
-      model,
-      score,
-      reasons,
       estimatedCost,
+      model,
+      reasons,
+      score,
     };
   });
 
@@ -320,10 +320,6 @@ export function recommendModels(
 
 // Provider configuration for environment
 export interface ProviderConfig {
-  openai?: {
-    apiKey: string;
-    organization?: string;
-  };
   anthropic?: {
     apiKey: string;
   };
@@ -331,20 +327,24 @@ export interface ProviderConfig {
     apiKey: string;
     projectId?: string;
   };
+  openai?: {
+    apiKey: string;
+    organization?: string;
+  };
 }
 
 export function getProviderConfig(): ProviderConfig {
   return {
-    openai: {
-      apiKey: process.env.OPENAI_API_KEY || "",
-      organization: process.env.OPENAI_ORGANIZATION,
-    },
     anthropic: {
       apiKey: process.env.ANTHROPIC_API_KEY || "",
     },
     google: {
       apiKey: process.env.GOOGLE_AI_API_KEY || "",
       projectId: process.env.GOOGLE_CLOUD_PROJECT_ID,
+    },
+    openai: {
+      apiKey: process.env.OPENAI_API_KEY || "",
+      organization: process.env.OPENAI_ORGANIZATION,
     },
   };
 }

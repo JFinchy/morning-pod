@@ -9,35 +9,36 @@
  */
 
 import {
-  Browser,
-  BrowserContext,
-  Page,
+  type Browser,
+  type BrowserContext,
   chromium,
   firefox,
+  type Page,
   webkit,
 } from "playwright";
+
 import {
-  SyntheticUserTesting,
-  SyntheticUserConfig,
-  TestScenario,
-  TestExecutionResult,
-  TestStepResult,
-  TestError,
-  PerformanceMetrics,
   createSyntheticUserTesting,
+  type PerformanceMetrics,
+  type SyntheticUserConfig,
+  type SyntheticUserTesting,
+  type TestError,
+  type TestExecutionResult,
+  TestScenario,
+  type TestStepResult,
 } from "@/lib/testing/synthetic-users";
 
 /**
  * Browser automation configuration
  */
 export interface AutomationConfig {
-  headless: boolean;
   baseUrl: string;
-  timeout: number;
-  screenshotOnFailure: boolean;
+  headless: boolean;
   recordVideo: boolean;
-  slowMo: number; // milliseconds between actions
   retryAttempts: number;
+  screenshotOnFailure: boolean;
+  slowMo: number; // milliseconds between actions
+  timeout: number;
 }
 
 /**
@@ -63,40 +64,26 @@ export class CanaryAutomation {
   }
 
   /**
-   * Initialize browsers for testing
-   *
-   * @business-context Supports multi-browser testing to ensure compatibility
-   *                   across different browser engines and user preferences
+   * Cleanup all browser resources
    */
-  async initializeBrowsers(
-    browserTypes: BrowserType[] = ["chromium"]
-  ): Promise<void> {
-    for (const browserType of browserTypes) {
-      let browser: Browser;
-
-      switch (browserType) {
-        case "chromium":
-          browser = await chromium.launch({
-            headless: this.config.headless,
-            slowMo: this.config.slowMo,
-          });
-          break;
-        case "firefox":
-          browser = await firefox.launch({
-            headless: this.config.headless,
-            slowMo: this.config.slowMo,
-          });
-          break;
-        case "webkit":
-          browser = await webkit.launch({
-            headless: this.config.headless,
-            slowMo: this.config.slowMo,
-          });
-          break;
-      }
-
-      this.browsers.set(browserType, browser);
+  async cleanup(): Promise<void> {
+    // Close all pages
+    for (const page of this.pages.values()) {
+      await page.close();
     }
+    this.pages.clear();
+
+    // Close all contexts
+    for (const context of this.contexts.values()) {
+      await context.close();
+    }
+    this.contexts.clear();
+
+    // Close all browsers
+    for (const browser of this.browsers.values()) {
+      await browser.close();
+    }
+    this.browsers.clear();
   }
 
   /**
@@ -115,10 +102,7 @@ export class CanaryAutomation {
     }
 
     const contextOptions: any = {
-      viewport: user.device.viewport,
-      userAgent: user.device.userAgent,
       locale: "en-US",
-      timezoneId: "America/New_York",
       permissions: [],
       recordVideo: this.config.recordVideo
         ? {
@@ -126,6 +110,9 @@ export class CanaryAutomation {
             size: user.device.viewport,
           }
         : undefined,
+      timezoneId: "America/New_York",
+      userAgent: user.device.userAgent,
+      viewport: user.device.viewport,
     };
 
     // Simulate different network conditions
@@ -188,7 +175,7 @@ export class CanaryAutomation {
     const allResults = new Map<string, TestExecutionResult[]>();
 
     // Get all registered users
-    const users = Array.from(this.syntheticTesting["users"].values());
+    const users = [...this.syntheticTesting["users"].values()];
 
     for (const user of users) {
       console.log(`🤖 Testing user: ${user.name} (${user.type})`);
@@ -217,163 +204,118 @@ export class CanaryAutomation {
   }
 
   /**
-   * Execute automation for a specific user
+   * Initialize browsers for testing
+   *
+   * @business-context Supports multi-browser testing to ensure compatibility
+   *                   across different browser engines and user preferences
    */
-  private async executeUserAutomation(
-    user: SyntheticUserConfig
-  ): Promise<TestExecutionResult[]> {
-    const page = this.pages.get(user.id);
-    if (!page) {
-      throw new Error(`No page found for user ${user.id}`);
-    }
+  async initializeBrowsers(
+    browserTypes: BrowserType[] = ["chromium"]
+  ): Promise<void> {
+    for (const browserType of browserTypes) {
+      let browser: Browser;
 
-    const results: TestExecutionResult[] = [];
-
-    for (const scenario of user.testScenarios) {
-      console.log(`  📋 Testing scenario: ${scenario}`);
-
-      try {
-        const result = await this.executeScenarioAutomation(
-          user,
-          scenario,
-          page
-        );
-        results.push(result);
-
-        // Brief pause between scenarios
-        await this.sleep(2000);
-      } catch (error) {
-        console.error(
-          `❌ Scenario ${scenario} failed for user ${user.id}:`,
-          error
-        );
-
-        // Create error result
-        results.push({
-          userId: user.id,
-          scenario,
-          startTime: new Date(),
-          endTime: new Date(),
-          duration: 0,
-          success: false,
-          steps: [],
-          metrics: await this.gatherPageMetrics(page),
-          errors: [
-            {
-              type: "javascript",
-              message: error instanceof Error ? error.message : "Unknown error",
-              stack: error instanceof Error ? error.stack : undefined,
-              timestamp: new Date(),
-            },
-          ],
-          screenshots: [],
-        });
+      switch (browserType) {
+        case "chromium":
+          browser = await chromium.launch({
+            headless: this.config.headless,
+            slowMo: this.config.slowMo,
+          });
+          break;
+        case "firefox":
+          browser = await firefox.launch({
+            headless: this.config.headless,
+            slowMo: this.config.slowMo,
+          });
+          break;
+        case "webkit":
+          browser = await webkit.launch({
+            headless: this.config.headless,
+            slowMo: this.config.slowMo,
+          });
+          break;
       }
-    }
 
-    return results;
+      this.browsers.set(browserType, browser);
+    }
   }
 
   /**
-   * Execute a specific test scenario with real browser automation
+   * Automate audio playback testing
    */
-  private async executeScenarioAutomation(
+  private async automateAudioPlayback(
     user: SyntheticUserConfig,
-    scenario: TestScenario,
-    page: Page
-  ): Promise<TestExecutionResult> {
-    const startTime = new Date();
-    const steps: TestStepResult[] = [];
-    const errors: TestError[] = [];
-    const screenshots: string[] = [];
+    page: Page,
+    steps: TestStepResult[],
+    errors: TestError[],
+    screenshots: string[]
+  ): Promise<void> {
+    // Navigate to episodes page
+    steps.push(
+      await this.executeStep(page, "navigate_episodes", async () => {
+        await page.goto(`${this.config.baseUrl}/episodes`);
+        await page.waitForLoadState("networkidle");
+      })
+    );
 
-    try {
-      switch (scenario) {
-        case TestScenario.EPISODE_GENERATION:
-          await this.automateEpisodeGeneration(
-            user,
-            page,
-            steps,
-            errors,
-            screenshots
-          );
-          break;
-        case TestScenario.AUDIO_PLAYBACK:
-          await this.automateAudioPlayback(
-            user,
-            page,
-            steps,
-            errors,
-            screenshots
-          );
-          break;
-        case TestScenario.NAVIGATION_FLOW:
-          await this.automateNavigationFlow(
-            user,
-            page,
-            steps,
-            errors,
-            screenshots
-          );
-          break;
-        case TestScenario.RESPONSIVE_DESIGN:
-          await this.automateResponsiveDesign(
-            user,
-            page,
-            steps,
-            errors,
-            screenshots
-          );
-          break;
-        case TestScenario.PERFORMANCE_STRESS:
-          await this.automatePerformanceStress(
-            user,
-            page,
-            steps,
-            errors,
-            screenshots
-          );
-          break;
-        case TestScenario.ERROR_RECOVERY:
-          await this.automateErrorRecovery(
-            user,
-            page,
-            steps,
-            errors,
-            screenshots
-          );
-          break;
-      }
-    } catch (error) {
-      errors.push({
-        type: "javascript",
-        message: error instanceof Error ? error.message : "Automation error",
-        stack: error instanceof Error ? error.stack : undefined,
-        timestamp: new Date(),
-      });
+    await this.simulateThinkTime(user);
 
-      if (this.config.screenshotOnFailure) {
-        const screenshotPath = `./test-results/screenshots/${user.id}_${scenario}_error.png`;
-        await page.screenshot({ path: screenshotPath, fullPage: true });
-        screenshots.push(screenshotPath);
-      }
-    }
+    // Find and click on an episode
+    steps.push(
+      await this.executeStep(page, "select_episode", async () => {
+        const episodeCards = page.locator(
+          '.episode-card, [data-testid*="episode"]'
+        );
+        const count = await episodeCards.count();
 
-    const endTime = new Date();
-    const success = errors.length === 0;
+        if (count === 0) {
+          throw new Error("No episodes found");
+        }
 
-    return {
-      userId: user.id,
-      scenario,
-      startTime,
-      endTime,
-      duration: endTime.getTime() - startTime.getTime(),
-      success,
-      steps,
-      metrics: await this.gatherPageMetrics(page),
-      errors,
-      screenshots,
-    };
+        await episodeCards.first().click();
+      })
+    );
+
+    await this.simulateThinkTime(user);
+
+    // Test play button
+    steps.push(
+      await this.executeStep(page, "test_play_button", async () => {
+        const playButton = page
+          .locator('button:has-text("Play"), button[aria-label*="play"]')
+          .first();
+        await playButton.waitFor({ timeout: 5000 });
+        await playButton.click();
+      })
+    );
+
+    // Wait a bit for audio to start
+    await this.sleep(3000);
+
+    // Test pause
+    steps.push(
+      await this.executeStep(page, "test_pause_button", async () => {
+        const pauseButton = page
+          .locator('button:has-text("Pause"), button[aria-label*="pause"]')
+          .first();
+        await pauseButton.waitFor({ timeout: 5000 });
+        await pauseButton.click();
+      })
+    );
+
+    await this.simulateThinkTime(user);
+
+    // Test volume control if available
+    steps.push(
+      await this.executeStep(page, "test_volume_control", async () => {
+        const volumeSlider = page.locator(
+          'input[type="range"][aria-label*="volume"], .volume-slider'
+        );
+        if (await volumeSlider.isVisible()) {
+          await volumeSlider.fill("0.5");
+        }
+      })
+    );
   }
 
   /**
@@ -498,208 +440,9 @@ export class CanaryAutomation {
     // Take screenshot of result
     if (screenshots) {
       const screenshotPath = `./test-results/screenshots/${user.id}_episode_generation_result.png`;
-      await page.screenshot({ path: screenshotPath, fullPage: true });
+      await page.screenshot({ fullPage: true, path: screenshotPath });
       screenshots.push(screenshotPath);
     }
-  }
-
-  /**
-   * Automate audio playback testing
-   */
-  private async automateAudioPlayback(
-    user: SyntheticUserConfig,
-    page: Page,
-    steps: TestStepResult[],
-    errors: TestError[],
-    screenshots: string[]
-  ): Promise<void> {
-    // Navigate to episodes page
-    steps.push(
-      await this.executeStep(page, "navigate_episodes", async () => {
-        await page.goto(`${this.config.baseUrl}/episodes`);
-        await page.waitForLoadState("networkidle");
-      })
-    );
-
-    await this.simulateThinkTime(user);
-
-    // Find and click on an episode
-    steps.push(
-      await this.executeStep(page, "select_episode", async () => {
-        const episodeCards = page.locator(
-          '.episode-card, [data-testid*="episode"]'
-        );
-        const count = await episodeCards.count();
-
-        if (count === 0) {
-          throw new Error("No episodes found");
-        }
-
-        await episodeCards.first().click();
-      })
-    );
-
-    await this.simulateThinkTime(user);
-
-    // Test play button
-    steps.push(
-      await this.executeStep(page, "test_play_button", async () => {
-        const playButton = page
-          .locator('button:has-text("Play"), button[aria-label*="play"]')
-          .first();
-        await playButton.waitFor({ timeout: 5000 });
-        await playButton.click();
-      })
-    );
-
-    // Wait a bit for audio to start
-    await this.sleep(3000);
-
-    // Test pause
-    steps.push(
-      await this.executeStep(page, "test_pause_button", async () => {
-        const pauseButton = page
-          .locator('button:has-text("Pause"), button[aria-label*="pause"]')
-          .first();
-        await pauseButton.waitFor({ timeout: 5000 });
-        await pauseButton.click();
-      })
-    );
-
-    await this.simulateThinkTime(user);
-
-    // Test volume control if available
-    steps.push(
-      await this.executeStep(page, "test_volume_control", async () => {
-        const volumeSlider = page.locator(
-          'input[type="range"][aria-label*="volume"], .volume-slider'
-        );
-        if (await volumeSlider.isVisible()) {
-          await volumeSlider.fill("0.5");
-        }
-      })
-    );
-  }
-
-  /**
-   * Automate navigation flow testing
-   */
-  private async automateNavigationFlow(
-    user: SyntheticUserConfig,
-    page: Page,
-    steps: TestStepResult[],
-    errors: TestError[],
-    screenshots: string[]
-  ): Promise<void> {
-    const pages = [
-      { path: "/", name: "Home" },
-      { path: "/episodes", name: "Episodes" },
-      { path: "/sources", name: "Sources" },
-      { path: "/queue", name: "Queue" },
-      { path: "/internal", name: "Internal" },
-    ];
-
-    for (const pageInfo of pages) {
-      steps.push(
-        await this.executeStep(
-          page,
-          `navigate_${pageInfo.name.toLowerCase()}`,
-          async () => {
-            await page.goto(`${this.config.baseUrl}${pageInfo.path}`);
-            await page.waitForLoadState("networkidle");
-
-            // Verify page loaded correctly
-            await page.waitForSelector('main, [role="main"], .content', {
-              timeout: 10000,
-            });
-          }
-        )
-      );
-
-      await this.simulateThinkTime(user);
-    }
-  }
-
-  /**
-   * Automate responsive design testing
-   */
-  private async automateResponsiveDesign(
-    user: SyntheticUserConfig,
-    page: Page,
-    steps: TestStepResult[],
-    errors: TestError[],
-    screenshots: string[]
-  ): Promise<void> {
-    const viewports = [
-      { width: 390, height: 844, name: "mobile" },
-      { width: 768, height: 1024, name: "tablet" },
-      { width: 1440, height: 900, name: "desktop" },
-    ];
-
-    for (const viewport of viewports) {
-      steps.push(
-        await this.executeStep(
-          page,
-          `test_${viewport.name}_viewport`,
-          async () => {
-            await page.setViewportSize(viewport);
-            await page.goto(this.config.baseUrl);
-            await page.waitForLoadState("networkidle");
-
-            // Take screenshot for visual validation
-            const screenshotPath = `./test-results/screenshots/${user.id}_${viewport.name}_viewport.png`;
-            await page.screenshot({ path: screenshotPath, fullPage: true });
-            screenshots.push(screenshotPath);
-          }
-        )
-      );
-
-      await this.simulateThinkTime(user);
-    }
-  }
-
-  /**
-   * Automate performance stress testing
-   */
-  private async automatePerformanceStress(
-    user: SyntheticUserConfig,
-    page: Page,
-    steps: TestStepResult[],
-    errors: TestError[],
-    screenshots: string[]
-  ): Promise<void> {
-    // Rapid navigation test
-    const pages = ["/", "/episodes", "/sources", "/queue"];
-
-    for (let i = 0; i < 5; i++) {
-      for (const pagePath of pages) {
-        steps.push(
-          await this.executeStep(
-            page,
-            `rapid_nav_${i}_${pagePath}`,
-            async () => {
-              await page.goto(`${this.config.baseUrl}${pagePath}`);
-              await page.waitForLoadState("domcontentloaded"); // Faster than networkidle
-            }
-          )
-        );
-
-        await this.sleep(200); // Very brief pause
-      }
-    }
-
-    // Memory usage check
-    steps.push(
-      await this.executeStep(page, "memory_check", async () => {
-        const memoryUsage = await page.evaluate(() => {
-          return (performance as any).memory?.usedJSHeapSize || 0;
-        });
-
-        console.log(
-          `Memory usage for ${user.id}: ${Math.round(memoryUsage / 1024 / 1024)}MB`
-        );
-      })
-    );
   }
 
   /**
@@ -756,6 +499,229 @@ export class CanaryAutomation {
   }
 
   /**
+   * Automate navigation flow testing
+   */
+  private async automateNavigationFlow(
+    user: SyntheticUserConfig,
+    page: Page,
+    steps: TestStepResult[],
+    errors: TestError[],
+    screenshots: string[]
+  ): Promise<void> {
+    const pages = [
+      { name: "Home", path: "/" },
+      { name: "Episodes", path: "/episodes" },
+      { name: "Sources", path: "/sources" },
+      { name: "Queue", path: "/queue" },
+      { name: "Internal", path: "/internal" },
+    ];
+
+    for (const pageInfo of pages) {
+      steps.push(
+        await this.executeStep(
+          page,
+          `navigate_${pageInfo.name.toLowerCase()}`,
+          async () => {
+            await page.goto(`${this.config.baseUrl}${pageInfo.path}`);
+            await page.waitForLoadState("networkidle");
+
+            // Verify page loaded correctly
+            await page.waitForSelector('main, [role="main"], .content', {
+              timeout: 10000,
+            });
+          }
+        )
+      );
+
+      await this.simulateThinkTime(user);
+    }
+  }
+
+  /**
+   * Automate performance stress testing
+   */
+  private async automatePerformanceStress(
+    user: SyntheticUserConfig,
+    page: Page,
+    steps: TestStepResult[],
+    errors: TestError[],
+    screenshots: string[]
+  ): Promise<void> {
+    // Rapid navigation test
+    const pages = ["/", "/episodes", "/sources", "/queue"];
+
+    for (let i = 0; i < 5; i++) {
+      for (const pagePath of pages) {
+        steps.push(
+          await this.executeStep(
+            page,
+            `rapid_nav_${i}_${pagePath}`,
+            async () => {
+              await page.goto(`${this.config.baseUrl}${pagePath}`);
+              await page.waitForLoadState("domcontentloaded"); // Faster than networkidle
+            }
+          )
+        );
+
+        await this.sleep(200); // Very brief pause
+      }
+    }
+
+    // Memory usage check
+    steps.push(
+      await this.executeStep(page, "memory_check", async () => {
+        const memoryUsage = await page.evaluate(() => {
+          return (performance as any).memory?.usedJSHeapSize || 0;
+        });
+
+        console.log(
+          `Memory usage for ${user.id}: ${Math.round(memoryUsage / 1024 / 1024)}MB`
+        );
+      })
+    );
+  }
+
+  /**
+   * Automate responsive design testing
+   */
+  private async automateResponsiveDesign(
+    user: SyntheticUserConfig,
+    page: Page,
+    steps: TestStepResult[],
+    errors: TestError[],
+    screenshots: string[]
+  ): Promise<void> {
+    const viewports = [
+      { height: 844, name: "mobile", width: 390 },
+      { height: 1024, name: "tablet", width: 768 },
+      { height: 900, name: "desktop", width: 1440 },
+    ];
+
+    for (const viewport of viewports) {
+      steps.push(
+        await this.executeStep(
+          page,
+          `test_${viewport.name}_viewport`,
+          async () => {
+            await page.setViewportSize(viewport);
+            await page.goto(this.config.baseUrl);
+            await page.waitForLoadState("networkidle");
+
+            // Take screenshot for visual validation
+            const screenshotPath = `./test-results/screenshots/${user.id}_${viewport.name}_viewport.png`;
+            await page.screenshot({ fullPage: true, path: screenshotPath });
+            screenshots.push(screenshotPath);
+          }
+        )
+      );
+
+      await this.simulateThinkTime(user);
+    }
+  }
+
+  /**
+   * Execute a specific test scenario with real browser automation
+   */
+  private async executeScenarioAutomation(
+    user: SyntheticUserConfig,
+    scenario: TestScenario,
+    page: Page
+  ): Promise<TestExecutionResult> {
+    const startTime = new Date();
+    const steps: TestStepResult[] = [];
+    const errors: TestError[] = [];
+    const screenshots: string[] = [];
+
+    try {
+      switch (scenario) {
+        case TestScenario.EPISODE_GENERATION:
+          await this.automateEpisodeGeneration(
+            user,
+            page,
+            steps,
+            errors,
+            screenshots
+          );
+          break;
+        case TestScenario.AUDIO_PLAYBACK:
+          await this.automateAudioPlayback(
+            user,
+            page,
+            steps,
+            errors,
+            screenshots
+          );
+          break;
+        case TestScenario.NAVIGATION_FLOW:
+          await this.automateNavigationFlow(
+            user,
+            page,
+            steps,
+            errors,
+            screenshots
+          );
+          break;
+        case TestScenario.RESPONSIVE_DESIGN:
+          await this.automateResponsiveDesign(
+            user,
+            page,
+            steps,
+            errors,
+            screenshots
+          );
+          break;
+        case TestScenario.PERFORMANCE_STRESS:
+          await this.automatePerformanceStress(
+            user,
+            page,
+            steps,
+            errors,
+            screenshots
+          );
+          break;
+        case TestScenario.ERROR_RECOVERY:
+          await this.automateErrorRecovery(
+            user,
+            page,
+            steps,
+            errors,
+            screenshots
+          );
+          break;
+      }
+    } catch (error) {
+      errors.push({
+        message: error instanceof Error ? error.message : "Automation error",
+        stack: error instanceof Error ? error.stack : undefined,
+        timestamp: new Date(),
+        type: "javascript",
+      });
+
+      if (this.config.screenshotOnFailure) {
+        const screenshotPath = `./test-results/screenshots/${user.id}_${scenario}_error.png`;
+        await page.screenshot({ fullPage: true, path: screenshotPath });
+        screenshots.push(screenshotPath);
+      }
+    }
+
+    const endTime = new Date();
+    const success = errors.length === 0;
+
+    return {
+      duration: endTime.getTime() - startTime.getTime(),
+      endTime,
+      errors,
+      metrics: await this.gatherPageMetrics(page),
+      scenario,
+      screenshots,
+      startTime,
+      steps,
+      success,
+      userId: user.id,
+    };
+  }
+
+  /**
    * Execute a single test step with error handling
    */
   private async executeStep(
@@ -769,33 +735,80 @@ export class CanaryAutomation {
       await stepFunction();
 
       return {
-        step: action,
         action,
-        timestamp: startTime,
+        duration: Date.now() - startTime.getTime(),
+        step: action,
         success: true,
-        duration: new Date().getTime() - startTime.getTime(),
+        timestamp: startTime,
       };
     } catch (error) {
       return {
-        step: action,
         action,
-        timestamp: startTime,
-        success: false,
-        duration: new Date().getTime() - startTime.getTime(),
+        duration: Date.now() - startTime.getTime(),
         error: error instanceof Error ? error.message : "Unknown error",
+        step: action,
+        success: false,
+        timestamp: startTime,
       };
     }
   }
 
   /**
-   * Simulate realistic user think time
+   * Execute automation for a specific user
    */
-  private async simulateThinkTime(user: SyntheticUserConfig): Promise<void> {
-    const thinkTime = this.randomBetween(
-      user.behaviorPattern.thinkTime.min,
-      user.behaviorPattern.thinkTime.max
-    );
-    await this.sleep(thinkTime);
+  private async executeUserAutomation(
+    user: SyntheticUserConfig
+  ): Promise<TestExecutionResult[]> {
+    const page = this.pages.get(user.id);
+    if (!page) {
+      throw new Error(`No page found for user ${user.id}`);
+    }
+
+    const results: TestExecutionResult[] = [];
+
+    for (const scenario of user.testScenarios) {
+      console.log(`  📋 Testing scenario: ${scenario}`);
+
+      try {
+        const result = await this.executeScenarioAutomation(
+          user,
+          scenario,
+          page
+        );
+        results.push(result);
+
+        // Brief pause between scenarios
+        await this.sleep(2000);
+      } catch (error) {
+        console.error(
+          `❌ Scenario ${scenario} failed for user ${user.id}:`,
+          error
+        );
+
+        // Create error result
+        results.push({
+          duration: 0,
+          endTime: new Date(),
+          errors: [
+            {
+              message: error instanceof Error ? error.message : "Unknown error",
+              stack: error instanceof Error ? error.stack : undefined,
+              timestamp: new Date(),
+              type: "javascript",
+            },
+          ],
+          metrics: await this.gatherPageMetrics(page),
+          scenario,
+          screenshots: [],
+          startTime: new Date(),
+          steps: [],
+          success: false,
+          userId: user.id,
+        });
+      }
+    }
+
+    return results;
   }
 
   /**
@@ -813,12 +826,12 @@ export class CanaryAutomation {
           ?.startTime || 0;
 
       return {
-        pageLoadTime: navigation.loadEventEnd - navigation.loadEventStart,
-        firstContentfulPaint: fcp,
-        largestContentfulPaint: 0, // Would need LCP observer
-        interactionToNextPaint: 0, // Would need INP observer
         cumulativeLayoutShift: 0, // Would need CLS observer
+        firstContentfulPaint: fcp,
+        interactionToNextPaint: 0, // Would need INP observer
+        largestContentfulPaint: 0, // Would need LCP observer
         networkRequests: performance.getEntriesByType("resource").length,
+        pageLoadTime: navigation.loadEventEnd - navigation.loadEventStart,
         totalDataTransferred: performance
           .getEntriesByType("resource")
           .reduce((total, entry: any) => total + (entry.transferSize || 0), 0),
@@ -833,31 +846,19 @@ export class CanaryAutomation {
     return Math.floor(Math.random() * (max - min + 1)) + min;
   }
 
-  private sleep(ms: number): Promise<void> {
-    return new Promise((resolve) => setTimeout(resolve, ms));
+  /**
+   * Simulate realistic user think time
+   */
+  private async simulateThinkTime(user: SyntheticUserConfig): Promise<void> {
+    const thinkTime = this.randomBetween(
+      user.behaviorPattern.thinkTime.min,
+      user.behaviorPattern.thinkTime.max
+    );
+    await this.sleep(thinkTime);
   }
 
-  /**
-   * Cleanup all browser resources
-   */
-  async cleanup(): Promise<void> {
-    // Close all pages
-    for (const page of this.pages.values()) {
-      await page.close();
-    }
-    this.pages.clear();
-
-    // Close all contexts
-    for (const context of this.contexts.values()) {
-      await context.close();
-    }
-    this.contexts.clear();
-
-    // Close all browsers
-    for (const browser of this.browsers.values()) {
-      await browser.close();
-    }
-    this.browsers.clear();
+  private sleep(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 }
 
@@ -868,13 +869,13 @@ export function createCanaryAutomation(
   config: Partial<AutomationConfig> = {}
 ): CanaryAutomation {
   const defaultConfig: AutomationConfig = {
-    headless: true,
     baseUrl: "http://localhost:3000",
-    timeout: 30000,
-    screenshotOnFailure: true,
+    headless: true,
     recordVideo: false,
-    slowMo: 100,
     retryAttempts: 2,
+    screenshotOnFailure: true,
+    slowMo: 100,
+    timeout: 30000,
   };
 
   return new CanaryAutomation({ ...defaultConfig, ...config });

@@ -1,6 +1,6 @@
 "use client";
 
-import { Plus, Play } from "lucide-react";
+import { Play, Plus } from "lucide-react";
 import { useState } from "react";
 
 import { Button } from "@/components/ui";
@@ -8,36 +8,36 @@ import { Button } from "@/components/ui";
 import { GenerationModal } from "./generation-modal";
 
 interface GenerationTriggerProps {
-  variant?: "primary" | "secondary" | "accent";
-  btnStyle?: "outline" | "ghost" | "dash" | "soft";
-  size?: "sm" | "md" | "lg";
-  className?: string;
+  btnStyle?: "dash" | "ghost" | "outline" | "soft";
   children?: React.ReactNode;
+  className?: string;
+  size?: "lg" | "md" | "sm";
+  variant?: "accent" | "primary" | "secondary";
 }
 
 export function GenerationTrigger({
-  variant = "primary",
   btnStyle = "outline",
-  size = "lg",
-  className = "",
   children,
+  className = "",
+  size = "lg",
+  variant = "primary",
 }: GenerationTriggerProps) {
   return (
     <GenerationModal
+      onEpisodeGenerated={() => {
+        // Handle episode generation completion
+      }}
       trigger={
         <Button
-          variant={variant}
           btnStyle={btnStyle}
-          size={size}
           className={`gap-2 ${className}`}
+          size={size}
+          variant={variant}
         >
           <Plus className="w-5 h-5" />
           {children || "Generate New Episode"}
         </Button>
       }
-      onEpisodeGenerated={() => {
-        // Handle episode generation completion
-      }}
     />
   );
 }
@@ -45,7 +45,7 @@ export function GenerationTrigger({
 // Convenience component for the primary action
 export function GenerateEpisodeButton() {
   return (
-    <GenerationTrigger variant="primary" size="lg">
+    <GenerationTrigger size="lg" variant="primary">
       Generate New Episode
     </GenerationTrigger>
   );
@@ -54,7 +54,7 @@ export function GenerateEpisodeButton() {
 // Convenience component for smaller contexts
 export function GenerateButton() {
   return (
-    <GenerationTrigger variant="primary" size="sm">
+    <GenerationTrigger size="sm" variant="primary">
       Generate Episode
     </GenerationTrigger>
   );

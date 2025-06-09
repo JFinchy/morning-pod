@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 
 /**
  * Generate a CSRF token
@@ -15,9 +15,9 @@ export function setCSRFTokenInResponse(response: NextResponse): string {
 
   response.cookies.set("csrf-token", token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
     maxAge: 60 * 60 * 24, // 24 hours
+    sameSite: "strict",
+    secure: process.env.NODE_ENV === "production",
   });
 
   return token;
@@ -70,7 +70,7 @@ export function withCSRFProtection(
 /**
  * Client-side hook to get CSRF token
  */
-export function getCSRFToken(): string | null {
+export function getCSRFToken(): null | string {
   if (typeof document === "undefined") {
     return null;
   }

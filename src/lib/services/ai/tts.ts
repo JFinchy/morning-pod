@@ -1,16 +1,16 @@
-import OpenAI from "openai";
 import { put } from "@vercel/blob";
+import OpenAI from "openai";
 import { z } from "zod";
 
 import {
-  TTSRequest,
-  TTSResult,
-  TTSOptions,
   AIServiceError,
-  RateLimitError,
-  QuotaExceededError,
+  type CostTracking,
   InvalidInputError,
-  CostTracking,
+  QuotaExceededError,
+  RateLimitError,
+  type TTSOptions,
+  type TTSRequest,
+  type TTSResult,
 } from "./types";
 
 /**
@@ -22,12 +22,12 @@ import {
  * @decision-by Product team after voice quality comparison testing
  */
 const TTS_CONFIG = {
-  model: "tts-1" as const, // Standard quality, faster and cheaper
-  voice: "alloy" as const, // Neutral, professional voice
+  baseDelay: 1000, // 1 second base retry delay
   format: "mp3" as const,
   maxRetries: 3,
-  baseDelay: 1000, // 1 second base retry delay
   maxTextLength: 4096, // OpenAI TTS character limit
+  model: "tts-1" as const, // Standard quality, faster and cheaper
+  voice: "alloy" as const, // Neutral, professional voice
 } as const;
 
 /**
@@ -47,8 +47,8 @@ export const VOICES = {
   alloy: "Neutral, balanced voice suitable for most content",
   echo: "Male voice with clear pronunciation",
   fable: "British accent, good for storytelling",
-  onyx: "Deep male voice, authoritative tone",
   nova: "Female voice, warm and engaging",
+  onyx: "Deep male voice, authoritative tone",
   shimmer: "Female voice, bright and energetic",
 } as const;
 
@@ -61,11 +61,11 @@ export class TTSError extends Error {
   constructor(
     message: string,
     public readonly code:
-      | "VALIDATION_ERROR"
       | "API_ERROR"
-      | "STORAGE_ERROR"
       | "RETRY_EXHAUSTED"
-      | "TEXT_TOO_LONG",
+      | "STORAGE_ERROR"
+      | "TEXT_TOO_LONG"
+      | "VALIDATION_ERROR",
     public readonly originalError?: Error
   ) {
     super(message);
@@ -83,10 +83,10 @@ export class TTSError extends Error {
  *                   Optimized for cost efficiency while maintaining high quality.
  */
 export class TTSService {
-  private openai: OpenAI;
-  private defaultModel: "tts-1" | "tts-1-hd" = "tts-1";
-  private defaultVoice: VoiceOption = "alloy";
   private costTracker: CostTracking[] = [];
+  private defaultModel: "tts-1-hd" | "tts-1" = "tts-1";
+  private defaultVoice: VoiceOption = "alloy";
+  private openai: OpenAI;
 
   constructor(apiKey?: string) {
     if (!apiKey && !process.env.OPENAI_API_KEY) {
@@ -100,6 +100,111 @@ export class TTSService {
     this.openai = new OpenAI({
       apiKey: apiKey || process.env.OPENAI_API_KEY,
     });
+  }
+
+  /**
+   * Get service configuration
+   * @business-context Exposed for monitoring and debugging
+   */
+  static getConfig() {
+    return TTS_CONFIG;
+  }
+
+  /**
+   * Get current pricing information
+   * @business-context Exposed for cost monitoring and budgeting
+   */
+  static getPricing() {
+    return PRICING;
+  }
+
+  /**
+   * Get available voices with descriptions
+   * @business-context Helps users choose appropriate voice for their content
+   */
+  static getVoices() {
+    return VOICES;
+  }
+
+  /**
+   * Clear cost tracking data
+   */
+  clearCostTracking(): void {
+    this.costTracker = [];
+  }
+
+  /**
+   * Generate audio from long text by splitting into chunks
+   *
+   * @business-context Handles content longer than OpenAI's character limit
+   *                   by intelligently splitting text and combining audio files.
+   */
+  async generateLongAudio(
+    text: string,
+    voice: VoiceOption = "alloy",
+    model: "tts-1-hd" | "tts-1" = "tts-1"
+  ): Promise<TTSResult> {
+    if (text.length <= TTS_CONFIG.maxTextLength) {
+      // Text is short enough, use regular generation
+      return this.generateSpeech({
+        options: { model, voice },
+        text,
+      });
+    }
+
+    // Split text into chunks at sentence boundaries
+    const chunks = this.splitTextIntoChunks(text, TTS_CONFIG.maxTextLength);
+
+    if (chunks.length > 10) {
+      throw new TTSError(
+        "Text too long even after splitting (max 10 chunks)",
+        "TEXT_TOO_LONG"
+      );
+    }
+
+    // Generate audio for each chunk
+    const audioResults: TTSResult[] = [];
+    let totalCost = 0;
+    let totalDuration = 0;
+    let totalFileSize = 0;
+
+    for (const [i, chunk] of chunks.entries()) {
+      const result = await this.generateSpeech({
+        options: { model, voice },
+        text: chunk,
+      });
+
+      if (result.success) {
+        audioResults.push(result);
+        totalCost += result.cost || 0;
+        totalDuration += result.duration || 0;
+        totalFileSize += result.fileSize || 0;
+      } else {
+        throw new TTSError(
+          `Failed to generate audio for chunk ${i + 1}: ${result.error}`,
+          "API_ERROR"
+        );
+      }
+    }
+
+    // For now, return the first chunk URL
+    // TODO: Implement audio concatenation service
+    const mainResult = audioResults[0];
+
+    return {
+      audioBuffer: mainResult.audioBuffer,
+      audioUrl: mainResult.audioUrl,
+      cost: totalCost,
+      duration: totalDuration,
+      fileSize: totalFileSize,
+      metadata: {
+        charactersProcessed: text.length,
+        model,
+        processingTime: Date.now(),
+        voice,
+      },
+      success: true,
+    };
   }
 
   /**
@@ -138,46 +243,46 @@ export class TTSService {
       const cost = this.calculateCost(request.text, options.model);
 
       // Estimate duration (average speaking rate: ~150 words per minute)
-      const wordCount = request.text.split(/\s+/).length;
+      const wordCount = request.text.split(/\s+/u).length;
       const estimatedDuration = Math.round((wordCount / 150) * 60); // in seconds
 
       // Track costs
       this.trackCost({
-        service: "openai-tts",
-        model: options.model,
         charactersProcessed: request.text.length,
         cost,
-        timestamp: new Date(),
+        model: options.model,
         requestId: `tts-${Date.now()}`,
+        service: "openai-tts",
+        timestamp: new Date(),
       });
 
       return {
-        success: true,
-        audioUrl: blob.url,
         audioBuffer,
+        audioUrl: blob.url,
+        cost,
         duration: estimatedDuration,
         fileSize: audioBuffer.length,
-        cost,
         metadata: {
-          model: options.model,
-          voice: options.voice,
-          processingTime: Date.now() - startTime,
           charactersProcessed: request.text.length,
+          model: options.model,
+          processingTime: Date.now() - startTime,
+          voice: options.voice,
         },
+        success: true,
       };
     } catch (error) {
       console.error("TTS error:", error);
 
       if (error instanceof TTSError) {
         return {
-          success: false,
           error: error.message,
           metadata: {
-            model: this.defaultModel,
-            voice: this.defaultVoice,
-            processingTime: Date.now() - startTime,
             charactersProcessed: request.text.length,
+            model: this.defaultModel,
+            processingTime: Date.now() - startTime,
+            voice: this.defaultVoice,
           },
+          success: false,
         };
       }
 
@@ -185,116 +290,35 @@ export class TTSService {
       if (error instanceof Error && "status" in error) {
         const aiError = this.handleOpenAIError(error as any);
         return {
-          success: false,
           error: aiError.message,
           metadata: {
-            model: this.defaultModel,
-            voice: this.defaultVoice,
-            processingTime: Date.now() - startTime,
             charactersProcessed: request.text.length,
+            model: this.defaultModel,
+            processingTime: Date.now() - startTime,
+            voice: this.defaultVoice,
           },
+          success: false,
         };
       }
 
       return {
-        success: false,
         error: "Unknown error occurred during TTS generation",
         metadata: {
-          model: this.defaultModel,
-          voice: this.defaultVoice,
-          processingTime: Date.now() - startTime,
           charactersProcessed: request.text.length,
+          model: this.defaultModel,
+          processingTime: Date.now() - startTime,
+          voice: this.defaultVoice,
         },
+        success: false,
       };
     }
   }
 
   /**
-   * Generate audio from long text by splitting into chunks
-   *
-   * @business-context Handles content longer than OpenAI's character limit
-   *                   by intelligently splitting text and combining audio files.
+   * Get available models
    */
-  async generateLongAudio(
-    text: string,
-    voice: VoiceOption = "alloy",
-    model: "tts-1" | "tts-1-hd" = "tts-1"
-  ): Promise<TTSResult> {
-    if (text.length <= TTS_CONFIG.maxTextLength) {
-      // Text is short enough, use regular generation
-      return this.generateSpeech({
-        text,
-        options: { voice, model },
-      });
-    }
-
-    // Split text into chunks at sentence boundaries
-    const chunks = this.splitTextIntoChunks(text, TTS_CONFIG.maxTextLength);
-
-    if (chunks.length > 10) {
-      throw new TTSError(
-        "Text too long even after splitting (max 10 chunks)",
-        "TEXT_TOO_LONG"
-      );
-    }
-
-    // Generate audio for each chunk
-    const audioResults: TTSResult[] = [];
-    let totalCost = 0;
-    let totalDuration = 0;
-    let totalFileSize = 0;
-
-    for (let i = 0; i < chunks.length; i++) {
-      const result = await this.generateSpeech({
-        text: chunks[i],
-        options: { voice, model },
-      });
-
-      if (result.success) {
-        audioResults.push(result);
-        totalCost += result.cost || 0;
-        totalDuration += result.duration || 0;
-        totalFileSize += result.fileSize || 0;
-      } else {
-        throw new TTSError(
-          `Failed to generate audio for chunk ${i + 1}: ${result.error}`,
-          "API_ERROR"
-        );
-      }
-    }
-
-    // For now, return the first chunk URL
-    // TODO: Implement audio concatenation service
-    const mainResult = audioResults[0];
-
-    return {
-      success: true,
-      audioUrl: mainResult.audioUrl,
-      audioBuffer: mainResult.audioBuffer,
-      duration: totalDuration,
-      fileSize: totalFileSize,
-      cost: totalCost,
-      metadata: {
-        model: model,
-        voice: voice,
-        processingTime: Date.now(),
-        charactersProcessed: text.length,
-      },
-    };
-  }
-
-  /**
-   * Get cost tracking data
-   */
-  getCostTracking(): CostTracking[] {
-    return [...this.costTracker];
-  }
-
-  /**
-   * Clear cost tracking data
-   */
-  clearCostTracking(): void {
-    this.costTracker = [];
+  getAvailableModels(): string[] {
+    return ["tts-1", "tts-1-hd"];
   }
 
   /**
@@ -305,58 +329,25 @@ export class TTSService {
   }
 
   /**
-   * Get available models
+   * Get cost tracking data
    */
-  getAvailableModels(): string[] {
-    return ["tts-1", "tts-1-hd"];
+  getCostTracking(): CostTracking[] {
+    return [...this.costTracker];
   }
 
-  private validateRequest(request: TTSRequest): void {
-    if (!request.text || request.text.trim().length === 0) {
-      throw new InvalidInputError("tts", "Text is required");
+  /**
+   * Validate API key and connection
+   *
+   * @business-context Used during service initialization to ensure
+   *                   configuration is correct before attempting operations
+   */
+  async validateConnection(): Promise<boolean> {
+    try {
+      await this.openai.models.list();
+      return true;
+    } catch (error) {
+      return false;
     }
-
-    if (request.text.length > 100000) {
-      // 100k characters max for safety
-      throw new InvalidInputError("tts", "Text too long (max 100k characters)");
-    }
-
-    if (
-      request.options?.voice &&
-      !Object.keys(VOICES).includes(request.options.voice)
-    ) {
-      throw new InvalidInputError(
-        "tts",
-        `Invalid voice. Available voices: ${Object.keys(VOICES).join(", ")}`
-      );
-    }
-
-    if (
-      request.options?.model &&
-      !["tts-1", "tts-1-hd"].includes(request.options.model)
-    ) {
-      throw new InvalidInputError(
-        "tts",
-        "Invalid model. Available models: tts-1, tts-1-hd"
-      );
-    }
-  }
-
-  private prepareOptions(options?: TTSOptions) {
-    return {
-      model: options?.model || this.defaultModel,
-      voice: options?.voice || this.defaultVoice,
-      response_format: "mp3",
-    };
-  }
-
-  private async callOpenAI(text: string, options: any) {
-    return await this.openai.audio.speech.create({
-      model: options.model,
-      voice: options.voice,
-      input: text,
-      response_format: options.response_format,
-    });
   }
 
   private calculateCost(text: string, model: string): number {
@@ -365,20 +356,32 @@ export class TTSService {
     return Math.round(text.length * pricePerChar * 10000) / 10000; // Round to 4 decimal places
   }
 
-  private trackCost(tracking: CostTracking): void {
-    this.costTracker.push(tracking);
+  private async callOpenAI(text: string, options: any) {
+    return await this.openai.audio.speech.create({
+      input: text,
+      model: options.model,
+      response_format: options.response_format,
+      voice: options.voice,
+    });
+  }
 
-    // Keep only last 100 entries to prevent memory issues
-    if (this.costTracker.length > 100) {
-      this.costTracker = this.costTracker.slice(-100);
-    }
+  /**
+   * Generate a unique filename for audio files
+   *
+   * @business-context Creates timestamped filenames for easy identification
+   *                   and prevents naming conflicts in blob storage
+   */
+  private generateFilename(): string {
+    const timestamp = new Date().toISOString().replace(/[.:]/gu, "-");
+    const random = Math.random().toString(36).slice(2, 8);
+    return `podcast-${timestamp}-${random}.mp3`;
   }
 
   private handleOpenAIError(error: any): AIServiceError {
     switch (error.status) {
       case 429:
         const retryAfter = error.headers?.["retry-after"]
-          ? parseInt(error.headers["retry-after"])
+          ? Number.parseInt(error.headers["retry-after"])
           : undefined;
         return new RateLimitError("tts", retryAfter);
 
@@ -398,6 +401,21 @@ export class TTSService {
     }
   }
 
+  private prepareOptions(options?: TTSOptions) {
+    return {
+      model: options?.model || this.defaultModel,
+      response_format: "mp3",
+      voice: options?.voice || this.defaultVoice,
+    };
+  }
+
+  /**
+   * Sleep utility for retry delays
+   */
+  private sleep(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
   /**
    * Split text into chunks at sentence boundaries
    *
@@ -408,7 +426,7 @@ export class TTSService {
     let currentChunk = "";
 
     // Split by sentences (periods, exclamation marks, question marks)
-    const sentences = text.split(/(?<=[.!?])\s+/);
+    const sentences = text.split(/(?<=[!.?])\s+/u);
 
     for (const sentence of sentences) {
       // If adding this sentence would exceed the limit
@@ -451,62 +469,44 @@ export class TTSService {
     return chunks;
   }
 
-  /**
-   * Generate a unique filename for audio files
-   *
-   * @business-context Creates timestamped filenames for easy identification
-   *                   and prevents naming conflicts in blob storage
-   */
-  private generateFilename(): string {
-    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-    const random = Math.random().toString(36).substring(2, 8);
-    return `podcast-${timestamp}-${random}.mp3`;
-  }
+  private trackCost(tracking: CostTracking): void {
+    this.costTracker.push(tracking);
 
-  /**
-   * Sleep utility for retry delays
-   */
-  private sleep(ms: number): Promise<void> {
-    return new Promise((resolve) => setTimeout(resolve, ms));
-  }
-
-  /**
-   * Validate API key and connection
-   *
-   * @business-context Used during service initialization to ensure
-   *                   configuration is correct before attempting operations
-   */
-  async validateConnection(): Promise<boolean> {
-    try {
-      await this.openai.models.list();
-      return true;
-    } catch (error) {
-      return false;
+    // Keep only last 100 entries to prevent memory issues
+    if (this.costTracker.length > 100) {
+      this.costTracker = this.costTracker.slice(-100);
     }
   }
 
-  /**
-   * Get available voices with descriptions
-   * @business-context Helps users choose appropriate voice for their content
-   */
-  static getVoices() {
-    return VOICES;
-  }
+  private validateRequest(request: TTSRequest): void {
+    if (!request.text || request.text.trim().length === 0) {
+      throw new InvalidInputError("tts", "Text is required");
+    }
 
-  /**
-   * Get current pricing information
-   * @business-context Exposed for cost monitoring and budgeting
-   */
-  static getPricing() {
-    return PRICING;
-  }
+    if (request.text.length > 100000) {
+      // 100k characters max for safety
+      throw new InvalidInputError("tts", "Text too long (max 100k characters)");
+    }
 
-  /**
-   * Get service configuration
-   * @business-context Exposed for monitoring and debugging
-   */
-  static getConfig() {
-    return TTS_CONFIG;
+    if (
+      request.options?.voice &&
+      !Object.keys(VOICES).includes(request.options.voice)
+    ) {
+      throw new InvalidInputError(
+        "tts",
+        `Invalid voice. Available voices: ${Object.keys(VOICES).join(", ")}`
+      );
+    }
+
+    if (
+      request.options?.model &&
+      !["tts-1", "tts-1-hd"].includes(request.options.model)
+    ) {
+      throw new InvalidInputError(
+        "tts",
+        "Invalid model. Available models: tts-1, tts-1-hd"
+      );
+    }
   }
 }
 

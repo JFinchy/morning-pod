@@ -1,34 +1,34 @@
-import { ButtonHTMLAttributes, forwardRef } from "react";
+import { type ButtonHTMLAttributes, forwardRef } from "react";
 
 import { cn } from "@/lib/utils";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+  btnStyle?: "dash" | "ghost" | "link" | "outline" | "soft";
+  loading?: boolean;
+  shape?: "block" | "circle" | "square" | "wide";
+  size?: "lg" | "md" | "sm" | "xl" | "xs";
   variant?:
+    | "accent"
+    | "error"
+    | "info"
     | "neutral"
     | "primary"
     | "secondary"
-    | "accent"
-    | "info"
     | "success"
-    | "warning"
-    | "error";
-  btnStyle?: "outline" | "dash" | "soft" | "ghost" | "link";
-  size?: "xs" | "sm" | "md" | "lg" | "xl";
-  shape?: "wide" | "block" | "square" | "circle";
-  loading?: boolean;
+    | "warning";
 }
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   (
     {
-      className,
-      variant,
       btnStyle,
-      size = "md",
-      shape,
-      loading = false,
-      disabled,
       children,
+      className,
+      disabled,
+      loading = false,
+      shape,
+      size = "md",
+      variant,
       ...props
     },
     ref
@@ -48,9 +48,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         ref={ref}
         {...props}
       >
-        {loading && (
-          <span className="loading loading-spinner loading-sm"></span>
-        )}
+        {loading && <span className="loading loading-spinner loading-sm" />}
         {children}
       </button>
     );

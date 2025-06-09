@@ -7,23 +7,24 @@
  *                   rollouts with automated rollback capabilities for safe releases
  */
 
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
-import { Button } from "../ui/button";
-import { Progress } from "../ui/progress";
-import { Badge } from "../ui/badge";
+import { useEffect, useState } from "react";
+
 import { useSyntheticDashboard } from "../../lib/monitoring/synthetic-dashboard";
+import { Badge } from "../ui/badge";
+import { Button } from "../ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { Progress } from "../ui/progress";
 
 interface CanaryDeployment {
-  id: string;
-  deploymentUrl: string;
   branchName: string;
-  status: "testing" | "rolling-out" | "completed" | "failed" | "rolled-back";
-  testScore: number;
+  deploymentUrl: string;
+  featureFlags: string[];
+  id: string;
+  lastUpdated: Date;
   rolloutPercentage: number;
   startTime: Date;
-  lastUpdated: Date;
-  featureFlags: string[];
+  status: "completed" | "failed" | "rolled-back" | "rolling-out" | "testing";
+  testScore: number;
 }
 
 interface CanaryMonitoringDashboardProps {
@@ -35,12 +36,12 @@ export function CanaryMonitoringDashboard({
 }: CanaryMonitoringDashboardProps) {
   const [deployments, setDeployments] = useState<CanaryDeployment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedDeployment, setSelectedDeployment] = useState<string | null>(
+  const [selectedDeployment, setSelectedDeployment] = useState<null | string>(
     null
   );
 
   // Use synthetic dashboard for real-time metrics
-  const { metrics, alerts, isConnected, subscribe, unsubscribe } =
+  const { alerts, isConnected, metrics, subscribe, unsubscribe } =
     useSyntheticDashboard();
 
   useEffect(() => {
@@ -67,26 +68,26 @@ export function CanaryMonitoringDashboard({
       // Mock API call - would fetch from actual backend
       const mockDeployments: CanaryDeployment[] = [
         {
-          id: "deploy-1",
-          deploymentUrl: "https://morning-pod-pr-123.vercel.app",
           branchName: "feat/enhanced-audio-player",
-          status: "rolling-out",
-          testScore: 92,
+          deploymentUrl: "https://morning-pod-pr-123.vercel.app",
+          featureFlags: ["enhanced-audio-player", "waveform-visualization"],
+          id: "deploy-1",
+          lastUpdated: new Date(Date.now() - 5 * 60 * 1000), // 5 minutes ago
           rolloutPercentage: 25,
           startTime: new Date(Date.now() - 30 * 60 * 1000), // 30 minutes ago
-          lastUpdated: new Date(Date.now() - 5 * 60 * 1000), // 5 minutes ago
-          featureFlags: ["enhanced-audio-player", "waveform-visualization"],
+          status: "rolling-out",
+          testScore: 92,
         },
         {
-          id: "deploy-2",
-          deploymentUrl: "https://morning-pod-pr-124.vercel.app",
           branchName: "feat/improved-summarization",
-          status: "testing",
-          testScore: 88,
+          deploymentUrl: "https://morning-pod-pr-124.vercel.app",
+          featureFlags: ["improved-summarization", "enhanced-keywords"],
+          id: "deploy-2",
+          lastUpdated: new Date(Date.now() - 2 * 60 * 1000), // 2 minutes ago
           rolloutPercentage: 0,
           startTime: new Date(Date.now() - 10 * 60 * 1000), // 10 minutes ago
-          lastUpdated: new Date(Date.now() - 2 * 60 * 1000), // 2 minutes ago
-          featureFlags: ["improved-summarization", "enhanced-keywords"],
+          status: "testing",
+          testScore: 88,
         },
       ];
 
@@ -104,11 +105,11 @@ export function CanaryMonitoringDashboard({
         if (deployment.deploymentUrl === update.deploymentUrl) {
           return {
             ...deployment,
-            testScore: update.testScore || deployment.testScore,
-            status: update.status || deployment.status,
+            lastUpdated: new Date(),
             rolloutPercentage:
               update.rolloutPercentage || deployment.rolloutPercentage,
-            lastUpdated: new Date(),
+            status: update.status || deployment.status,
+            testScore: update.testScore || deployment.testScore,
           };
         }
         return deployment;
@@ -123,13 +124,13 @@ export function CanaryMonitoringDashboard({
     try {
       // Trigger emergency rollback
       await fetch("/api/canary/emergency-rollback", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           deploymentId,
           deploymentUrl: deployment.deploymentUrl,
           reason: "Manual emergency rollback",
         }),
+        headers: { "Content-Type": "application/json" },
+        method: "POST",
       });
 
       // Update local state
@@ -138,9 +139,9 @@ export function CanaryMonitoringDashboard({
           d.id === deploymentId
             ? {
                 ...d,
-                status: "rolled-back",
-                rolloutPercentage: 0,
                 lastUpdated: new Date(),
+                rolloutPercentage: 0,
+                status: "rolled-back",
               }
             : d
         )
@@ -177,10 +178,10 @@ export function CanaryMonitoringDashboard({
     return (
       <div className={`space-y-4 ${className}`}>
         <div className="animate-pulse">
-          <div className="h-6 bg-gray-200 rounded mb-4"></div>
+          <div className="h-6 bg-gray-200 rounded mb-4" />
           <div className="space-y-3">
-            <div className="h-32 bg-gray-200 rounded"></div>
-            <div className="h-32 bg-gray-200 rounded"></div>
+            <div className="h-32 bg-gray-200 rounded" />
+            <div className="h-32 bg-gray-200 rounded" />
           </div>
         </div>
       </div>
@@ -201,7 +202,7 @@ export function CanaryMonitoringDashboard({
         <div className="flex items-center gap-2">
           <div
             className={`w-3 h-3 rounded-full ${isConnected ? "bg-green-500" : "bg-red-500"}`}
-          ></div>
+          />
           <span className="text-sm text-gray-600">
             {isConnected ? "Connected" : "Disconnected"}
           </span>
@@ -213,7 +214,6 @@ export function CanaryMonitoringDashboard({
         <div className="space-y-2">
           {alerts.map((alert, index) => (
             <div
-              key={index}
               className={`p-4 rounded-lg border ${
                 alert.severity === "critical"
                   ? "bg-red-50 border-red-200"
@@ -221,6 +221,7 @@ export function CanaryMonitoringDashboard({
                     ? "bg-yellow-50 border-yellow-200"
                     : "bg-blue-50 border-blue-200"
               }`}
+              key={index}
             >
               <div className="flex justify-between items-start">
                 <div>
@@ -243,7 +244,7 @@ export function CanaryMonitoringDashboard({
       {/* Deployments */}
       <div className="grid gap-4">
         {deployments.map((deployment) => (
-          <Card key={deployment.id} className="relative">
+          <Card className="relative" key={deployment.id}>
             <CardHeader className="pb-3">
               <div className="flex justify-between items-start">
                 <div>
@@ -263,9 +264,9 @@ export function CanaryMonitoringDashboard({
                   {(deployment.status === "rolling-out" ||
                     deployment.status === "testing") && (
                     <Button
-                      variant="error"
-                      size="sm"
                       onClick={() => handleEmergencyRollback(deployment.id)}
+                      size="sm"
+                      variant="error"
                     >
                       Emergency Rollback
                     </Button>
@@ -294,8 +295,8 @@ export function CanaryMonitoringDashboard({
                   </span>
                 </div>
                 <Progress
-                  value={deployment.rolloutPercentage}
                   className="h-2"
+                  value={deployment.rolloutPercentage}
                 />
               </div>
 
@@ -304,7 +305,7 @@ export function CanaryMonitoringDashboard({
                 <span className="text-sm font-medium">Feature Flags</span>
                 <div className="flex flex-wrap gap-1">
                   {deployment.featureFlags.map((flag) => (
-                    <Badge key={flag} variant="outline" className="text-xs">
+                    <Badge className="text-xs" key={flag} variant="outline">
                       {flag}
                     </Badge>
                   ))}

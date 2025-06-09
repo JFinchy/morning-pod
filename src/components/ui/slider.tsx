@@ -1,38 +1,38 @@
-import { InputHTMLAttributes, forwardRef } from "react";
+import { forwardRef, type InputHTMLAttributes } from "react";
 
 import { cn } from "@/lib/utils";
 
 interface SliderProps
   extends Omit<InputHTMLAttributes<HTMLInputElement>, "type"> {
+  sliderSize?: "lg" | "md" | "sm" | "xl" | "xs";
   variant?:
+    | "accent"
+    | "error"
+    | "info"
     | "neutral"
     | "primary"
     | "secondary"
-    | "accent"
-    | "info"
     | "success"
-    | "warning"
-    | "error";
-  sliderSize?: "xs" | "sm" | "md" | "lg" | "xl";
+    | "warning";
 }
 
 const Slider = forwardRef<HTMLInputElement, SliderProps>(
   (
-    { className, variant, sliderSize = "md", min = 0, max = 100, ...props },
+    { className, max = 100, min = 0, sliderSize = "md", variant, ...props },
     ref
   ) => {
     return (
       <input
-        type="range"
         className={cn(
           "range",
           variant && `range-${variant}`,
           sliderSize && `range-${sliderSize}`,
           className
         )}
-        min={min}
         max={max}
+        min={min}
         ref={ref}
+        type="range"
         {...props}
       />
     );

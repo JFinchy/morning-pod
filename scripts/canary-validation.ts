@@ -10,15 +10,15 @@
 import { runQuickCanaryValidation } from "../src/lib/testing/vercel-posthog-integration";
 
 interface CanaryValidationResult {
+  avgDuration: number;
+  deploymentUrl: string;
+  failedTests: number;
   passed: boolean;
   score: number;
-  summary: string;
   successRate: number;
-  totalTests: number;
-  failedTests: number;
-  avgDuration: number;
+  summary: string;
   timestamp: string;
-  deploymentUrl: string;
+  totalTests: number;
 }
 
 async function main() {
@@ -38,18 +38,18 @@ async function main() {
     // Define feature flags to test (if any)
     const featureFlags = [
       {
+        description: "New episode generation pipeline",
+        enabledForSynthetic: true,
         flagKey: "new-episode-generation",
         rolloutPercentage: 10,
         targetGroups: ["beta-users"],
-        description: "New episode generation pipeline",
-        enabledForSynthetic: true,
       },
       {
+        description: "Enhanced audio player with waveform",
+        enabledForSynthetic: true,
         flagKey: "enhanced-audio-player",
         rolloutPercentage: 25,
         targetGroups: ["power-users"],
-        description: "Enhanced audio player with waveform",
-        enabledForSynthetic: true,
       },
     ];
 
@@ -58,15 +58,15 @@ async function main() {
 
     // Create detailed result object
     const validationResult: CanaryValidationResult = {
+      avgDuration: 2500, // Placeholder - would come from actual test report
+      deploymentUrl,
+      failedTests: result.passed ? 0 : 2, // Placeholder
       passed: result.passed,
       score: result.score,
-      summary: result.summary,
       successRate: 0.95, // Placeholder - would come from actual test report
-      totalTests: 15, // Placeholder - would come from actual test report
-      failedTests: result.passed ? 0 : 2, // Placeholder
-      avgDuration: 2500, // Placeholder - would come from actual test report
+      summary: result.summary,
       timestamp: new Date().toISOString(),
-      deploymentUrl,
+      totalTests: 15, // Placeholder - would come from actual test report
     };
 
     // Output JSON result for GitHub Actions
@@ -86,15 +86,15 @@ async function main() {
 
     // Output error result
     const errorResult: CanaryValidationResult = {
+      avgDuration: 0,
+      deploymentUrl,
+      failedTests: 1,
       passed: false,
       score: 0,
-      summary: `Validation failed: ${error instanceof Error ? error.message : "Unknown error"}`,
       successRate: 0,
-      totalTests: 0,
-      failedTests: 1,
-      avgDuration: 0,
+      summary: `Validation failed: ${error instanceof Error ? error.message : "Unknown error"}`,
       timestamp: new Date().toISOString(),
-      deploymentUrl,
+      totalTests: 0,
     };
 
     console.log(JSON.stringify(errorResult, null, 2));

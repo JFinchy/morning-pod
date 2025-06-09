@@ -1,27 +1,27 @@
 "use client";
 
-import { Play, Pause, Clock, Headphones } from "lucide-react";
+import { Clock, Headphones, Pause, Play } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
-  Episode,
+  type Episode,
   formatDuration,
   getStatusColor,
   getStatusText,
 } from "@/lib/mock-data/episodes";
 
 interface EpisodeCardV1Props {
-  episode?: Episode;
-  onPlay?: () => void;
-  onPause?: () => void;
   className?: string;
+  episode?: Episode;
+  onPause?: () => void;
+  onPlay?: () => void;
 }
 
 export function EpisodeCardV1({
-  episode,
-  onPlay,
-  onPause,
   className = "",
+  episode,
+  onPause,
+  onPlay,
 }: EpisodeCardV1Props) {
   // Handle undefined episode data
   if (!episode) {
@@ -29,9 +29,9 @@ export function EpisodeCardV1({
       <div className="card bg-base-100 shadow-sm border-0">
         <div className="card-body p-4">
           <div className="animate-pulse space-y-2">
-            <div className="h-4 bg-base-300 rounded w-3/4"></div>
-            <div className="h-3 bg-base-300 rounded w-full"></div>
-            <div className="h-3 bg-base-300 rounded w-2/3"></div>
+            <div className="h-4 bg-base-300 rounded w-3/4" />
+            <div className="h-3 bg-base-300 rounded w-full" />
+            <div className="h-3 bg-base-300 rounded w-2/3" />
           </div>
         </div>
       </div>
@@ -97,10 +97,10 @@ export function EpisodeCardV1({
           {/* Action Button */}
           {episode.status === "ready" ? (
             <Button
-              size="sm"
               btnStyle="ghost"
-              onClick={handlePlayPause}
               className="h-8 w-8 p-0"
+              onClick={handlePlayPause}
+              size="sm"
             >
               {episode.isPlaying ? (
                 <Pause className="w-4 h-4" />
@@ -109,7 +109,7 @@ export function EpisodeCardV1({
               )}
             </Button>
           ) : episode.status === "generating" ? (
-            <div className="loading loading-spinner loading-sm"></div>
+            <div className="loading loading-spinner loading-sm" />
           ) : null}
         </div>
 

@@ -8,36 +8,37 @@
  * @decision-by Development team for automated canary validation
  */
 
-import { test, expect, Page, BrowserContext } from "@playwright/test";
-import {
-  createCanaryAutomation,
-  runCanaryValidation,
-  AutomationConfig,
-} from "@/tests/synthetic/canary-automation";
+import { BrowserContext, expect, Page, test } from "@playwright/test";
+
 import {
   createSyntheticUserTesting,
   SyntheticUserType,
   TestScenario,
 } from "@/lib/testing/synthetic-users";
+import {
+  type AutomationConfig,
+  createCanaryAutomation,
+  runCanaryValidation,
+} from "@/tests/synthetic/canary-automation";
 
 /**
  * Test configuration for canary testing
  */
 const canaryConfig: Partial<AutomationConfig> = {
-  headless: true,
   baseUrl: "http://localhost:3000",
-  timeout: 30000,
-  screenshotOnFailure: true,
+  headless: true,
   recordVideo: false,
-  slowMo: 100,
   retryAttempts: 1,
+  screenshotOnFailure: true,
+  slowMo: 100,
+  timeout: 30000,
 };
 
 test.describe("Synthetic User Canary Testing", () => {
   test.beforeEach(async ({ page }) => {
     // Ensure the app is running and accessible
     await page.goto("/");
-    await expect(page).toHaveTitle(/Morning Pod/);
+    await expect(page).toHaveTitle(/Morning Pod/u);
   });
 
   test("should create and configure synthetic users correctly", async () => {
@@ -64,10 +65,10 @@ test.describe("Synthetic User Canary Testing", () => {
   test("should validate core navigation flows", async ({ page }) => {
     // Test basic page navigation that synthetic users will perform
     const pages = [
-      { path: "/", title: /Morning Pod/ },
-      { path: "/episodes", title: /Episodes/ },
-      { path: "/sources", title: /Sources/ },
-      { path: "/queue", title: /Queue/ },
+      { path: "/", title: /Morning Pod/u },
+      { path: "/episodes", title: /Episodes/u },
+      { path: "/sources", title: /Sources/u },
+      { path: "/queue", title: /Queue/u },
     ];
 
     for (const pageInfo of pages) {
@@ -158,9 +159,9 @@ test.describe("Synthetic User Canary Testing", () => {
     page,
   }) => {
     const viewports = [
-      { width: 390, height: 844, name: "mobile" },
-      { width: 768, height: 1024, name: "tablet" },
-      { width: 1440, height: 900, name: "desktop" },
+      { height: 844, name: "mobile", width: 390 },
+      { height: 1024, name: "tablet", width: 768 },
+      { height: 900, name: "desktop", width: 1440 },
     ];
 
     for (const viewport of viewports) {
@@ -177,8 +178,8 @@ test.describe("Synthetic User Canary Testing", () => {
 
       // Take screenshot for visual validation
       await page.screenshot({
-        path: `test-results/responsive-${viewport.name}-${Date.now()}.png`,
         fullPage: true,
+        path: `test-results/responsive-${viewport.name}-${Date.now()}.png`,
       });
     }
   });
@@ -216,8 +217,8 @@ test.describe("Synthetic User Canary Testing", () => {
           ?.startTime || 0;
 
       return {
-        pageLoadTime: navigation.loadEventEnd - navigation.loadEventStart,
         firstContentfulPaint: fcp,
+        pageLoadTime: navigation.loadEventEnd - navigation.loadEventStart,
         resourceCount: performance.getEntriesByType("resource").length,
         totalDataTransferred: performance
           .getEntriesByType("resource")
@@ -255,36 +256,36 @@ test.describe("Canary Automation Integration", () => {
 
     // Register a test user
     syntheticTesting.registerUser({
-      id: "test_user_001",
-      type: SyntheticUserType.CASUAL_LISTENER,
-      name: "Test User",
       behaviorPattern: {
-        sessionDuration: { min: 5, max: 15, average: 10 },
-        actionsPerSession: { min: 3, max: 8, average: 5 },
-        thinkTime: { min: 500, max: 2000, average: 1000 },
+        actionsPerSession: { average: 5, max: 8, min: 3 },
         errorTolerance: 0.5,
         featureAdoption: 0.3,
+        sessionDuration: { average: 10, max: 15, min: 5 },
+        thinkTime: { average: 1000, max: 2000, min: 500 },
       },
       device: {
-        userAgent: "Mozilla/5.0 (compatible; SyntheticUser/1.0)",
-        viewport: { width: 1280, height: 720 },
-        deviceType: "desktop",
-        network: "fast",
         capabilities: {
           javascript: true,
           localStorage: true,
-          webAudio: true,
           touchScreen: false,
+          webAudio: true,
         },
+        deviceType: "desktop",
+        network: "fast",
+        userAgent: "Mozilla/5.0 (compatible; SyntheticUser/1.0)",
+        viewport: { height: 720, width: 1280 },
       },
+      id: "test_user_001",
+      name: "Test User",
       preferences: {
-        theme: "light",
         audioQuality: "standard",
-        playbackSpeed: 1.0,
         autoplay: false,
         notifications: false,
+        playbackSpeed: 1.0,
+        theme: "light",
       },
       testScenarios: [TestScenario.NAVIGATION_FLOW],
+      type: SyntheticUserType.CASUAL_LISTENER,
     });
 
     // Execute tests for the user
@@ -344,36 +345,36 @@ test.describe("Canary Automation Integration", () => {
 
     // Register a user that will fail due to invalid URL
     syntheticTesting.registerUser({
-      id: "failing_user_001",
-      type: SyntheticUserType.POWER_USER,
-      name: "Failing Test User",
       behaviorPattern: {
-        sessionDuration: { min: 1, max: 2, average: 1 },
-        actionsPerSession: { min: 1, max: 2, average: 1 },
-        thinkTime: { min: 100, max: 200, average: 150 },
+        actionsPerSession: { average: 1, max: 2, min: 1 },
         errorTolerance: 0.1,
         featureAdoption: 0.1,
+        sessionDuration: { average: 1, max: 2, min: 1 },
+        thinkTime: { average: 150, max: 200, min: 100 },
       },
       device: {
-        userAgent: "Mozilla/5.0 (compatible; SyntheticUser/1.0)",
-        viewport: { width: 1280, height: 720 },
-        deviceType: "desktop",
-        network: "fast",
         capabilities: {
           javascript: true,
           localStorage: true,
-          webAudio: true,
           touchScreen: false,
+          webAudio: true,
         },
+        deviceType: "desktop",
+        network: "fast",
+        userAgent: "Mozilla/5.0 (compatible; SyntheticUser/1.0)",
+        viewport: { height: 720, width: 1280 },
       },
+      id: "failing_user_001",
+      name: "Failing Test User",
       preferences: {
-        theme: "light",
         audioQuality: "standard",
-        playbackSpeed: 1.0,
         autoplay: false,
         notifications: false,
+        playbackSpeed: 1.0,
+        theme: "light",
       },
       testScenarios: [TestScenario.NAVIGATION_FLOW],
+      type: SyntheticUserType.POWER_USER,
     });
 
     // Execute tests (should handle failure gracefully)
@@ -405,10 +406,10 @@ test.describe("Feature Flag Integration", () => {
 
     // Look for feature-flag controlled elements
     // (In a real implementation, these would be controlled by PostHog or similar)
-    const body = await page.textContent("body");
+    const body = page;
 
     // Verify basic app functionality is available
-    expect(body).toBeTruthy();
+    await expect(body).toHaveText("body");
     expect(body!.length).toBeGreaterThan(0);
 
     // Test that we can detect different UI variants

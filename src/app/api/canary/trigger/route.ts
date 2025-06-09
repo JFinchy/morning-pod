@@ -1,8 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+
 import {
-  VercelPostHogCanaryTesting,
   runQuickCanaryValidation,
+  VercelPostHogCanaryTesting,
 } from "../../../../lib/testing/vercel-posthog-integration";
 
 /**
@@ -13,24 +14,24 @@ import {
  */
 
 const triggerRequestSchema = z.object({
-  deploymentUrl: z.string().url("Invalid deployment URL"),
   branchName: z.string().min(1, "Branch name is required"),
+  deploymentUrl: z.string().url("Invalid deployment URL"),
   featureFlags: z
     .array(
       z.object({
+        description: z.string(),
+        enabledForSynthetic: z.boolean().default(true),
         flagKey: z.string(),
         rolloutPercentage: z.number().min(0).max(100),
         targetGroups: z.array(z.string()),
-        description: z.string(),
-        enabledForSynthetic: z.boolean().default(true),
       })
     )
     .optional()
     .default([]),
   testConfig: z
     .object({
-      minDuration: z.number().default(5), // minutes
       maxFailureRate: z.number().default(0.05), // 5%
+      minDuration: z.number().default(5), // minutes
       requiredScenarios: z
         .array(z.string())
         .default(["EPISODE_GENERATION", "AUDIO_PLAYBACK", "NAVIGATION_FLOW"]),
@@ -52,9 +53,9 @@ export async function POST(request: NextRequest) {
 
     // Validate environment variables
     const requiredEnvVars = {
-      POSTHOG_PERSONAL_API_KEY: process.env.POSTHOG_PERSONAL_API_KEY,
       NEXT_PUBLIC_POSTHOG_PROJECT_ID:
         process.env.NEXT_PUBLIC_POSTHOG_PROJECT_ID,
+      POSTHOG_PERSONAL_API_KEY: process.env.POSTHOG_PERSONAL_API_KEY,
       VERCEL_API_KEY: process.env.VERCEL_API_KEY,
     };
 
@@ -74,14 +75,14 @@ export async function POST(request: NextRequest) {
 
     // Initialize integration
     const integration = new VercelPostHogCanaryTesting({
+      baseUrl: validatedData.deploymentUrl,
       posthogApiKey: requiredEnvVars.POSTHOG_PERSONAL_API_KEY!,
       posthogProjectId: requiredEnvVars.NEXT_PUBLIC_POSTHOG_PROJECT_ID!,
       vercelApiKey: requiredEnvVars.VERCEL_API_KEY!,
-      baseUrl: validatedData.deploymentUrl,
     });
 
     // Generate test ID for tracking
-    const testId = `canary-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const testId = `canary-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
 
     // Start canary testing
     console.log(
@@ -92,15 +93,15 @@ export async function POST(request: NextRequest) {
 
     // Return immediate response while continuing processing in background
     const response = {
-      testId,
-      status: "initiated",
-      deploymentUrl: validatedData.deploymentUrl,
       branchName: validatedData.branchName,
-      featureFlags: validatedData.featureFlags,
-      testConfig: validatedData.testConfig,
-      timestamp: new Date().toISOString(),
+      deploymentUrl: validatedData.deploymentUrl,
       estimatedDuration: `${validatedData.testConfig.minDuration || 5} minutes`,
+      featureFlags: validatedData.featureFlags,
       monitoringUrl: `/api/canary/status/${testId}`,
+      status: "initiated",
+      testConfig: validatedData.testConfig,
+      testId,
+      timestamp: new Date().toISOString(),
     };
 
     // Process test results in background
@@ -118,8 +119,8 @@ export async function POST(request: NextRequest) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         {
-          error: "Validation failed",
           details: error.errors,
+          error: "Validation failed",
         },
         { status: 400 }
       );
@@ -160,12 +161,12 @@ async function runCanaryTest(
     console.error(`❌ Canary test ${testId} failed:`, error);
 
     return {
+      error: error instanceof Error ? error.message : "Unknown error",
       passed: false,
       score: 0,
       summary: `Test execution failed: ${error instanceof Error ? error.message : "Unknown error"}`,
       testId,
       timestamp: new Date().toISOString(),
-      error: error instanceof Error ? error.message : "Unknown error",
     };
   }
 }
@@ -249,14 +250,14 @@ async function logTestFailure(
   console.log(`📝 Logging test failure for ${testId}`);
 
   const failureLog = {
-    testId,
-    deploymentUrl: config.deploymentUrl,
     branchName: config.branchName,
+    deploymentUrl: config.deploymentUrl,
+    error: testResult.error,
+    featureFlags: config.featureFlags,
     score: testResult.score,
     summary: testResult.summary,
-    error: testResult.error,
+    testId,
     timestamp: new Date().toISOString(),
-    featureFlags: config.featureFlags,
   };
 
   // In a real implementation, this would be stored in a database
@@ -266,24 +267,24 @@ async function logTestFailure(
 function getRolloutSteps(strategy: string, score: number) {
   if (strategy === "conservative" || score < 90) {
     return [
-      { percentage: 5, duration: 15 },
-      { percentage: 10, duration: 15 },
-      { percentage: 25, duration: 30 },
-      { percentage: 50, duration: 30 },
-      { percentage: 100, duration: 0 },
+      { duration: 15, percentage: 5 },
+      { duration: 15, percentage: 10 },
+      { duration: 30, percentage: 25 },
+      { duration: 30, percentage: 50 },
+      { duration: 0, percentage: 100 },
     ];
   }
 
   if (strategy === "aggressive" && score >= 95) {
     return [
-      { percentage: 10, duration: 10 },
-      { percentage: 50, duration: 15 },
-      { percentage: 100, duration: 0 },
+      { duration: 10, percentage: 10 },
+      { duration: 15, percentage: 50 },
+      { duration: 0, percentage: 100 },
     ];
   }
 
   if (strategy === "instant" && score >= 98) {
-    return [{ percentage: 100, duration: 0 }];
+    return [{ duration: 0, percentage: 100 }];
   }
 
   // Default to conservative
@@ -304,19 +305,19 @@ export async function GET(request: NextRequest) {
 
   // Mock status response - would query actual test status
   const mockStatus = {
-    testId,
-    status: "completed",
     result: {
       passed: true,
       score: 92,
       summary: "All tests passed successfully",
     },
     rollout: {
-      status: "in-progress",
       currentPercentage: 25,
-      targetPercentage: 100,
       nextStep: "2024-01-22T15:30:00Z",
+      status: "in-progress",
+      targetPercentage: 100,
     },
+    status: "completed",
+    testId,
     timestamp: new Date().toISOString(),
   };
 

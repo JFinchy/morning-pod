@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { mockQueueItems, mockGenerationStats } from "../../mock-data/queue";
+import { mockGenerationStats, mockQueueItems } from "../../mock-data/queue";
 import { createTRPCRouter, publicProcedure } from "../server-mock";
 
 export const queueMockRouter = createTRPCRouter({
@@ -8,6 +8,7 @@ export const queueMockRouter = createTRPCRouter({
   getAll: publicProcedure
     .input(
       z.object({
+        limit: z.number().int().min(1).max(100).default(50),
         status: z
           .enum([
             "pending",
@@ -19,11 +20,10 @@ export const queueMockRouter = createTRPCRouter({
             "failed",
           ])
           .optional(),
-        limit: z.number().int().min(1).max(100).default(50),
       })
     )
     .query(async ({ input }) => {
-      const { status, limit } = input;
+      const { limit, status } = input;
 
       let filteredItems = mockQueueItems;
 
@@ -47,18 +47,18 @@ export const queueMockRouter = createTRPCRouter({
       return queueItem;
     }),
 
-  // Get currently processing items
-  getProcessing: publicProcedure.query(async () => {
-    return mockQueueItems.filter((item) =>
-      ["scraping", "summarizing", "generating-audio", "uploading"].includes(
-        item.status
-      )
-    );
-  }),
-
   // Get pending items
   getPending: publicProcedure.query(async () => {
     return mockQueueItems.filter((item) => item.status === "pending");
+  }),
+
+  // Get currently processing items
+  getProcessing: publicProcedure.query(async () => {
+    return mockQueueItems.filter((item) =>
+      ["generating-audio", "scraping", "summarizing", "uploading"].includes(
+        item.status
+      )
+    );
   }),
 
   // Get queue statistics

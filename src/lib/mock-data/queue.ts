@@ -1,143 +1,143 @@
 export interface QueueItem {
-  id: string;
+  completedAt?: Date;
+  cost?: number;
   episodeId: string;
   episodeTitle: string;
+  errorMessage?: string;
+  estimatedTimeRemaining?: number; // seconds
+  id: string;
+  position: number; // position in queue
+  progress: number; // 0-100
   sourceId: string;
   sourceName: string;
+  startedAt?: Date;
   status:
+    | "completed"
+    | "failed"
+    | "generating-audio"
     | "pending"
     | "scraping"
     | "summarizing"
-    | "generating-audio"
-    | "uploading"
-    | "completed"
-    | "failed";
-  progress: number; // 0-100
-  estimatedTimeRemaining?: number; // seconds
-  startedAt?: Date;
-  completedAt?: Date;
-  errorMessage?: string;
-  cost?: number;
-  position: number; // position in queue
+    | "uploading";
 }
 
 export interface GenerationStats {
-  totalInQueue: number;
-  currentlyProcessing: number;
   averageProcessingTime: number; // seconds
+  currentlyProcessing: number;
   estimatedWaitTime: number; // seconds
   successRate: number; // 0-1
   totalCostToday: number;
+  totalInQueue: number;
 }
 
 export const mockQueueItems: QueueItem[] = [
   {
-    id: "queue-1",
+    cost: 0.12,
     episodeId: "ep-1",
     episodeTitle: "TLDR Tech News - January 4th",
+    estimatedTimeRemaining: 45,
+    id: "queue-1",
+    position: 0,
+    progress: 75,
     sourceId: "tldr",
     sourceName: "TLDR Newsletter",
-    status: "generating-audio",
-    progress: 75,
-    estimatedTimeRemaining: 45,
     startedAt: new Date(Date.now() - 120000), // 2 minutes ago
-    position: 0,
-    cost: 0.12,
+    status: "generating-audio",
   },
   {
-    id: "queue-2",
+    cost: 0.08,
     episodeId: "ep-2",
     episodeTitle: "Morning Brew Business Update",
+    estimatedTimeRemaining: 120,
+    id: "queue-2",
+    position: 1,
+    progress: 40,
     sourceId: "morning-brew",
     sourceName: "Morning Brew",
-    status: "summarizing",
-    progress: 40,
-    estimatedTimeRemaining: 120,
     startedAt: new Date(Date.now() - 60000), // 1 minute ago
-    position: 1,
-    cost: 0.08,
+    status: "summarizing",
   },
   {
-    id: "queue-3",
     episodeId: "ep-3",
     episodeTitle: "Hacker News Top Stories",
+    estimatedTimeRemaining: 300,
+    id: "queue-3",
+    position: 2,
+    progress: 0,
     sourceId: "hackernews",
     sourceName: "Hacker News",
     status: "pending",
-    progress: 0,
-    estimatedTimeRemaining: 300,
-    position: 2,
   },
   {
-    id: "queue-4",
     episodeId: "ep-4",
     episodeTitle: "Tech Crunch Headlines",
+    estimatedTimeRemaining: 450,
+    id: "queue-4",
+    position: 3,
+    progress: 0,
     sourceId: "techcrunch",
     sourceName: "Tech Crunch",
     status: "pending",
-    progress: 0,
-    estimatedTimeRemaining: 450,
-    position: 3,
   },
   {
-    id: "queue-5",
+    cost: 0.05,
     episodeId: "ep-5",
     episodeTitle: "Failed Generation Example",
+    errorMessage: "Rate limit exceeded. Will retry in 5 minutes.",
+    id: "queue-5",
+    position: 4,
+    progress: 30,
     sourceId: "example",
     sourceName: "Example Source",
-    status: "failed",
-    progress: 30,
-    errorMessage: "Rate limit exceeded. Will retry in 5 minutes.",
     startedAt: new Date(Date.now() - 300000), // 5 minutes ago
-    position: 4,
-    cost: 0.05,
+    status: "failed",
   },
 ];
 
 export const mockGenerationStats: GenerationStats = {
-  totalInQueue: 5,
-  currentlyProcessing: 2,
   averageProcessingTime: 180, // 3 minutes
+  currentlyProcessing: 2,
   estimatedWaitTime: 600, // 10 minutes
   successRate: 0.92, // 92%
   totalCostToday: 2.47,
+  totalInQueue: 5,
 };
 
 export const getStatusColor = (status: QueueItem["status"]) => {
   const colors = {
+    completed: "text-success",
+    failed: "text-error",
+    "generating-audio": "text-primary",
     pending: "text-base-content/60",
     scraping: "text-info",
     summarizing: "text-warning",
-    "generating-audio": "text-primary",
     uploading: "text-secondary",
-    completed: "text-success",
-    failed: "text-error",
   };
   return colors[status];
 };
 
 export const getStatusIcon = (status: QueueItem["status"]) => {
   const icons = {
+    completed: "CheckCircle",
+    failed: "XCircle",
+    "generating-audio": "Mic",
     pending: "Clock",
     scraping: "Globe",
     summarizing: "FileText",
-    "generating-audio": "Mic",
     uploading: "Upload",
-    completed: "CheckCircle",
-    failed: "XCircle",
   };
   return icons[status];
 };
 
 export const getStatusLabel = (status: QueueItem["status"]) => {
   const labels = {
+    completed: "Completed",
+    failed: "Failed",
+    "generating-audio": "Generating audio",
     pending: "Waiting in queue",
     scraping: "Scraping content",
     summarizing: "Creating summary",
-    "generating-audio": "Generating audio",
     uploading: "Uploading files",
-    completed: "Completed",
-    failed: "Failed",
   };
   return labels[status];
 };

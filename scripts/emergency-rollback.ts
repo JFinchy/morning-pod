@@ -43,8 +43,8 @@ async function main() {
 
 interface RollbackConfig {
   deploymentUrl: string;
-  score: number;
   reason: string;
+  score: number;
 }
 
 function parseArguments(args: string[]): RollbackConfig {
@@ -57,7 +57,7 @@ function parseArguments(args: string[]): RollbackConfig {
       config.deploymentUrl = args[i + 1];
       i++;
     } else if (arg === "--score" && args[i + 1]) {
-      config.score = parseFloat(args[i + 1]);
+      config.score = Number.parseFloat(args[i + 1]);
       i++;
     } else if (arg === "--reason" && args[i + 1]) {
       config.reason = args[i + 1];
@@ -67,8 +67,8 @@ function parseArguments(args: string[]): RollbackConfig {
 
   return {
     deploymentUrl: config.deploymentUrl || "unknown",
-    score: config.score || 0,
     reason: config.reason || "Unknown failure",
+    score: config.score || 0,
   };
 }
 
@@ -132,17 +132,17 @@ async function sendEmergencyNotifications(
   console.log("📢 Sending emergency notifications...");
 
   const message = {
-    type: "emergency_rollback",
-    timestamp: new Date().toISOString(),
-    deployment: config.deploymentUrl,
-    score: config.score,
-    reason: config.reason,
-    severity: "critical",
     actions_taken: [
       "All feature flags disabled",
       "Caches cleared",
       "Incident report created",
     ],
+    deployment: config.deploymentUrl,
+    reason: config.reason,
+    score: config.score,
+    severity: "critical",
+    timestamp: new Date().toISOString(),
+    type: "emergency_rollback",
   };
 
   // Mock notifications to various channels
@@ -168,37 +168,37 @@ async function createIncidentReport(config: RollbackConfig): Promise<void> {
   console.log("📋 Creating incident report...");
 
   const incident = {
-    id: `INCIDENT-${Date.now()}`,
-    title: `Emergency Rollback - Canary Test Failure`,
-    timestamp: new Date().toISOString(),
-    severity: "high",
-    status: "active",
-    deployment: config.deploymentUrl,
-    test_score: config.score,
-    failure_reason: config.reason,
     actions_taken: [
       "Feature flags disabled",
       "Caches cleared",
       "Team notified",
     ],
+    deployment: config.deploymentUrl,
+    failure_reason: config.reason,
+    id: `INCIDENT-${Date.now()}`,
     next_steps: [
       "Investigate test failures",
       "Fix identified issues",
       "Re-run canary tests",
       "Gradual re-enablement",
     ],
+    severity: "high",
+    status: "active",
+    test_score: config.score,
     timeline: [
       {
-        timestamp: new Date().toISOString(),
-        event: "Canary test failure detected",
         details: `Score: ${config.score}/100, Reason: ${config.reason}`,
+        event: "Canary test failure detected",
+        timestamp: new Date().toISOString(),
       },
       {
-        timestamp: new Date().toISOString(),
-        event: "Emergency rollback initiated",
         details: "All feature flags disabled",
+        event: "Emergency rollback initiated",
+        timestamp: new Date().toISOString(),
       },
     ],
+    timestamp: new Date().toISOString(),
+    title: `Emergency Rollback - Canary Test Failure`,
   };
 
   try {
@@ -223,16 +223,16 @@ async function sendCriticalAlert(
   console.log("🚨 CRITICAL: Emergency rollback failed!");
 
   const alertMessage = {
-    level: "CRITICAL",
-    message: "Emergency rollback procedure failed",
     deployment: config.deploymentUrl,
     error: error instanceof Error ? error.message : "Unknown error",
-    manual_action_required: true,
     immediate_steps: [
       "Manually disable feature flags in PostHog dashboard",
       "Clear CDN caches manually",
       "Contact on-call engineer immediately",
     ],
+    level: "CRITICAL",
+    manual_action_required: true,
+    message: "Emergency rollback procedure failed",
   };
 
   // Mock critical alerting - would use PagerDuty, phone calls, etc.
@@ -240,9 +240,9 @@ async function sendCriticalAlert(
   console.log("⚠️ MANUAL INTERVENTION REQUIRED");
   console.log("🔧 Immediate actions needed:");
 
-  alertMessage.immediate_steps.forEach((step, index) => {
+  for (const [index, step] of alertMessage.immediate_steps.entries()) {
     console.log(`  ${index + 1}. ${step}`);
-  });
+  }
 }
 
 // Handle process signals gracefully

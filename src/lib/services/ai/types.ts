@@ -2,145 +2,145 @@
 
 export interface SummarizationRequest {
   content: ScrapedContentItem[];
-  source?: string;
-  title?: string;
-  targetLength?: "short" | "medium" | "long";
-  summaryStyle?: string;
   includeKeyPoints?: boolean;
   includeTakeaways?: boolean;
   options?: SummarizationOptions;
+  source?: string;
+  summaryStyle?: string;
+  targetLength?: "long" | "medium" | "short";
+  title?: string;
 }
 
 export interface SummarizationOptions {
-  maxTokens?: number;
-  temperature?: number;
-  style?: "conversational" | "formal" | "casual";
-  targetLength?: "short" | "medium" | "long";
   includeIntro?: boolean;
   includeOutro?: boolean;
   includeSpeakerNotes?: boolean;
+  maxTokens?: number;
+  style?: "casual" | "conversational" | "formal";
+  targetLength?: "long" | "medium" | "short";
+  temperature?: number;
 }
 
 export interface SummarizationResult {
-  success: boolean;
-  summary?: string;
-  keyPoints?: string[];
-  takeaways?: string[];
-  wordCount?: number;
-  estimatedDuration?: number; // in seconds
   cost?: number;
-  tokensUsed?: number;
   error?: string;
+  estimatedDuration?: number; // in seconds
+  keyPoints?: string[];
   metadata?: {
     model: string;
     processingTime: number;
     sourceCount: number;
   };
+  success: boolean;
+  summary?: string;
+  takeaways?: string[];
+  tokensUsed?: number;
+  wordCount?: number;
 }
 
 export interface ScrapedContentItem {
-  id: string;
-  title: string;
-  content: string;
-  source: string;
   category?: string;
-  url?: string;
-  publishedAt?: Date;
+  content: string;
   contentHash: string;
+  id: string;
+  publishedAt?: Date;
+  source: string;
+  title: string;
+  url?: string;
 }
 
 export interface TTSRequest {
-  text: string;
   options?: TTSOptions;
+  text: string;
 }
 
 export interface TTSOptions {
-  voice?: "alloy" | "echo" | "fable" | "onyx" | "nova" | "shimmer" | string; // Allow any voice name for Google TTS
-  model?: "tts-1" | "tts-1-hd";
-  speed?: number; // 0.25 to 4.0
+  format?: "aac" | "flac" | "mp3" | "opus" | "wav";
+  gender?: "FEMALE" | "MALE" | "NEUTRAL"; // For Google TTS
+  model?: "tts-1-hd" | "tts-1";
   pitch?: number; // -20.0 to 20.0 for Google TTS
-  volume?: number; // -96.0 to 16.0 dB for Google TTS
-  gender?: "MALE" | "FEMALE" | "NEUTRAL"; // For Google TTS
-  format?: "mp3" | "wav" | "opus" | "aac" | "flac";
+  responseFormat?: "aac" | "flac" | "mp3" | "opus";
+  speed?: number; // 0.25 to 4.0
   useSSML?: boolean; // For Google TTS SSML support
-  responseFormat?: "mp3" | "opus" | "aac" | "flac";
+  voice?: "alloy" | "echo" | "fable" | "nova" | "onyx" | "shimmer" | string; // Allow any voice name for Google TTS
+  volume?: number; // -96.0 to 16.0 dB for Google TTS
 }
 
 export interface TTSResult {
-  success: boolean;
   audioBuffer?: Buffer;
   audioUrl?: string;
-  duration?: number; // in seconds
-  fileSize?: number; // in bytes
   cost?: number;
+  duration?: number; // in seconds
   error?: string;
+  fileSize?: number; // in bytes
   metadata?: {
-    model: string;
-    voice: string;
-    processingTime: number;
     charactersProcessed: number;
+    model: string;
+    processingTime: number;
+    voice: string;
   };
+  success: boolean;
 }
 
 export interface GenerationRequest {
-  sourceId: string;
   options?: {
-    summarization?: SummarizationOptions;
-    tts?: TTSOptions;
-    title?: string;
     description?: string;
+    summarization?: SummarizationOptions;
+    title?: string;
+    tts?: TTSOptions;
   };
+  sourceId: string;
 }
 
 export interface GenerationResult {
-  success: boolean;
-  episodeId?: string;
   audioUrl?: string;
-  summary?: string;
-  totalCost: number; // Remove optional to fix undefined issues
-  processingTime?: number;
+  episodeId?: string;
   error?: string;
+  processingTime?: number;
   steps?: {
-    scraping: { success: boolean; itemCount?: number; error?: string };
+    database: { episodeId?: string; error?: string; success: boolean };
+    scraping: { error?: string; itemCount?: number; success: boolean };
+    storage: { error?: string; fileSize?: number; success: boolean };
     summarization: {
-      success: boolean;
-      wordCount?: number;
       cost?: number;
       error?: string;
+      success: boolean;
+      wordCount?: number;
     };
-    tts: { success: boolean; duration?: number; cost?: number; error?: string };
-    storage: { success: boolean; fileSize?: number; error?: string };
-    database: { success: boolean; episodeId?: string; error?: string };
+    tts: { cost?: number; duration?: number; error?: string; success: boolean };
   };
+  success: boolean;
+  summary?: string;
+  totalCost: number; // Remove optional to fix undefined issues
 }
 
 export interface CostTracking {
-  service:
-    | "openai-gpt"
-    | "openai-tts"
-    | "google-tts"
-    | "anthropic"
-    | "google-ai";
-  model: string;
-  tokensUsed?: number;
   charactersProcessed?: number;
   cost: number;
-  timestamp: Date;
+  model: string;
   requestId: string;
+  service:
+    | "anthropic"
+    | "google-ai"
+    | "google-tts"
+    | "openai-gpt"
+    | "openai-tts";
+  timestamp: Date;
+  tokensUsed?: number;
 }
 
 export interface AIServiceConfig {
-  openai: {
-    apiKey: string;
-    organization?: string;
-    defaultModel?: string;
-    maxRetries?: number;
-    timeout?: number;
-  };
   costTracking: {
+    alertThreshold?: number;
     enabled: boolean;
     logToDatabase?: boolean;
-    alertThreshold?: number;
+  };
+  openai: {
+    apiKey: string;
+    defaultModel?: string;
+    maxRetries?: number;
+    organization?: string;
+    timeout?: number;
   };
 }
 
@@ -158,12 +158,12 @@ export class AIServiceError extends Error {
 }
 
 export class RateLimitError extends AIServiceError {
+  retryAfter?: number;
+
   constructor(service: "summarization" | "tts", retryAfter?: number) {
     super(`Rate limit exceeded for ${service}`, service, "RATE_LIMIT", true);
     this.retryAfter = retryAfter;
   }
-
-  retryAfter?: number;
 }
 
 export class QuotaExceededError extends AIServiceError {
@@ -184,98 +184,98 @@ export class InvalidInputError extends AIServiceError {
 }
 
 export interface SummarizationResponse {
-  summary: string;
   keyPoints?: string[];
-  takeaways?: string[];
   metadata: {
-    originalLength: number;
-    summaryLength: number;
     compressionRatio: number;
-    processingTime: number;
     cost: number;
     model: string;
+    originalLength: number;
+    processingTime: number;
     quality: {
       coherence: number; // 0-1 score
-      relevance: number; // 0-1 score
       readability: number; // 0-1 score
+      relevance: number; // 0-1 score
     };
+    summaryLength: number;
   };
+  summary: string;
+  takeaways?: string[];
   ttsOptimized: {
-    text: string; // Version optimized for text-to-speech
     estimatedDuration: number; // in seconds
     pauseMarkers: string[]; // Where to add pauses
+    text: string; // Version optimized for text-to-speech
   };
 }
 
 export interface SummarizationConfig {
-  provider: "openai" | "claude" | "local";
-  model: string;
   maxTokens: number;
-  temperature: number;
+  model: string;
   prompts: {
+    qualityCheck: string;
     system: string;
     user: string;
-    qualityCheck: string;
   };
+  provider: "claude" | "local" | "openai";
   qualityThresholds: {
     minCoherence: number;
-    minRelevance: number;
     minReadability: number;
+    minRelevance: number;
   };
   retryConfig: {
-    maxRetries: number;
     backoffMs: number;
+    maxRetries: number;
   };
+  temperature: number;
 }
 
 export interface SummarizationMetrics {
-  totalRequests: number;
-  successfulRequests: number;
-  failedRequests: number;
-  totalCost: number;
   averageProcessingTime: number;
   averageQualityScore: number;
   costByModel: Record<string, number>;
+  failedRequests: number;
+  last24Hours: {
+    averageQuality: number;
+    cost: number;
+    requests: number;
+  };
   qualityDistribution: {
     excellent: number; // >0.8
-    good: number; // 0.6-0.8
     fair: number; // 0.4-0.6
+    good: number; // 0.6-0.8
     poor: number; // <0.4
   };
-  last24Hours: {
-    requests: number;
-    cost: number;
-    averageQuality: number;
-  };
+  successfulRequests: number;
+  totalCost: number;
+  totalRequests: number;
 }
 
 export interface SummarizationHistory {
+  error?: string;
   id: string;
-  timestamp: Date;
   request: SummarizationRequest;
   response: SummarizationResponse;
   success: boolean;
-  error?: string;
+  timestamp: Date;
 }
 
 export interface QualityAssessment {
   coherence: number;
-  relevance: number;
-  readability: number;
-  overall: number;
   feedback: string[];
+  overall: number;
+  readability: number;
+  relevance: number;
 }
 
 export interface AIProvider {
-  name: string;
-  models: string[];
-  costPer1kTokens: Record<string, number>;
-  maxTokens: Record<string, number>;
   capabilities: {
-    summarization: boolean;
     qualityAssessment: boolean;
+    summarization: boolean;
     ttsOptimization: boolean;
   };
+  costPer1kTokens: Record<string, number>;
+  maxTokens: Record<string, number>;
+  models: string[];
+  name: string;
 }
 
 // Error types
@@ -283,11 +283,18 @@ export interface AIProvider {
 
 // Constants
 export const DEFAULT_CONFIG: SummarizationConfig = {
-  provider: "openai",
-  model: "gpt-4-turbo-preview",
   maxTokens: 2000,
-  temperature: 0.3,
+  model: "gpt-4-turbo-preview",
   prompts: {
+    qualityCheck: `Assess the quality of this podcast summary on a scale of 0-1 for:
+1. Coherence: How well does it flow and make sense?
+2. Relevance: How well does it capture the key information?
+3. Readability: How natural does it sound for audio consumption?
+
+Summary: {summary}
+
+Provide scores and brief feedback.`,
+
     system: `You are an expert podcast content creator. Your task is to transform news articles and content into engaging, conversational summaries perfect for audio consumption.
 
 Key requirements:
@@ -314,70 +321,63 @@ Create a {summaryStyle} summary that:
 
 {includeKeyPoints ? "Include 3-5 key points as bullet points." : ""}
 {includeTakeaways ? "Include 2-3 actionable takeaways for listeners." : ""}`,
-
-    qualityCheck: `Assess the quality of this podcast summary on a scale of 0-1 for:
-1. Coherence: How well does it flow and make sense?
-2. Relevance: How well does it capture the key information?
-3. Readability: How natural does it sound for audio consumption?
-
-Summary: {summary}
-
-Provide scores and brief feedback.`,
   },
+  provider: "openai",
   qualityThresholds: {
     minCoherence: 0.7,
-    minRelevance: 0.7,
     minReadability: 0.6,
+    minRelevance: 0.7,
   },
   retryConfig: {
-    maxRetries: 3,
     backoffMs: 1000,
+    maxRetries: 3,
   },
+  temperature: 0.3,
 };
 
 export const SUMMARY_WORD_TARGETS = {
-  short: 100,
-  medium: 200,
   long: 300,
+  medium: 200,
+  short: 100,
 } as const;
 
 export const SUPPORTED_PROVIDERS: AIProvider[] = [
   {
-    name: "openai",
-    models: ["gpt-4-turbo-preview", "gpt-4", "gpt-3.5-turbo"],
-    costPer1kTokens: {
-      "gpt-4-turbo-preview": 0.03,
-      "gpt-4": 0.06,
-      "gpt-3.5-turbo": 0.002,
-    },
-    maxTokens: {
-      "gpt-4-turbo-preview": 4096,
-      "gpt-4": 4096,
-      "gpt-3.5-turbo": 4096,
-    },
     capabilities: {
-      summarization: true,
       qualityAssessment: true,
+      summarization: true,
       ttsOptimization: true,
     },
+    costPer1kTokens: {
+      "gpt-3.5-turbo": 0.002,
+      "gpt-4": 0.06,
+      "gpt-4-turbo-preview": 0.03,
+    },
+    maxTokens: {
+      "gpt-3.5-turbo": 4096,
+      "gpt-4": 4096,
+      "gpt-4-turbo-preview": 4096,
+    },
+    models: ["gpt-4-turbo-preview", "gpt-4", "gpt-3.5-turbo"],
+    name: "openai",
   },
   {
-    name: "claude",
-    models: ["claude-3-opus", "claude-3-sonnet", "claude-3-haiku"],
-    costPer1kTokens: {
-      "claude-3-opus": 0.075,
-      "claude-3-sonnet": 0.015,
-      "claude-3-haiku": 0.0015,
-    },
-    maxTokens: {
-      "claude-3-opus": 4096,
-      "claude-3-sonnet": 4096,
-      "claude-3-haiku": 4096,
-    },
     capabilities: {
-      summarization: true,
       qualityAssessment: true,
+      summarization: true,
       ttsOptimization: true,
     },
+    costPer1kTokens: {
+      "claude-3-haiku": 0.0015,
+      "claude-3-opus": 0.075,
+      "claude-3-sonnet": 0.015,
+    },
+    maxTokens: {
+      "claude-3-haiku": 4096,
+      "claude-3-opus": 4096,
+      "claude-3-sonnet": 4096,
+    },
+    models: ["claude-3-opus", "claude-3-sonnet", "claude-3-haiku"],
+    name: "claude",
   },
 ];

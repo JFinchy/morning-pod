@@ -1,30 +1,30 @@
 "use client";
 
-import { Play, Pause, Volume2, MoreHorizontal } from "lucide-react";
-import { useState, useRef } from "react";
+import { MoreHorizontal, Pause, Play, Volume2 } from "lucide-react";
+import { useRef, useState } from "react";
 
-import { Episode } from "@/lib/mock-data/episodes";
+import { type Episode } from "@/lib/mock-data/episodes";
 
 interface EpisodePlayerV3Props {
+  currentTime?: number;
+  duration?: number;
   episode: Episode;
   isPlaying?: boolean;
   onPlayPause?: () => void;
-  currentTime?: number;
-  duration?: number;
   onSeek?: (time: number) => void;
-  volume?: number;
   onVolumeChange?: (volume: number) => void;
+  volume?: number;
 }
 
 export function EpisodePlayerV3({
+  currentTime = 0,
+  duration = 300, // 5 minutes default
   episode,
   isPlaying = false,
   onPlayPause,
-  currentTime = 0,
-  duration = 300, // 5 minutes default
   onSeek,
-  volume = 0.8,
   onVolumeChange,
+  volume = 0.8,
 }: EpisodePlayerV3Props) {
   const [showVolume, setShowVolume] = useState(false);
   const progressBarRef = useRef<HTMLDivElement>(null);
@@ -112,16 +112,16 @@ export function EpisodePlayerV3({
       {/* Waveform Visualization */}
       <div className="px-4 py-2">
         <div
-          ref={progressBarRef}
           className="flex items-end gap-0.5 h-12 cursor-pointer"
           onClick={handleProgressClick}
+          ref={progressBarRef}
         >
           {waveformBars.map((bar, index) => (
             <div
-              key={index}
               className={`flex-1 rounded-sm transition-colors duration-75 ${
                 bar.isActive ? "bg-primary" : "bg-base-300 hover:bg-base-400"
               }`}
+              key={index}
               style={{
                 height: `${bar.height * 100}%`,
                 minHeight: "2px",
@@ -169,9 +169,9 @@ export function EpisodePlayerV3({
               >
                 <div className="flex items-center gap-2">
                   <div
-                    ref={volumeBarRef}
                     className="w-16 h-1 bg-base-300 rounded-full cursor-pointer relative"
                     onClick={handleVolumeClick}
+                    ref={volumeBarRef}
                   >
                     <div
                       className="h-full bg-primary rounded-full"

@@ -1,143 +1,143 @@
 // Text-to-Speech Service Types for podcast audio generation
-export type TTSProvider = "openai" | "google" | "elevenlabs" | "local";
+export type TTSProvider = "elevenlabs" | "google" | "local" | "openai";
 
 export type VoiceType =
   // OpenAI voices
   | "alloy"
+  | "antoni"
+  | "bella"
+  | "domi"
   | "echo"
-  | "fable"
-  | "onyx"
-  | "nova"
-  | "shimmer"
-  // Google voices (examples)
   | "en-US-Wavenet-A"
+  // Google voices (examples)
   | "en-US-Wavenet-B"
   | "en-US-Wavenet-C"
+  | "fable"
   // ElevenLabs voices (examples)
+  | "nova"
+  | "onyx"
   | "rachel"
-  | "domi"
-  | "bella"
-  | "antoni";
+  | "shimmer";
 
-export type AudioFormat = "mp3" | "wav" | "flac" | "opus";
+export type AudioFormat = "flac" | "mp3" | "opus" | "wav";
 
-export type AudioQuality = "low" | "medium" | "high" | "hd";
+export type AudioQuality = "hd" | "high" | "low" | "medium";
 
 export interface TTSRequest {
-  text: string;
-  voice: VoiceType;
-  provider?: TTSProvider;
   format?: AudioFormat;
+  metadata?: {
+    contentHash?: string;
+    episodeId?: string;
+    source?: string;
+    title?: string;
+  };
+  pitch?: number; // -20 to 20 semitones
+  provider?: TTSProvider;
   quality?: AudioQuality;
   speed?: number; // 0.25 to 4.0
-  pitch?: number; // -20 to 20 semitones
+  text: string;
+  voice: VoiceType;
   volume?: number; // 0.0 to 1.0
-  metadata?: {
-    title?: string;
-    source?: string;
-    episodeId?: string;
-    contentHash?: string;
-  };
 }
 
 export interface TTSResponse {
-  audioUrl: string;
   audioSize: number; // bytes
+  audioUrl: string;
   duration: number; // seconds
   format: AudioFormat;
-  quality: AudioQuality;
   metadata: {
-    voice: VoiceType;
-    provider: TTSProvider;
+    cacheHit: boolean;
+    contentHash: string;
     cost: number;
     processingTime: number;
-    contentHash: string;
-    cacheHit: boolean;
+    provider: TTSProvider;
+    voice: VoiceType;
   };
+  quality: AudioQuality;
   waveformData?: number[]; // For visualization
 }
 
 export interface TTSConfig {
-  provider: TTSProvider;
-  defaultVoice: VoiceType;
-  defaultFormat: AudioFormat;
-  defaultQuality: AudioQuality;
-  defaultSpeed: number;
-  enableCaching: boolean;
   cacheExpirationDays: number;
-  maxFileSize: number; // MB
   costLimits: {
     dailyLimit: number;
     monthlyLimit: number;
     perRequestLimit: number;
   };
+  defaultFormat: AudioFormat;
+  defaultQuality: AudioQuality;
+  defaultSpeed: number;
+  defaultVoice: VoiceType;
+  enableCaching: boolean;
+  maxFileSize: number; // MB
+  provider: TTSProvider;
   qualitySettings: {
-    sampleRate: number;
     bitRate: number;
     channels: number;
+    sampleRate: number;
   };
 }
 
 export interface TTSMetrics {
-  totalRequests: number;
-  successfulRequests: number;
-  failedRequests: number;
-  totalCost: number;
-  totalDuration: number; // seconds of audio generated
-  totalSize: number; // bytes of audio generated
-  cacheHitRate: number;
-  averageProcessingTime: number;
   averageCostPerMinute: number;
+  averageProcessingTime: number;
+  cacheHitRate: number;
   costByProvider: Record<TTSProvider, number>;
-  usageByVoice: Record<VoiceType, number>;
-  qualityDistribution: {
-    low: number;
-    medium: number;
-    high: number;
-    hd: number;
-  };
+  failedRequests: number;
   last24Hours: {
-    requests: number;
     cost: number;
     duration: number;
+    requests: number;
   };
+  qualityDistribution: {
+    hd: number;
+    high: number;
+    low: number;
+    medium: number;
+  };
+  successfulRequests: number;
+  totalCost: number;
+  totalDuration: number; // seconds of audio generated
+  totalRequests: number;
+  totalSize: number; // bytes of audio generated
+  usageByVoice: Record<VoiceType, number>;
 }
 
 export interface TTSHistory {
-  id: string;
-  timestamp: Date;
-  request: TTSRequest;
-  response: TTSResponse | null;
-  success: boolean;
   error?: string;
+  id: string;
+  request: TTSRequest;
+  response: null | TTSResponse;
+  success: boolean;
+  timestamp: Date;
 }
 
 export interface AudioCacheEntry {
-  contentHash: string;
   audioUrl: string;
+  contentHash: string;
   metadata: {
-    voice: VoiceType;
-    provider: TTSProvider;
-    format: AudioFormat;
-    quality: AudioQuality;
-    createdAt: Date;
-    lastAccessed: Date;
     accessCount: number;
-    fileSize: number;
+    createdAt: Date;
     duration: number;
+    fileSize: number;
+    format: AudioFormat;
+    lastAccessed: Date;
+    provider: TTSProvider;
+    quality: AudioQuality;
+    voice: VoiceType;
   };
 }
 
 export interface VoiceConfig {
-  provider: TTSProvider;
-  voiceId: VoiceType;
-  displayName: string;
-  gender: "male" | "female" | "neutral";
   accent: string;
-  description: string;
   costMultiplier: number;
-  qualityRating: number; // 1-5
+  description: string;
+  displayName: string;
+  gender: "female" | "male" | "neutral";
   isAvailable: boolean;
+  provider: TTSProvider;
+  qualityRating: number; // 1-5
+  voiceId: VoiceType;
 }
 
 export interface TTSError extends Error {
@@ -148,135 +148,135 @@ export interface TTSError extends Error {
 
 // Configuration constants
 export const DEFAULT_TTS_CONFIG: TTSConfig = {
-  provider: "openai",
-  defaultVoice: "alloy",
-  defaultFormat: "mp3",
-  defaultQuality: "medium",
-  defaultSpeed: 1.0,
-  enableCaching: true,
   cacheExpirationDays: 30,
-  maxFileSize: 25, // MB (OpenAI limit)
   costLimits: {
     dailyLimit: 10.0, // $10/day
     monthlyLimit: 100.0, // $100/month
     perRequestLimit: 2.0, // $2/request
   },
+  defaultFormat: "mp3",
+  defaultQuality: "medium",
+  defaultSpeed: 1.0,
+  defaultVoice: "alloy",
+  enableCaching: true,
+  maxFileSize: 25, // MB (OpenAI limit)
+  provider: "openai",
   qualitySettings: {
-    sampleRate: 22050,
     bitRate: 64000,
     channels: 1, // Mono for podcasts
+    sampleRate: 22050,
   },
 };
 
 export const SUPPORTED_VOICES: VoiceConfig[] = [
   // OpenAI voices
   {
-    provider: "openai",
-    voiceId: "alloy",
+    accent: "American",
+    costMultiplier: 1.0,
+    description: "Balanced, clear voice suitable for professional content",
     displayName: "Alloy",
     gender: "neutral",
-    accent: "American",
-    description: "Balanced, clear voice suitable for professional content",
-    costMultiplier: 1.0,
-    qualityRating: 4,
     isAvailable: true,
+    provider: "openai",
+    qualityRating: 4,
+    voiceId: "alloy",
   },
   {
-    provider: "openai",
-    voiceId: "echo",
+    accent: "American",
+    costMultiplier: 1.0,
+    description: "Deep, authoritative voice perfect for news content",
     displayName: "Echo",
     gender: "male",
-    accent: "American",
-    description: "Deep, authoritative voice perfect for news content",
-    costMultiplier: 1.0,
-    qualityRating: 4,
     isAvailable: true,
+    provider: "openai",
+    qualityRating: 4,
+    voiceId: "echo",
   },
   {
-    provider: "openai",
-    voiceId: "fable",
+    accent: "British",
+    costMultiplier: 1.0,
+    description: "Sophisticated, storytelling voice",
     displayName: "Fable",
     gender: "male",
-    accent: "British",
-    description: "Sophisticated, storytelling voice",
-    costMultiplier: 1.0,
-    qualityRating: 4,
     isAvailable: true,
+    provider: "openai",
+    qualityRating: 4,
+    voiceId: "fable",
   },
   {
-    provider: "openai",
-    voiceId: "onyx",
+    accent: "American",
+    costMultiplier: 1.0,
+    description: "Strong, confident voice for tech content",
     displayName: "Onyx",
     gender: "male",
-    accent: "American",
-    description: "Strong, confident voice for tech content",
-    costMultiplier: 1.0,
-    qualityRating: 4,
     isAvailable: true,
+    provider: "openai",
+    qualityRating: 4,
+    voiceId: "onyx",
   },
   {
-    provider: "openai",
-    voiceId: "nova",
+    accent: "American",
+    costMultiplier: 1.0,
+    description: "Energetic, engaging voice for dynamic content",
     displayName: "Nova",
     gender: "female",
-    accent: "American",
-    description: "Energetic, engaging voice for dynamic content",
-    costMultiplier: 1.0,
-    qualityRating: 4,
     isAvailable: true,
+    provider: "openai",
+    qualityRating: 4,
+    voiceId: "nova",
   },
   {
-    provider: "openai",
-    voiceId: "shimmer",
+    accent: "American",
+    costMultiplier: 1.0,
+    description: "Warm, friendly voice for conversational content",
     displayName: "Shimmer",
     gender: "female",
-    accent: "American",
-    description: "Warm, friendly voice for conversational content",
-    costMultiplier: 1.0,
-    qualityRating: 4,
     isAvailable: true,
+    provider: "openai",
+    qualityRating: 4,
+    voiceId: "shimmer",
   },
 ];
 
 export const TTS_COST_PER_1K_CHARS: Record<TTSProvider, number> = {
-  openai: 0.015, // $15 per 1M characters
-  google: 0.016, // Google Cloud TTS pricing
   elevenlabs: 0.3, // Premium but higher quality
+  google: 0.016, // Google Cloud TTS pricing
   local: 0.0, // Free but requires setup
+  openai: 0.015, // $15 per 1M characters
 };
 
 export const AUDIO_FORMAT_SPECS: Record<
   AudioFormat,
   {
-    mimeType: string;
-    extension: string;
     compressionLevel: number;
+    extension: string;
+    mimeType: string;
     qualityRating: number;
   }
 > = {
+  flac: {
+    compressionLevel: 6,
+    extension: "flac",
+    mimeType: "audio/flac",
+    qualityRating: 5,
+  },
   mp3: {
-    mimeType: "audio/mpeg",
-    extension: "mp3",
     compressionLevel: 8,
+    extension: "mp3",
+    mimeType: "audio/mpeg",
+    qualityRating: 4,
+  },
+  opus: {
+    compressionLevel: 9,
+    extension: "opus",
+    mimeType: "audio/opus",
     qualityRating: 4,
   },
   wav: {
-    mimeType: "audio/wav",
-    extension: "wav",
     compressionLevel: 0,
+    extension: "wav",
+    mimeType: "audio/wav",
     qualityRating: 5,
-  },
-  flac: {
-    mimeType: "audio/flac",
-    extension: "flac",
-    compressionLevel: 6,
-    qualityRating: 5,
-  },
-  opus: {
-    mimeType: "audio/opus",
-    extension: "opus",
-    compressionLevel: 9,
-    qualityRating: 4,
   },
 };
 
@@ -284,47 +284,47 @@ export const QUALITY_SETTINGS: Record<
   AudioQuality,
   {
     bitRate: number;
-    sampleRate: number;
     qualityMultiplier: number;
+    sampleRate: number;
   }
 > = {
-  low: { bitRate: 32000, sampleRate: 16000, qualityMultiplier: 0.7 },
-  medium: { bitRate: 64000, sampleRate: 22050, qualityMultiplier: 1.0 },
-  high: { bitRate: 128000, sampleRate: 44100, qualityMultiplier: 1.3 },
-  hd: { bitRate: 192000, sampleRate: 48000, qualityMultiplier: 1.6 },
+  hd: { bitRate: 192000, qualityMultiplier: 1.6, sampleRate: 48000 },
+  high: { bitRate: 128000, qualityMultiplier: 1.3, sampleRate: 44100 },
+  low: { bitRate: 32000, qualityMultiplier: 0.7, sampleRate: 16000 },
+  medium: { bitRate: 64000, qualityMultiplier: 1.0, sampleRate: 22050 },
 };
 
 // Utility types for integration
 export interface SummaryToTTSRequest {
+  metadata: {
+    episodeId?: string;
+    source: string;
+    title: string;
+  };
   summaryResponse: {
     summary: string;
     ttsOptimized?: {
-      text: string;
       estimatedDuration: number;
       pauseMarkers: string[];
+      text: string;
     };
   };
   voiceConfig: {
-    voice: VoiceType;
-    speed?: number;
     provider?: TTSProvider;
-  };
-  metadata: {
-    title: string;
-    source: string;
-    episodeId?: string;
+    speed?: number;
+    voice: VoiceType;
   };
 }
 
 export interface PodcastEpisodeAudio {
-  episodeId: string;
   audioUrl: string;
+  cost: number;
   duration: number;
+  episodeId: string;
   fileSize: number;
-  voice: VoiceType;
-  provider: TTSProvider;
-  quality: AudioQuality;
   format: AudioFormat;
   generatedAt: Date;
-  cost: number;
+  provider: TTSProvider;
+  quality: AudioQuality;
+  voice: VoiceType;
 }

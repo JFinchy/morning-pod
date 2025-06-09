@@ -6,8 +6,8 @@ import { api } from "@/lib/trpc/client";
 export function ApiTest() {
   const {
     data: episodes,
-    isLoading,
     error,
+    isLoading,
     refetch,
   } = api.episodes.getAll.useQuery({
     limit: 5,
@@ -22,7 +22,7 @@ export function ApiTest() {
         <div className="card-body">
           <h2 className="card-title">API Connection Test</h2>
           <div className="flex items-center gap-2">
-            <span className="loading loading-spinner loading-sm"></span>
+            <span className="loading loading-spinner loading-sm" />
             <span>Testing API connection...</span>
           </div>
         </div>
@@ -83,7 +83,7 @@ export function ApiTest() {
             <h3 className="text-lg font-semibold mb-2">Recent Episodes:</h3>
             <div className="space-y-2">
               {episodes.episodes.slice(0, 3).map((episode) => (
-                <div key={episode.id} className="p-3 bg-base-200 rounded-lg">
+                <div className="p-3 bg-base-200 rounded-lg" key={episode.id}>
                   <div className="font-medium">{episode.title}</div>
                   <div className="text-sm text-base-content/60">
                     Status:{" "}
@@ -96,7 +96,7 @@ export function ApiTest() {
         )}
 
         <div className="card-actions">
-          <Button onClick={() => refetch()} btnStyle="outline">
+          <Button btnStyle="outline" onClick={() => refetch()}>
             Refresh Data
           </Button>
         </div>

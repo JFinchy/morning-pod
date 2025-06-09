@@ -8,18 +8,18 @@ import { withApiMiddleware } from "../../../../lib/utils/api-middleware";
 
 const baseHandler = (req: NextRequest) =>
   fetchRequestHandler({
-    endpoint: "/api/trpc",
-    req,
-    router: appMockRouter,
     createContext: createTRPCMockContext,
+    endpoint: "/api/trpc",
     onError:
       process.env.NODE_ENV === "development"
-        ? ({ path, error }: { path?: string; error: Error }) => {
+        ? ({ error, path }: { error: Error; path?: string }) => {
             console.error(
               `❌ tRPC failed on ${path ?? "<no-path>"}: ${error.message}`
             );
           }
         : undefined,
+    req,
+    router: appMockRouter,
   });
 
 // Wrap handler with middleware
@@ -31,17 +31,17 @@ const handler = withApiMiddleware(
     }
     if (response instanceof Response) {
       return new NextResponse(response.body, {
+        headers: response.headers,
         status: response.status,
         statusText: response.statusText,
-        headers: response.headers,
       });
     }
     return NextResponse.json(response);
   },
   {
-    rateLimit: true,
-    maxBodySize: securityConfig.requestLimits.json,
     allowedMethods: securityConfig.allowedMethods.all,
+    maxBodySize: securityConfig.requestLimits.json,
+    rateLimit: true,
   }
 );
 

@@ -2,7 +2,7 @@
 
 import { Play } from "lucide-react";
 
-import { Episode } from "@/lib/mock-data/episodes";
+import { type Episode } from "@/lib/mock-data/episodes";
 
 interface EpisodeCardV3Props {
   episode?: Episode;
@@ -15,10 +15,10 @@ export function EpisodeCardV3({ episode }: EpisodeCardV3Props) {
       <div className="flex items-center gap-4 p-4 hover:bg-base-200/50 rounded-lg transition-colors">
         <div className="w-2 h-12 bg-base-300 rounded-full flex-shrink-0 animate-pulse" />
         <div className="flex-1 min-w-0 space-y-2">
-          <div className="h-4 bg-base-300 rounded w-3/4"></div>
-          <div className="h-3 bg-base-300 rounded w-full"></div>
+          <div className="h-4 bg-base-300 rounded w-3/4" />
+          <div className="h-3 bg-base-300 rounded w-full" />
         </div>
-        <div className="w-8 h-8 bg-base-300 rounded-full animate-pulse"></div>
+        <div className="w-8 h-8 bg-base-300 rounded-full animate-pulse" />
       </div>
     );
   }

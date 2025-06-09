@@ -7,12 +7,12 @@
  * @usage bun run tools/scripts/kill-processes.ts [--force]
  */
 
-import { execSync } from "child_process";
 import * as p from "@clack/prompts";
+import { execSync } from "child_process";
 
 interface ProcessInfo {
-  pid: string;
   command: string;
+  pid: string;
 }
 
 class ProcessKiller {
@@ -54,100 +54,15 @@ class ProcessKiller {
         .split("\n")
         .filter((line) => line.length > 0)
         .map((line) => {
-          const parts = line.trim().split(/\s+/);
+          const parts = line.trim().split(/\s+/u);
           return {
-            pid: parts[1],
             command: parts.slice(10).join(" "),
+            pid: parts[1],
           };
         });
     } catch (error) {
       // No processes found or grep failed
       return [];
-    }
-  }
-
-  /**
-   * Interactive process selection and killing
-   */
-  async killProcessesInteractive(): Promise<void> {
-    const processes = this.findProcesses();
-
-    if (processes.length === 0) {
-      console.log("✅ No test/lint/VSCode processes found running");
-      return;
-    }
-
-    p.intro("🎯 Process Killer - Interactive Mode");
-
-    const options = [
-      ...processes.map((proc, index) => ({
-        value: index.toString(),
-        label: `PID ${proc.pid}: ${proc.command.substring(0, 60)}${proc.command.length > 60 ? "..." : ""}`,
-      })),
-      { value: "all", label: "🔥 Kill ALL processes" },
-    ];
-
-    try {
-      const selected = await p.multiselect({
-        message: "Select processes to kill:",
-        options,
-        required: false,
-      });
-
-      if (!selected || selected.length === 0) {
-        p.outro("👋 No processes selected");
-        return;
-      }
-
-      const killAll = selected.includes("all");
-      const selectedProcesses = killAll
-        ? processes
-        : selected.map((index) => processes[parseInt(index)]).filter(Boolean);
-
-      if (selectedProcesses.length === 0) {
-        p.outro("👋 No valid processes selected");
-        return;
-      }
-
-      const forceKill = await p.confirm({
-        message: `Kill ${selectedProcesses.length} process(es) with force (SIGKILL)?`,
-        initialValue: false,
-      });
-
-      this.killSelectedProcesses(selectedProcesses, forceKill);
-      p.outro("✅ Process killing completed");
-    } catch (error) {
-      p.outro("👋 Cancelled");
-    }
-  }
-
-  /**
-   * Kill specific processes
-   */
-  killSelectedProcesses(
-    processes: ProcessInfo[],
-    force: boolean = false
-  ): void {
-    const pids = processes.map((p) => p.pid);
-
-    console.log(`\n🔍 Killing ${processes.length} processes:`);
-    processes.forEach((proc) => {
-      console.log(
-        `  PID ${proc.pid}: ${proc.command.substring(0, 80)}${proc.command.length > 80 ? "..." : ""}`
-      );
-    });
-
-    if (!force) {
-      console.log("\n🔄 Attempting graceful shutdown (SIGTERM)...");
-      try {
-        execSync(`kill ${pids.join(" ")}`, { stdio: "inherit" });
-        console.log("✅ Graceful kill completed");
-      } catch (error) {
-        console.log("❌ Graceful kill failed, trying force kill...");
-        this.forceKillPids(pids);
-      }
-    } else {
-      this.forceKillPids(pids);
     }
   }
 
@@ -163,11 +78,11 @@ class ProcessKiller {
     }
 
     console.log(`🔍 Found ${processes.length} processes to kill:`);
-    processes.forEach((proc) => {
+    for (const proc of processes) {
       console.log(
-        `  PID ${proc.pid}: ${proc.command.substring(0, 80)}${proc.command.length > 80 ? "..." : ""}`
+        `  PID ${proc.pid}: ${proc.command.slice(0, 80)}${proc.command.length > 80 ? "..." : ""}`
       );
-    });
+    }
 
     const pids = processes.map((p) => p.pid);
 
@@ -198,28 +113,89 @@ class ProcessKiller {
   }
 
   /**
-   * Force kill with SIGKILL
+   * Interactive process selection and killing
    */
-  private forceKillPids(pids: string[]): void {
-    console.log("\n💀 Force killing processes (SIGKILL)...");
-    try {
-      execSync(`kill -9 ${pids.join(" ")}`, { stdio: "inherit" });
-      console.log("✅ Force kill completed");
+  async killProcessesInteractive(): Promise<void> {
+    const processes = this.findProcesses();
 
-      // Verify they're gone
-      setTimeout(() => {
-        const remaining = this.findProcesses();
-        if (remaining.length === 0) {
-          console.log("✅ All processes successfully terminated");
-        } else {
-          console.log(
-            `⚠️  ${remaining.length} processes still running (may require sudo)`
-          );
-        }
-      }, 1000);
+    if (processes.length === 0) {
+      console.log("✅ No test/lint/VSCode processes found running");
+      return;
+    }
+
+    p.intro("🎯 Process Killer - Interactive Mode");
+
+    const options = [
+      ...processes.map((proc, index) => ({
+        label: `PID ${proc.pid}: ${proc.command.slice(0, 60)}${proc.command.length > 60 ? "..." : ""}`,
+        value: index.toString(),
+      })),
+      { label: "🔥 Kill ALL processes", value: "all" },
+    ];
+
+    try {
+      const selected = await p.multiselect({
+        message: "Select processes to kill:",
+        options,
+        required: false,
+      });
+
+      if (!selected || selected.length === 0) {
+        p.outro("👋 No processes selected");
+        return;
+      }
+
+      const killAll = selected.includes("all");
+      const selectedProcesses = killAll
+        ? processes
+        : selected
+            .map((index) => processes[Number.parseInt(index)])
+            .filter(Boolean);
+
+      if (selectedProcesses.length === 0) {
+        p.outro("👋 No valid processes selected");
+        return;
+      }
+
+      const forceKill = await p.confirm({
+        initialValue: false,
+        message: `Kill ${selectedProcesses.length} process(es) with force (SIGKILL)?`,
+      });
+
+      this.killSelectedProcesses(selectedProcesses, forceKill);
+      p.outro("✅ Process killing completed");
     } catch (error) {
-      console.log("❌ Force kill failed, you may need to run with sudo");
-      console.log("Try: sudo bun run tools/scripts/kill-processes.ts --force");
+      p.outro("👋 Cancelled");
+    }
+  }
+
+  /**
+   * Kill specific processes
+   */
+  killSelectedProcesses(
+    processes: ProcessInfo[],
+    force: boolean = false
+  ): void {
+    const pids = processes.map((p) => p.pid);
+
+    console.log(`\n🔍 Killing ${processes.length} processes:`);
+    for (const proc of processes) {
+      console.log(
+        `  PID ${proc.pid}: ${proc.command.slice(0, 80)}${proc.command.length > 80 ? "..." : ""}`
+      );
+    }
+
+    if (!force) {
+      console.log("\n🔄 Attempting graceful shutdown (SIGTERM)...");
+      try {
+        execSync(`kill ${pids.join(" ")}`, { stdio: "inherit" });
+        console.log("✅ Graceful kill completed");
+      } catch (error) {
+        console.log("❌ Graceful kill failed, trying force kill...");
+        this.forceKillPids(pids);
+      }
+    } else {
+      this.forceKillPids(pids);
     }
   }
 
@@ -235,9 +211,9 @@ class ProcessKiller {
     }
 
     console.log(`🔍 Found ${processes.length} test/lint processes:`);
-    processes.forEach((proc) => {
+    for (const proc of processes) {
       console.log(`  PID ${proc.pid}: ${proc.command}`);
-    });
+    }
   }
 
   /**
@@ -260,6 +236,32 @@ class ProcessKiller {
       await this.killProcessesInteractive();
     } else {
       this.killProcesses(force);
+    }
+  }
+
+  /**
+   * Force kill with SIGKILL
+   */
+  private forceKillPids(pids: string[]): void {
+    console.log("\n💀 Force killing processes (SIGKILL)...");
+    try {
+      execSync(`kill -9 ${pids.join(" ")}`, { stdio: "inherit" });
+      console.log("✅ Force kill completed");
+
+      // Verify they're gone
+      setTimeout(() => {
+        const remaining = this.findProcesses();
+        if (remaining.length === 0) {
+          console.log("✅ All processes successfully terminated");
+        } else {
+          console.log(
+            `⚠️  ${remaining.length} processes still running (may require sudo)`
+          );
+        }
+      }, 1000);
+    } catch (error) {
+      console.log("❌ Force kill failed, you may need to run with sudo");
+      console.log("Try: sudo bun run tools/scripts/kill-processes.ts --force");
     }
   }
 }

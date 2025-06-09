@@ -92,7 +92,7 @@ export function QueueStatusSkeleton() {
 
       <div className="space-y-3">
         {Array.from({ length: 3 }).map((_, i) => (
-          <div key={i} className="flex items-center gap-3">
+          <div className="flex items-center gap-3" key={i}>
             <Skeleton className="w-4 h-4 rounded-full" />
             <Skeleton className="h-4 flex-1" />
             <Skeleton className="h-4 w-16" />
@@ -132,7 +132,7 @@ export function NavigationSkeleton() {
   return (
     <div className="space-y-2">
       {Array.from({ length: 5 }).map((_, i) => (
-        <div key={i} className="flex items-center gap-3 px-3 py-2">
+        <div className="flex items-center gap-3 px-3 py-2" key={i}>
           <Skeleton className="w-5 h-5 rounded" />
           <Skeleton className="h-4 flex-1" />
         </div>
@@ -143,11 +143,11 @@ export function NavigationSkeleton() {
 
 // Table Skeleton
 export function TableSkeleton({
-  rows = 5,
   columns = 4,
+  rows = 5,
 }: {
-  rows?: number;
   columns?: number;
+  rows?: number;
 }) {
   return (
     <div className="overflow-x-auto">

@@ -1,5 +1,5 @@
 import { render, screen } from "@testing-library/react";
-import { describe, it, expect } from "vitest";
+import { describe, expect, test } from "vitest";
 
 // Simple test component
 function TestComponent() {
@@ -15,12 +15,12 @@ function TestComponent() {
 }
 
 describe("Simple Test", () => {
-  it("renders test component", () => {
+  test("renders test component", () => {
     render(<TestComponent />);
     expect(screen.getByText("Test Page")).toBeInTheDocument();
   });
 
-  it("has accessible structure", () => {
+  test("has accessible structure", () => {
     render(<TestComponent />);
     expect(screen.getByRole("main")).toBeInTheDocument();
     expect(screen.getByRole("button")).toBeInTheDocument();

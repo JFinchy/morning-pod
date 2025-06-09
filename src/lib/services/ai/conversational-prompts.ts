@@ -4,15 +4,46 @@
  */
 
 export interface ConversationalPromptOptions {
-  podcastName?: string;
+  audience?: "business" | "general" | "technical";
   hostAName?: string;
   hostBName?: string;
-  style?: "professional" | "casual" | "technical" | "news";
-  targetDuration?: "short" | "medium" | "long"; // 2-3min, 5-7min, 10-15min
-  audience?: "general" | "technical" | "business";
+  podcastName?: string;
+  style?: "casual" | "news" | "professional" | "technical";
+  targetDuration?: "long" | "medium" | "short"; // 2-3min, 5-7min, 10-15min
 }
 
 export const CONVERSATIONAL_PROMPTS = {
+  business: {
+    system: `You are a business podcast scriptwriter specializing in market analysis and business strategy discussions. You create conversations that explore business implications and strategic thinking.
+
+**Host Personalities:**
+- **HOST_A (Strategy Analyst):** Business-focused, sees market implications, discusses competitive landscape and financial impact.
+- **HOST_B (Market Interpreter):** Focuses on consumer impact, regulatory implications, and broader economic effects.
+
+**Discussion Framework:**
+1. Present the business development/news
+2. Analyze immediate market implications
+3. Discuss competitive landscape effects
+4. Explore consumer/industry impact
+5. Consider regulatory or policy implications
+6. Strategic outlook and predictions`,
+
+    user: (summary: string, options: ConversationalPromptOptions = {}) => {
+      return `Transform this business summary into a strategic discussion between two business analysts.
+
+**Focus Areas:**
+- Market implications and competitive effects
+- Consumer and industry impact
+- Strategic and financial considerations
+- Future business landscape
+
+**Business Summary:**
+${summary}
+
+Create engaging dialogue that explores business strategy and market dynamics.`;
+    },
+  },
+
   news: {
     system: `You are an expert podcast scriptwriter for a popular daily news show. Your specialty is transforming written news summaries into engaging, natural conversations between two hosts.
 
@@ -98,37 +129,6 @@ ${summary}
 Format as conversation between HOST_A (technical expert) and HOST_B (curious interpreter).`;
     },
   },
-
-  business: {
-    system: `You are a business podcast scriptwriter specializing in market analysis and business strategy discussions. You create conversations that explore business implications and strategic thinking.
-
-**Host Personalities:**
-- **HOST_A (Strategy Analyst):** Business-focused, sees market implications, discusses competitive landscape and financial impact.
-- **HOST_B (Market Interpreter):** Focuses on consumer impact, regulatory implications, and broader economic effects.
-
-**Discussion Framework:**
-1. Present the business development/news
-2. Analyze immediate market implications
-3. Discuss competitive landscape effects
-4. Explore consumer/industry impact
-5. Consider regulatory or policy implications
-6. Strategic outlook and predictions`,
-
-    user: (summary: string, options: ConversationalPromptOptions = {}) => {
-      return `Transform this business summary into a strategic discussion between two business analysts.
-
-**Focus Areas:**
-- Market implications and competitive effects
-- Consumer and industry impact
-- Strategic and financial considerations
-- Future business landscape
-
-**Business Summary:**
-${summary}
-
-Create engaging dialogue that explores business strategy and market dynamics.`;
-    },
-  },
 };
 
 /**
@@ -136,7 +136,7 @@ Create engaging dialogue that explores business strategy and market dynamics.`;
  */
 export function generateConversationalPrompt(
   summary: string,
-  contentType: "news" | "tech" | "business" = "news",
+  contentType: "business" | "news" | "tech" = "news",
   options: ConversationalPromptOptions = {}
 ): { system: string; user: string } {
   const promptTemplate = CONVERSATIONAL_PROMPTS[contentType];
@@ -151,9 +151,9 @@ export function generateConversationalPrompt(
  * Parse generated script into structured format for TTS
  */
 export function parseConversationalScript(scriptText: string): Array<{
+  emphasis?: "normal" | "reduced" | "strong";
   speaker: "HOST_A" | "HOST_B";
   text: string;
-  emphasis?: "normal" | "strong" | "reduced";
 }> {
   const lines = scriptText
     .split("\n")
@@ -166,10 +166,10 @@ export function parseConversationalScript(scriptText: string): Array<{
 
   return lines.map((line) => {
     const speaker = line.startsWith("HOST_A:") ? "HOST_A" : "HOST_B";
-    const text = line.replace(/^HOST_[AB]:\s*/, "").trim();
+    const text = line.replace(/^HOST_[AB]:\s*/u, "").trim();
 
     // Add emphasis detection
-    let emphasis: "normal" | "strong" | "reduced" = "normal";
+    let emphasis: "normal" | "reduced" | "strong" = "normal";
     if (
       text.includes("!") ||
       text.includes("important") ||
@@ -185,9 +185,9 @@ export function parseConversationalScript(scriptText: string): Array<{
     }
 
     return {
-      speaker: speaker as "HOST_A" | "HOST_B",
-      text: text.replace(/[*_]/g, ""), // Remove markdown formatting
       emphasis,
+      speaker: speaker as "HOST_A" | "HOST_B",
+      text: text.replace(/[*_]/gu, ""), // Remove markdown formatting
     };
   });
 }
@@ -198,8 +198,8 @@ export function parseConversationalScript(scriptText: string): Array<{
 export function validateConversationalScript(
   script: Array<{ speaker: string; text: string }>
 ): {
-  isValid: boolean;
   issues: string[];
+  isValid: boolean;
   suggestions: string[];
 } {
   const issues = [];
@@ -258,8 +258,8 @@ export function validateConversationalScript(
   }
 
   return {
-    isValid: issues.length === 0,
     issues,
+    isValid: issues.length === 0,
     suggestions,
   };
 }

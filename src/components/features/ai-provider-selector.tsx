@@ -1,49 +1,49 @@
 "use client";
 
 import {
+  AlertCircle,
   Brain,
-  Zap,
-  DollarSign,
+  CheckCircle2,
   Clock,
+  DollarSign,
+  Info,
+  Sparkles,
   Star,
   TrendingUp,
-  Info,
-  CheckCircle2,
-  AlertCircle,
-  Sparkles,
+  Zap,
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui";
 import {
   AI_PROVIDERS,
-  getModelsByType,
-  recommendModels,
+  type AIModel,
   calculateSummarizationCost,
   calculateTTSCost,
+  getModelsByType,
   isProviderConfigured,
-  type AIModel,
   type ModelRecommendation,
+  recommendModels,
 } from "@/lib/services/ai/providers";
 
 interface AIProviderSelectorProps {
-  type: "summarization" | "tts";
-  selectedModel?: string;
-  onModelSelect: (modelId: string) => void;
-  contentLength?: number; // For cost estimation
-  priority?: "cost" | "quality" | "speed";
   className?: string;
+  contentLength?: number; // For cost estimation
+  onModelSelect: (modelId: string) => void;
+  priority?: "cost" | "quality" | "speed";
+  selectedModel?: string;
+  type: "summarization" | "tts";
 }
 
 export function AIProviderSelector({
-  type,
-  selectedModel,
-  onModelSelect,
-  contentLength = 1000,
-  priority = "cost",
   className = "",
+  contentLength = 1000,
+  onModelSelect,
+  priority = "cost",
+  selectedModel,
+  type,
 }: AIProviderSelectorProps) {
-  const [viewMode, setViewMode] = useState<"grid" | "comparison">("grid");
+  const [viewMode, setViewMode] = useState<"comparison" | "grid">("grid");
   const [recommendations, setRecommendations] = useState<ModelRecommendation[]>(
     []
   );
@@ -55,9 +55,9 @@ export function AIProviderSelector({
 
   useEffect(() => {
     const recs = recommendModels(type, {
-      priority,
       contentLength,
       maxCost: 0.1, // $0.10 max cost
+      priority,
     });
     setRecommendations(recs);
   }, [type, priority, contentLength]);
@@ -148,16 +148,16 @@ export function AIProviderSelector({
 
         <div className="flex gap-2">
           <Button
+            onClick={() => setViewMode("grid")}
             size="sm"
             variant={viewMode === "grid" ? "primary" : "secondary"}
-            onClick={() => setViewMode("grid")}
           >
             Grid
           </Button>
           <Button
+            onClick={() => setViewMode("comparison")}
             size="sm"
             variant={viewMode === "comparison" ? "primary" : "secondary"}
-            onClick={() => setViewMode("comparison")}
           >
             Compare
           </Button>
@@ -176,8 +176,8 @@ export function AIProviderSelector({
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             {recommendations.map((rec, index) => (
               <div
-                key={rec.model.id}
                 className="bg-base-100 rounded-lg p-3 border border-base-300"
+                key={rec.model.id}
               >
                 <div className="flex items-center justify-between mb-2">
                   <span className="font-medium text-sm">{rec.model.name}</span>
@@ -193,12 +193,12 @@ export function AIProviderSelector({
                     {formatCost(rec.estimatedCost)}
                   </span>
                   <Button
+                    className="text-xs px-2 py-1"
+                    onClick={() => onModelSelect(rec.model.id)}
                     size="sm"
                     variant={
                       selectedModel === rec.model.id ? "primary" : "secondary"
                     }
-                    onClick={() => onModelSelect(rec.model.id)}
-                    className="text-xs px-2 py-1"
                   >
                     {selectedModel === rec.model.id ? "Selected" : "Select"}
                   </Button>
@@ -219,10 +219,10 @@ export function AIProviderSelector({
 
             return (
               <div
-                key={model.id}
                 className={`card bg-base-100 shadow-lg hover:shadow-xl transition-all duration-300 border-0 overflow-hidden ${
                   selectedModel === model.id ? "ring-2 ring-primary" : ""
                 } ${!isConfigured ? "opacity-50" : ""}`}
+                key={model.id}
               >
                 <div className="card-body p-4">
                   {/* Header */}
@@ -284,8 +284,8 @@ export function AIProviderSelector({
                     <div className="flex flex-wrap gap-1">
                       {model.features.slice(0, 3).map((feature) => (
                         <span
-                          key={feature}
                           className="badge badge-ghost badge-xs"
+                          key={feature}
                         >
                           {feature}
                         </span>
@@ -295,13 +295,13 @@ export function AIProviderSelector({
 
                   {/* Select Button */}
                   <Button
+                    className="w-full"
+                    disabled={!isConfigured}
+                    onClick={() => onModelSelect(model.id)}
                     size="sm"
                     variant={
                       selectedModel === model.id ? "primary" : "secondary"
                     }
-                    onClick={() => onModelSelect(model.id)}
-                    disabled={!isConfigured}
-                    className="w-full"
                   >
                     {selectedModel === model.id ? (
                       <>
@@ -340,10 +340,10 @@ export function AIProviderSelector({
 
                 return (
                   <tr
-                    key={model.id}
                     className={`${selectedModel === model.id ? "bg-primary/10" : ""} ${
                       !isConfigured ? "opacity-50" : ""
                     }`}
+                    key={model.id}
                   >
                     <td>
                       <div className="flex items-center gap-2">
@@ -383,8 +383,8 @@ export function AIProviderSelector({
                       <div className="flex flex-wrap gap-1">
                         {model.features.slice(0, 2).map((feature) => (
                           <span
-                            key={feature}
                             className="badge badge-ghost badge-xs"
+                            key={feature}
                           >
                             {feature}
                           </span>
@@ -393,12 +393,12 @@ export function AIProviderSelector({
                     </td>
                     <td>
                       <Button
+                        disabled={!isConfigured}
+                        onClick={() => onModelSelect(model.id)}
                         size="sm"
                         variant={
                           selectedModel === model.id ? "primary" : "secondary"
                         }
-                        onClick={() => onModelSelect(model.id)}
-                        disabled={!isConfigured}
                       >
                         {selectedModel === model.id ? "Selected" : "Select"}
                       </Button>

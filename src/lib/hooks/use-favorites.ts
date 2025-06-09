@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import {
-  getFavoriteEpisodes,
   addToFavorites,
-  removeFromFavorites,
+  getFavoriteEpisodes,
   isFavorite,
+  removeFromFavorites,
 } from "@/lib/utils/local-storage";
 
 export function useFavorites() {
@@ -37,8 +37,8 @@ export function useFavorites() {
 
   return {
     favorites,
+    isFavorite: checkIsFavorite,
     isLoaded,
     toggleFavorite,
-    isFavorite: checkIsFavorite,
   };
 }

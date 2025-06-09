@@ -1,27 +1,62 @@
-import { eq, desc, and, count, sql } from "drizzle-orm";
+import { and, count, desc, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 
 import { db } from "@/lib/db";
-import { scrapedContent, type NewScrapedContent } from "@/lib/db/schema";
+import { type NewScrapedContent, scrapedContent } from "@/lib/db/schema";
 
 import { createTRPCRouter, publicProcedure } from "../server";
 
 export const scrapedContentRouter = createTRPCRouter({
+  // Delete old content (cleanup)
+  cleanup: publicProcedure
+    .input(
+      z.object({
+        olderThanDays: z.number().int().positive().default(30),
+        status: z.enum(["raw", "processed", "archived"]).optional(),
+      })
+    )
+    .meta({
+      description: "Clean up old scraped content",
+    })
+    .mutation(async ({ input }) => {
+      const cutoffDate = new Date();
+      cutoffDate.setDate(cutoffDate.getDate() - input.olderThanDays);
+
+      const whereConditions = [
+        sql`${scrapedContent.scrapedAt} < ${cutoffDate}`,
+      ];
+
+      if (input.status) {
+        whereConditions.push(eq(scrapedContent.status, input.status));
+      }
+
+      const deleted = await db
+        .delete(scrapedContent)
+        .where(and(...whereConditions))
+        .returning({ id: scrapedContent.id });
+
+      return {
+        deletedCount: deleted.length,
+        deletedIds: deleted.map((item) => item.id),
+        success: true,
+      };
+    }),
+
   // Save scraped content to database
   create: publicProcedure
     .input(
       z.object({
-        title: z.string().min(1).max(1000),
-        summary: z.string().min(1),
+        category: z.string().min(1).max(100),
         content: z.string().min(1),
-        url: z.string().url(),
+        contentHash: z.string().min(1).max(128),
+        processingMetrics: z.record(z.any()).optional(),
         publishedAt: z.date(),
         source: z.string().min(1).max(255),
-        category: z.string().min(1).max(100),
-        tags: z.array(z.string()).optional(),
-        contentHash: z.string().min(1).max(128),
         sourceId: z.string().optional(),
-        processingMetrics: z.record(z.any()).optional(),
+        summary: z.string().min(1),
+        tags: z.array(z.string()).optional(),
+        title: z.string().min(1).max(1000),
+        url: z.string().url(),
       })
     )
     .meta({
@@ -30,10 +65,10 @@ export const scrapedContentRouter = createTRPCRouter({
     .mutation(async ({ input }) => {
       const newContent: NewScrapedContent = {
         ...input,
-        tags: input.tags ? JSON.stringify(input.tags) : null,
         processingMetrics: input.processingMetrics
           ? JSON.stringify(input.processingMetrics)
           : null,
+        tags: input.tags ? JSON.stringify(input.tags) : null,
       };
 
       const [created] = await db
@@ -42,14 +77,14 @@ export const scrapedContentRouter = createTRPCRouter({
         .returning();
 
       return {
-        success: true,
         content: {
           ...created,
-          tags: created.tags ? JSON.parse(created.tags) : [],
           processingMetrics: created.processingMetrics
             ? JSON.parse(created.processingMetrics)
             : null,
+          tags: created.tags ? JSON.parse(created.tags) : [],
         },
+        success: true,
       };
     }),
 
@@ -58,17 +93,17 @@ export const scrapedContentRouter = createTRPCRouter({
     .input(
       z.array(
         z.object({
-          title: z.string().min(1).max(1000),
-          summary: z.string().min(1),
+          category: z.string().min(1).max(100),
           content: z.string().min(1),
-          url: z.string().url(),
+          contentHash: z.string().min(1).max(128),
+          processingMetrics: z.record(z.any()).optional(),
           publishedAt: z.date(),
           source: z.string().min(1).max(255),
-          category: z.string().min(1).max(100),
-          tags: z.array(z.string()).optional(),
-          contentHash: z.string().min(1).max(128),
           sourceId: z.string().optional(),
-          processingMetrics: z.record(z.any()).optional(),
+          summary: z.string().min(1),
+          tags: z.array(z.string()).optional(),
+          title: z.string().min(1).max(1000),
+          url: z.string().url(),
         })
       )
     )
@@ -78,10 +113,10 @@ export const scrapedContentRouter = createTRPCRouter({
     .mutation(async ({ input }) => {
       const newContentItems: NewScrapedContent[] = input.map((item) => ({
         ...item,
-        tags: item.tags ? JSON.stringify(item.tags) : null,
         processingMetrics: item.processingMetrics
           ? JSON.stringify(item.processingMetrics)
           : null,
+        tags: item.tags ? JSON.stringify(item.tags) : null,
       }));
 
       const created = await db
@@ -90,15 +125,55 @@ export const scrapedContentRouter = createTRPCRouter({
         .returning();
 
       return {
-        success: true,
-        count: created.length,
         content: created.map((item) => ({
           ...item,
-          tags: item.tags ? JSON.parse(item.tags) : [],
           processingMetrics: item.processingMetrics
             ? JSON.parse(item.processingMetrics)
             : null,
+          tags: item.tags ? JSON.parse(item.tags) : [],
         })),
+        count: created.length,
+        success: true,
+      };
+    }),
+
+  // Delete content by ID
+  delete: publicProcedure
+    .input(z.object({ id: z.string() }))
+    .meta({
+      description: "Delete scraped content by ID",
+    })
+    .mutation(async ({ input }) => {
+      const [deleted] = await db
+        .delete(scrapedContent)
+        .where(eq(scrapedContent.id, input.id))
+        .returning({ id: scrapedContent.id });
+
+      if (!deleted) {
+        throw new Error("Content not found");
+      }
+
+      return {
+        deletedId: deleted.id,
+        success: true,
+      };
+    }),
+
+  // Check if content exists by hash
+  existsByHash: publicProcedure
+    .input(z.object({ contentHash: z.string() }))
+    .meta({
+      description: "Check if content with given hash already exists",
+    })
+    .query(async ({ input }) => {
+      const [existing] = await db
+        .select({ id: scrapedContent.id })
+        .from(scrapedContent)
+        .where(eq(scrapedContent.contentHash, input.contentHash));
+
+      return {
+        exists: !!existing,
+        id: existing?.id || null,
       };
     }),
 
@@ -106,10 +181,10 @@ export const scrapedContentRouter = createTRPCRouter({
   getAll: publicProcedure
     .input(
       z.object({
+        category: z.string().optional(),
         page: z.number().int().positive().default(1),
         pageSize: z.number().int().positive().max(100).default(20),
         source: z.string().optional(),
-        category: z.string().optional(),
         status: z.enum(["raw", "processed", "archived"]).optional(),
       })
     )
@@ -118,7 +193,7 @@ export const scrapedContentRouter = createTRPCRouter({
         "Get all scraped content with optional filtering and pagination",
     })
     .query(async ({ input }) => {
-      const { page, pageSize, source, category, status } = input;
+      const { category, page, pageSize, source, status } = input;
       const offset = (page - 1) * pageSize;
 
       // Build where conditions
@@ -154,10 +229,10 @@ export const scrapedContentRouter = createTRPCRouter({
       return {
         content: content.map((item) => ({
           ...item,
-          tags: item.tags ? JSON.parse(item.tags) : [],
           processingMetrics: item.processingMetrics
             ? JSON.parse(item.processingMetrics)
             : null,
+          tags: item.tags ? JSON.parse(item.tags) : [],
         })),
         pagination: {
           page,
@@ -186,28 +261,10 @@ export const scrapedContentRouter = createTRPCRouter({
 
       return {
         ...content,
-        tags: content.tags ? JSON.parse(content.tags) : [],
         processingMetrics: content.processingMetrics
           ? JSON.parse(content.processingMetrics)
           : null,
-      };
-    }),
-
-  // Check if content exists by hash
-  existsByHash: publicProcedure
-    .input(z.object({ contentHash: z.string() }))
-    .meta({
-      description: "Check if content with given hash already exists",
-    })
-    .query(async ({ input }) => {
-      const [existing] = await db
-        .select({ id: scrapedContent.id })
-        .from(scrapedContent)
-        .where(eq(scrapedContent.contentHash, input.contentHash));
-
-      return {
-        exists: !!existing,
-        id: existing?.id || null,
+        tags: content.tags ? JSON.parse(content.tags) : [],
       };
     }),
 
@@ -219,9 +276,9 @@ export const scrapedContentRouter = createTRPCRouter({
     .query(async () => {
       const stats = await db
         .select({
-          total: count(),
           source: scrapedContent.source,
           status: scrapedContent.status,
+          total: count(),
         })
         .from(scrapedContent)
         .groupBy(scrapedContent.source, scrapedContent.status);
@@ -229,7 +286,7 @@ export const scrapedContentRouter = createTRPCRouter({
       // Aggregate by source
       const bySource: Record<
         string,
-        { total: number; byStatus: Record<string, number> }
+        { byStatus: Record<string, number>; total: number }
       > = {};
       let totalItems = 0;
 
@@ -237,7 +294,7 @@ export const scrapedContentRouter = createTRPCRouter({
         totalItems += stat.total;
 
         if (!bySource[stat.source]) {
-          bySource[stat.source] = { total: 0, byStatus: {} };
+          bySource[stat.source] = { byStatus: {}, total: 0 };
         }
 
         bySource[stat.source].total += stat.total;
@@ -245,9 +302,9 @@ export const scrapedContentRouter = createTRPCRouter({
       }
 
       return {
-        totalItems,
         bySource,
         sources: Object.keys(bySource),
+        totalItems,
       };
     }),
 
@@ -274,71 +331,14 @@ export const scrapedContentRouter = createTRPCRouter({
       }
 
       return {
-        success: true,
         content: {
           ...updated,
-          tags: updated.tags ? JSON.parse(updated.tags) : [],
           processingMetrics: updated.processingMetrics
             ? JSON.parse(updated.processingMetrics)
             : null,
+          tags: updated.tags ? JSON.parse(updated.tags) : [],
         },
-      };
-    }),
-
-  // Delete content by ID
-  delete: publicProcedure
-    .input(z.object({ id: z.string() }))
-    .meta({
-      description: "Delete scraped content by ID",
-    })
-    .mutation(async ({ input }) => {
-      const [deleted] = await db
-        .delete(scrapedContent)
-        .where(eq(scrapedContent.id, input.id))
-        .returning({ id: scrapedContent.id });
-
-      if (!deleted) {
-        throw new Error("Content not found");
-      }
-
-      return {
         success: true,
-        deletedId: deleted.id,
-      };
-    }),
-
-  // Delete old content (cleanup)
-  cleanup: publicProcedure
-    .input(
-      z.object({
-        olderThanDays: z.number().int().positive().default(30),
-        status: z.enum(["raw", "processed", "archived"]).optional(),
-      })
-    )
-    .meta({
-      description: "Clean up old scraped content",
-    })
-    .mutation(async ({ input }) => {
-      const cutoffDate = new Date();
-      cutoffDate.setDate(cutoffDate.getDate() - input.olderThanDays);
-
-      const whereConditions = [
-        sql`${scrapedContent.scrapedAt} < ${cutoffDate}`,
-      ];
-
-      if (input.status) {
-        whereConditions.push(eq(scrapedContent.status, input.status));
-      }
-
-      const deleted = await db
-        .delete(scrapedContent)
-        .where(and(...whereConditions))
-        .returning({ id: scrapedContent.id });
-
-      return {
-        success: true,
-        deletedCount: deleted.length,
-        deletedIds: deleted.map((item) => item.id),
       };
     }),
 });

@@ -1,11 +1,11 @@
 import {
-  describe,
-  it,
-  expect,
-  vi,
-  beforeEach,
-  afterEach,
   afterAll,
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  test,
+  vi,
 } from "vitest";
 
 // Mock child_process module
@@ -17,16 +17,17 @@ vi.mock("child_process", async (importOriginal) => {
   };
 });
 
-import { ScriptRunner } from "../../../tools/scripts/run";
 import { execSync } from "child_process";
+
+import { ScriptRunner } from "../../../tools/scripts/run";
 
 // Get the mocked function
 const mockExecSync = vi.mocked(execSync);
 
 // Mock console methods
 const consoleSpy = {
-  log: vi.spyOn(console, "log").mockImplementation(() => {}),
   error: vi.spyOn(console, "error").mockImplementation(() => {}),
+  log: vi.spyOn(console, "log").mockImplementation(() => {}),
 };
 
 // Mock process.exit
@@ -61,312 +62,312 @@ describe("ScriptRunner", () => {
   });
 
   describe("parseArgs", () => {
-    it("should return help mode for --help flag", () => {
+    test("should return help mode for --help flag", () => {
       process.argv = ["bun", "script", "--help"];
       const result = runner.parseArgs();
-      expect(result).toEqual({ mode: "help", flags: [] });
+      expect(result).toEqual({ flags: [], mode: "help" });
     });
 
-    it("should return help mode for -h flag", () => {
+    test("should return help mode for -h flag", () => {
       process.argv = ["bun", "script", "-h"];
       const result = runner.parseArgs();
-      expect(result).toEqual({ mode: "help", flags: [] });
+      expect(result).toEqual({ flags: [], mode: "help" });
     });
 
-    it("should return list mode for --list flag", () => {
+    test("should return list mode for --list flag", () => {
       process.argv = ["bun", "script", "--list"];
       const result = runner.parseArgs();
-      expect(result).toEqual({ mode: "list", flags: [] });
+      expect(result).toEqual({ flags: [], mode: "list" });
     });
 
-    it("should return list mode for -l flag", () => {
+    test("should return list mode for -l flag", () => {
       process.argv = ["bun", "script", "-l"];
       const result = runner.parseArgs();
-      expect(result).toEqual({ mode: "list", flags: [] });
+      expect(result).toEqual({ flags: [], mode: "list" });
     });
 
-    it("should return interactive mode for empty args", () => {
+    test("should return interactive mode for empty args", () => {
       process.argv = ["bun", "script"];
       const result = runner.parseArgs();
-      expect(result).toEqual({ mode: "interactive", flags: [] });
+      expect(result).toEqual({ flags: [], mode: "interactive" });
     });
 
-    it("should return interactive mode for -i flag", () => {
+    test("should return interactive mode for -i flag", () => {
       process.argv = ["bun", "script", "-i"];
       const result = runner.parseArgs();
-      expect(result).toEqual({ mode: "interactive", flags: [] });
+      expect(result).toEqual({ flags: [], mode: "interactive" });
     });
 
-    it("should return interactive mode for --interactive flag", () => {
+    test("should return interactive mode for --interactive flag", () => {
       process.argv = ["bun", "script", "--interactive"];
       const result = runner.parseArgs();
-      expect(result).toEqual({ mode: "interactive", flags: [] });
+      expect(result).toEqual({ flags: [], mode: "interactive" });
     });
 
-    it("should return category mode for category only", () => {
+    test("should return category mode for category only", () => {
       process.argv = ["bun", "script", "test"];
       const result = runner.parseArgs();
-      expect(result).toEqual({ mode: "category", category: "test", flags: [] });
+      expect(result).toEqual({ category: "test", flags: [], mode: "category" });
     });
 
-    it("should return direct mode for category and action", () => {
+    test("should return direct mode for category and action", () => {
       process.argv = ["bun", "script", "test", "unit"];
       const result = runner.parseArgs();
       expect(result).toEqual({
-        mode: "direct",
-        category: "test",
         action: "unit",
+        category: "test",
         flags: [],
+        mode: "direct",
       });
     });
 
-    it("should return direct mode with flags", () => {
+    test("should return direct mode with flags", () => {
       process.argv = ["bun", "script", "test", "unit", "--watch"];
       const result = runner.parseArgs();
       expect(result).toEqual({
-        mode: "direct",
-        category: "test",
         action: "unit",
+        category: "test",
         flags: ["--watch"],
+        mode: "direct",
       });
     });
 
     describe("flag shortcuts", () => {
-      it("should parse test category flags correctly", () => {
+      test("should parse test category flags correctly", () => {
         const testCases = [
           {
             args: ["test", "--e2e"],
-            expected: { category: "test", action: "e2e" },
+            expected: { action: "e2e", category: "test" },
           },
           {
             args: ["test", "--unit"],
-            expected: { category: "test", action: "unit" },
+            expected: { action: "unit", category: "test" },
           },
           {
             args: ["test", "--watch"],
-            expected: { category: "test", action: "unit:watch" },
+            expected: { action: "unit:watch", category: "test" },
           },
           {
             args: ["test", "--coverage"],
-            expected: { category: "test", action: "unit:coverage" },
+            expected: { action: "unit:coverage", category: "test" },
           },
           {
             args: ["test", "--ui"],
-            expected: { category: "test", action: "unit:ui" },
+            expected: { action: "unit:ui", category: "test" },
           },
           {
             args: ["test", "--perf"],
-            expected: { category: "test", action: "unit:perf" },
+            expected: { action: "unit:perf", category: "test" },
           },
           {
             args: ["test", "--debug"],
-            expected: { category: "test", action: "e2e:debug" },
+            expected: { action: "e2e:debug", category: "test" },
           },
           {
             args: ["test", "--headed"],
-            expected: { category: "test", action: "e2e:headed" },
+            expected: { action: "e2e:headed", category: "test" },
           },
           {
             args: ["test", "--visual"],
-            expected: { category: "test", action: "e2e:visual" },
+            expected: { action: "e2e:visual", category: "test" },
           },
           {
             args: ["test", "--performance"],
-            expected: { category: "test", action: "performance" },
+            expected: { action: "performance", category: "test" },
           },
           {
             args: ["test", "--all"],
-            expected: { category: "test", action: "--all" },
+            expected: { action: "--all", category: "test" },
           },
         ];
 
-        testCases.forEach(({ args, expected }) => {
+        for (const { args, expected } of testCases) {
           process.argv = ["bun", "script", ...args];
           const result = runner.parseArgs();
           expect(result.mode).toBe("direct");
           expect(result.category).toBe(expected.category);
           expect(result.action).toBe(expected.action);
-        });
+        }
       });
 
-      it("should parse dev category flags correctly", () => {
+      test("should parse dev category flags correctly", () => {
         const testCases = [
           {
             args: ["dev", "--start"],
-            expected: { category: "dev", action: "start" },
+            expected: { action: "start", category: "dev" },
           },
           {
             args: ["dev", "--build"],
-            expected: { category: "dev", action: "build" },
+            expected: { action: "build", category: "dev" },
           },
           {
             args: ["dev", "--preview"],
-            expected: { category: "dev", action: "preview" },
+            expected: { action: "preview", category: "dev" },
           },
           {
             args: ["dev", "--clean"],
-            expected: { category: "dev", action: "clean" },
+            expected: { action: "clean", category: "dev" },
           },
         ];
 
-        testCases.forEach(({ args, expected }) => {
+        for (const { args, expected } of testCases) {
           process.argv = ["bun", "script", ...args];
           const result = runner.parseArgs();
           expect(result.mode).toBe("direct");
           expect(result.category).toBe(expected.category);
           expect(result.action).toBe(expected.action);
-        });
+        }
       });
 
-      it("should parse quality category flags correctly", () => {
+      test("should parse quality category flags correctly", () => {
         const testCases = [
           {
             args: ["quality", "--lint"],
-            expected: { category: "quality", action: "lint" },
+            expected: { action: "lint", category: "quality" },
           },
           {
             args: ["quality", "--fix"],
-            expected: { category: "quality", action: "lint:fix" },
+            expected: { action: "lint:fix", category: "quality" },
           },
           {
             args: ["quality", "--quiet"],
-            expected: { category: "quality", action: "lint:quiet" },
+            expected: { action: "lint:quiet", category: "quality" },
           },
           {
             args: ["quality", "--strict"],
-            expected: { category: "quality", action: "lint:strict" },
+            expected: { action: "lint:strict", category: "quality" },
           },
           {
             args: ["quality", "--format"],
-            expected: { category: "quality", action: "format" },
+            expected: { action: "format", category: "quality" },
           },
           {
             args: ["quality", "--check"],
-            expected: { category: "quality", action: "format:check" },
+            expected: { action: "format:check", category: "quality" },
           },
           {
             args: ["quality", "--type"],
-            expected: { category: "quality", action: "type-check" },
+            expected: { action: "type-check", category: "quality" },
           },
           {
             args: ["quality", "--all"],
-            expected: { category: "quality", action: "all" },
+            expected: { action: "all", category: "quality" },
           },
         ];
 
-        testCases.forEach(({ args, expected }) => {
+        for (const { args, expected } of testCases) {
           process.argv = ["bun", "script", ...args];
           const result = runner.parseArgs();
           expect(result.mode).toBe("direct");
           expect(result.category).toBe(expected.category);
           expect(result.action).toBe(expected.action);
-        });
+        }
       });
 
-      it("should parse db category flags correctly", () => {
+      test("should parse db category flags correctly", () => {
         const testCases = [
           {
             args: ["db", "--generate"],
-            expected: { category: "db", action: "generate" },
+            expected: { action: "generate", category: "db" },
           },
           {
             args: ["db", "--migrate"],
-            expected: { category: "db", action: "migrate" },
+            expected: { action: "migrate", category: "db" },
           },
           {
             args: ["db", "--seed"],
-            expected: { category: "db", action: "seed" },
+            expected: { action: "seed", category: "db" },
           },
           {
             args: ["db", "--studio"],
-            expected: { category: "db", action: "studio" },
+            expected: { action: "studio", category: "db" },
           },
         ];
 
-        testCases.forEach(({ args, expected }) => {
+        for (const { args, expected } of testCases) {
           process.argv = ["bun", "script", ...args];
           const result = runner.parseArgs();
           expect(result.mode).toBe("direct");
           expect(result.category).toBe(expected.category);
           expect(result.action).toBe(expected.action);
-        });
+        }
       });
 
-      it("should parse deps category flags correctly", () => {
+      test("should parse deps category flags correctly", () => {
         const testCases = [
           {
             args: ["deps", "--check"],
-            expected: { category: "deps", action: "check" },
+            expected: { action: "check", category: "deps" },
           },
           {
             args: ["deps", "--patch"],
-            expected: { category: "deps", action: "update:patch" },
+            expected: { action: "update:patch", category: "deps" },
           },
           {
             args: ["deps", "--minor"],
-            expected: { category: "deps", action: "update:minor" },
+            expected: { action: "update:minor", category: "deps" },
           },
           {
             args: ["deps", "--major"],
-            expected: { category: "deps", action: "update:major" },
+            expected: { action: "update:major", category: "deps" },
           },
           {
             args: ["deps", "--safe"],
-            expected: { category: "deps", action: "update:safe" },
+            expected: { action: "update:safe", category: "deps" },
           },
           {
             args: ["deps", "--doctor"],
-            expected: { category: "deps", action: "doctor" },
+            expected: { action: "doctor", category: "deps" },
           },
           {
             args: ["deps", "--outdated"],
-            expected: { category: "deps", action: "outdated" },
+            expected: { action: "outdated", category: "deps" },
           },
         ];
 
-        testCases.forEach(({ args, expected }) => {
+        for (const { args, expected } of testCases) {
           process.argv = ["bun", "script", ...args];
           const result = runner.parseArgs();
           expect(result.mode).toBe("direct");
           expect(result.category).toBe(expected.category);
           expect(result.action).toBe(expected.action);
-        });
+        }
       });
 
-      it("should parse release category flags correctly", () => {
+      test("should parse release category flags correctly", () => {
         const testCases = [
           {
             args: ["release", "--changeset"],
-            expected: { category: "release", action: "changeset" },
+            expected: { action: "changeset", category: "release" },
           },
           {
             args: ["release", "--version"],
-            expected: { category: "release", action: "version" },
+            expected: { action: "version", category: "release" },
           },
           {
             args: ["release", "--publish"],
-            expected: { category: "release", action: "publish" },
+            expected: { action: "publish", category: "release" },
           },
           {
             args: ["release", "--status"],
-            expected: { category: "release", action: "status" },
+            expected: { action: "status", category: "release" },
           },
           {
             args: ["release", "--release"],
-            expected: { category: "release", action: "release" },
+            expected: { action: "release", category: "release" },
           },
         ];
 
-        testCases.forEach(({ args, expected }) => {
+        for (const { args, expected } of testCases) {
           process.argv = ["bun", "script", ...args];
           const result = runner.parseArgs();
           expect(result.mode).toBe("direct");
           expect(result.category).toBe(expected.category);
           expect(result.action).toBe(expected.action);
-        });
+        }
       });
 
-      it("should handle unknown flags gracefully", () => {
+      test("should handle unknown flags gracefully", () => {
         process.argv = ["bun", "script", "test", "--unknown"];
         const result = runner.parseArgs();
         expect(result.mode).toBe("category");
@@ -374,7 +375,7 @@ describe("ScriptRunner", () => {
         expect(result.flags).toContain("--unknown");
       });
 
-      it("should handle multiple flags and process first recognized one", () => {
+      test("should handle multiple flags and process first recognized one", () => {
         process.argv = ["bun", "script", "test", "--e2e", "--unknown"];
         const result = runner.parseArgs();
         expect(result.mode).toBe("direct");
@@ -384,7 +385,7 @@ describe("ScriptRunner", () => {
         expect(result.flags).not.toContain("--e2e");
       });
 
-      it("should handle case-insensitive category names with flags", () => {
+      test("should handle case-insensitive category names with flags", () => {
         process.argv = ["bun", "script", "TEST", "--unit"];
         const result = runner.parseArgs();
         expect(result.mode).toBe("direct");
@@ -392,7 +393,7 @@ describe("ScriptRunner", () => {
         expect(result.action).toBe("unit");
       });
 
-      it("should fall back to normal parsing for categories without flag mappings", () => {
+      test("should fall back to normal parsing for categories without flag mappings", () => {
         process.argv = ["bun", "script", "unknown-category", "--flag"];
         const result = runner.parseArgs();
         expect(result.mode).toBe("category");
@@ -403,7 +404,7 @@ describe("ScriptRunner", () => {
   });
 
   describe("getArgumentExamples", () => {
-    it("should return context-specific examples for test commands", () => {
+    test("should return context-specific examples for test commands", () => {
       expect(runner.getArgumentExamples("test", "unit")).toBe(
         "--watch --coverage"
       );
@@ -415,7 +416,7 @@ describe("ScriptRunner", () => {
       );
     });
 
-    it("should return context-specific examples for quality commands", () => {
+    test("should return context-specific examples for quality commands", () => {
       expect(runner.getArgumentExamples("quality", "lint")).toBe(
         "src/ --max-warnings 0"
       );
@@ -427,12 +428,12 @@ describe("ScriptRunner", () => {
       );
     });
 
-    it("should return context-specific examples for dev commands", () => {
+    test("should return context-specific examples for dev commands", () => {
       expect(runner.getArgumentExamples("dev", "start")).toBe("--port 3001");
       expect(runner.getArgumentExamples("dev", "build")).toBe("--debug");
     });
 
-    it("should return default examples for unknown commands", () => {
+    test("should return default examples for unknown commands", () => {
       expect(runner.getArgumentExamples("test", "unknown")).toBe(
         "--timeout 30000"
       );
@@ -441,13 +442,13 @@ describe("ScriptRunner", () => {
       );
     });
 
-    it("should return default examples for unknown categories", () => {
+    test("should return default examples for unknown categories", () => {
       expect(runner.getArgumentExamples("unknown", "command")).toBe("--help");
     });
   });
 
   describe("executeCommandWithArgs", () => {
-    it("should execute command with additional arguments", () => {
+    test("should execute command with additional arguments", () => {
       mockExecSync.mockReturnValue("success");
 
       runner.executeCommandWithArgs("test", "unit", "--watch --coverage");
@@ -461,7 +462,7 @@ describe("ScriptRunner", () => {
       );
     });
 
-    it("should execute command without additional arguments when empty", () => {
+    test("should execute command without additional arguments when empty", () => {
       mockExecSync.mockReturnValue("success");
 
       runner.executeCommandWithArgs("test", "unit", "");
@@ -472,7 +473,7 @@ describe("ScriptRunner", () => {
       );
     });
 
-    it("should handle --all flag properly", () => {
+    test("should handle --all flag properly", () => {
       mockExecSync.mockReturnValue("success");
 
       runner.executeCommandWithArgs("test", "--all", "");
@@ -484,10 +485,10 @@ describe("ScriptRunner", () => {
   });
 
   describe("showHelp", () => {
-    it("should display help information", () => {
+    test("should display help information", () => {
       runner.showHelp();
 
-      expect(consoleSpy.log).toHaveBeenCalled();
+      expect(consoleSpy.log).toHaveBeenCalledWith();
       const helpOutput = consoleSpy.log.mock.calls[0][0];
       expect(helpOutput).toContain("🎯 Interactive Script Runner");
       expect(helpOutput).toContain("Usage:");
@@ -497,7 +498,7 @@ describe("ScriptRunner", () => {
   });
 
   describe("listAllCommands", () => {
-    it("should list all available commands organized by category", () => {
+    test("should list all available commands organized by category", () => {
       runner.listAllCommands();
 
       expect(consoleSpy.log).toHaveBeenCalledWith(
@@ -514,7 +515,7 @@ describe("ScriptRunner", () => {
   });
 
   describe("showInteractiveMenu", () => {
-    it("should display interactive menu with categories", () => {
+    test("should display interactive menu with categories", () => {
       runner.showInteractiveMenu();
 
       const logCalls = consoleSpy.log.mock.calls.map((call) => call[0]);
@@ -528,7 +529,7 @@ describe("ScriptRunner", () => {
   });
 
   describe("showCategory", () => {
-    it("should display commands for valid category", () => {
+    test("should display commands for valid category", () => {
       runner.showCategory("test");
 
       const logCalls = consoleSpy.log.mock.calls.map((call) => call[0]);
@@ -539,7 +540,7 @@ describe("ScriptRunner", () => {
       expect(allOutput).toContain("bun run script test all");
     });
 
-    it("should handle case-insensitive category names", () => {
+    test("should handle case-insensitive category names", () => {
       runner.showCategory("TEST");
 
       const logCalls = consoleSpy.log.mock.calls.map((call) => call[0]);
@@ -548,7 +549,7 @@ describe("ScriptRunner", () => {
       expect(allOutput).toContain("🧪 Testing Commands");
     });
 
-    it("should exit with error for invalid category", () => {
+    test("should exit with error for invalid category", () => {
       expect(() => {
         runner.showCategory("invalid");
       }).toThrow("process.exit unexpectedly called");
@@ -560,7 +561,7 @@ describe("ScriptRunner", () => {
   });
 
   describe("executeCommand", () => {
-    it("should execute valid command successfully", () => {
+    test("should execute valid command successfully", () => {
       mockExecSync.mockReturnValue("success");
 
       runner.executeCommand("test", "unit");
@@ -574,13 +575,13 @@ describe("ScriptRunner", () => {
       expect(mockExecSync).toHaveBeenCalledWith(
         "bun vitest --config config/testing/vitest.config.ts",
         {
-          stdio: "inherit",
           cwd: process.cwd(),
+          stdio: "inherit",
         }
       );
     });
 
-    it("should handle case-insensitive category and command names", () => {
+    test("should handle case-insensitive category and command names", () => {
       mockExecSync.mockReturnValue("success");
 
       runner.executeCommand("TEST", "UNIT");
@@ -588,13 +589,13 @@ describe("ScriptRunner", () => {
       expect(mockExecSync).toHaveBeenCalledWith(
         "bun vitest --config config/testing/vitest.config.ts",
         {
-          stdio: "inherit",
           cwd: process.cwd(),
+          stdio: "inherit",
         }
       );
     });
 
-    it("should exit with error for invalid category", () => {
+    test("should exit with error for invalid category", () => {
       expect(() => {
         runner.executeCommand("invalid", "action");
       }).toThrow("process.exit unexpectedly called");
@@ -604,7 +605,7 @@ describe("ScriptRunner", () => {
       );
     });
 
-    it("should exit with error for invalid command", () => {
+    test("should exit with error for invalid command", () => {
       expect(() => {
         runner.executeCommand("test", "invalid");
       }).toThrow("process.exit unexpectedly called");
@@ -614,7 +615,7 @@ describe("ScriptRunner", () => {
       );
     });
 
-    it("should handle command execution failure", () => {
+    test("should handle command execution failure", () => {
       mockExecSync.mockImplementation(() => {
         throw new Error("Command failed");
       });
@@ -628,7 +629,7 @@ describe("ScriptRunner", () => {
       );
     });
 
-    it("should handle --all flag as action", () => {
+    test("should handle --all flag as action", () => {
       mockExecSync.mockReturnValue("success");
 
       runner.executeCommand("test", "--all");
@@ -636,7 +637,7 @@ describe("ScriptRunner", () => {
       expect(consoleSpy.log).toHaveBeenCalledWith("\\n▶️  🧪 Run all tests\\n");
     });
 
-    it("should handle --all flag in flags array", () => {
+    test("should handle --all flag in flags array", () => {
       mockExecSync.mockReturnValue("success");
 
       runner.executeCommand("test", "unit", ["--all"]);
@@ -646,20 +647,20 @@ describe("ScriptRunner", () => {
   });
 
   describe("executeAllInCategory", () => {
-    it("should execute 'all' command if it exists", () => {
+    test("should execute 'all' command if it exists", () => {
       mockExecSync.mockReturnValue("success");
 
       const testCategory = {
-        name: "test",
-        description: "Testing Commands",
-        icon: "🧪",
         commands: [
           {
-            name: "all",
-            description: "Run all tests",
             command: "vitest && playwright test",
+            description: "Run all tests",
+            name: "all",
           },
         ],
+        description: "Testing Commands",
+        icon: "🧪",
+        name: "test",
       };
 
       runner.executeAllInCategory(testCategory);
@@ -667,21 +668,21 @@ describe("ScriptRunner", () => {
       expect(consoleSpy.log).toHaveBeenCalledWith("\\n▶️  🧪 Run all tests\\n");
     });
 
-    it("should execute all commands individually if no 'all' command exists", () => {
+    test("should execute all commands individually if no 'all' command exists", () => {
       mockExecSync.mockReturnValue("success");
 
       const testCategory = {
-        name: "test",
-        description: "Testing Commands",
-        icon: "🧪",
         commands: [
-          { name: "unit", description: "Run unit tests", command: "vitest" },
+          { command: "vitest", description: "Run unit tests", name: "unit" },
           {
-            name: "e2e",
-            description: "Run E2E tests",
             command: "playwright test",
+            description: "Run E2E tests",
+            name: "e2e",
           },
         ],
+        description: "Testing Commands",
+        icon: "🧪",
+        name: "test",
       };
 
       runner.executeAllInCategory(testCategory);
@@ -696,23 +697,23 @@ describe("ScriptRunner", () => {
       );
     });
 
-    it("should stop execution on first failure when running individual commands", () => {
+    test("should stop execution on first failure when running individual commands", () => {
       mockExecSync.mockReturnValueOnce("success").mockImplementationOnce(() => {
         throw new Error("Command failed");
       });
 
       const testCategory = {
-        name: "test",
-        description: "Testing Commands",
-        icon: "🧪",
         commands: [
-          { name: "unit", description: "Run unit tests", command: "vitest" },
+          { command: "vitest", description: "Run unit tests", name: "unit" },
           {
-            name: "e2e",
-            description: "Run E2E tests",
             command: "playwright test",
+            description: "Run E2E tests",
+            name: "e2e",
           },
         ],
+        description: "Testing Commands",
+        icon: "🧪",
+        name: "test",
       };
 
       expect(() => {
@@ -720,22 +721,22 @@ describe("ScriptRunner", () => {
       }).toThrow("process.exit unexpectedly called");
     });
 
-    it("should handle 'all' command failure", () => {
+    test("should handle 'all' command failure", () => {
       mockExecSync.mockImplementation(() => {
         throw new Error("All command failed");
       });
 
       const testCategory = {
-        name: "test",
-        description: "Testing Commands",
-        icon: "🧪",
         commands: [
           {
-            name: "all",
-            description: "Run all tests",
             command: "vitest && playwright test",
+            description: "Run all tests",
+            name: "all",
           },
         ],
+        description: "Testing Commands",
+        icon: "🧪",
+        name: "test",
       };
 
       expect(() => {
@@ -745,56 +746,56 @@ describe("ScriptRunner", () => {
   });
 
   describe("run", () => {
-    it("should call showHelp for help mode", () => {
+    test("should call showHelp for help mode", () => {
       const showHelpSpy = vi
         .spyOn(runner, "showHelp")
         .mockImplementation(() => {});
       vi.spyOn(runner, "parseArgs").mockReturnValue({
-        mode: "help",
         flags: [],
+        mode: "help",
       });
 
       runner.run();
 
-      expect(showHelpSpy).toHaveBeenCalled();
+      expect(showHelpSpy).toHaveBeenCalledWith();
     });
 
-    it("should call listAllCommands for list mode", () => {
+    test("should call listAllCommands for list mode", () => {
       const listAllCommandsSpy = vi
         .spyOn(runner, "listAllCommands")
         .mockImplementation(() => {});
       vi.spyOn(runner, "parseArgs").mockReturnValue({
-        mode: "list",
         flags: [],
+        mode: "list",
       });
 
       runner.run();
 
-      expect(listAllCommandsSpy).toHaveBeenCalled();
+      expect(listAllCommandsSpy).toHaveBeenCalledWith();
     });
 
-    it("should call showInteractiveMenu for interactive mode", () => {
+    test("should call showInteractiveMenu for interactive mode", () => {
       const showInteractiveMenuSpy = vi
         .spyOn(runner, "showInteractiveMenu")
         .mockImplementation(async () => {});
       vi.spyOn(runner, "parseArgs").mockReturnValue({
-        mode: "interactive",
         flags: [],
+        mode: "interactive",
       });
 
       runner.run();
 
-      expect(showInteractiveMenuSpy).toHaveBeenCalled();
+      expect(showInteractiveMenuSpy).toHaveBeenCalledWith();
     });
 
-    it("should call showCategory for category mode", () => {
+    test("should call showCategory for category mode", () => {
       const showCategorySpy = vi
         .spyOn(runner, "showCategory")
         .mockImplementation(async () => {});
       vi.spyOn(runner, "parseArgs").mockReturnValue({
-        mode: "category",
         category: "test",
         flags: [],
+        mode: "category",
       });
 
       runner.run();
@@ -802,15 +803,15 @@ describe("ScriptRunner", () => {
       expect(showCategorySpy).toHaveBeenCalledWith("test");
     });
 
-    it("should call executeCommand for direct mode", () => {
+    test("should call executeCommand for direct mode", () => {
       const executeCommandSpy = vi
         .spyOn(runner, "executeCommand")
         .mockImplementation(() => {});
       vi.spyOn(runner, "parseArgs").mockReturnValue({
-        mode: "direct",
-        category: "test",
         action: "unit",
+        category: "test",
         flags: [],
+        mode: "direct",
       });
 
       runner.run();
@@ -818,28 +819,28 @@ describe("ScriptRunner", () => {
       expect(executeCommandSpy).toHaveBeenCalledWith("test", "unit", []);
     });
 
-    it("should call showHelp for default case", () => {
+    test("should call showHelp for default case", () => {
       const showHelpSpy = vi
         .spyOn(runner, "showHelp")
         .mockImplementation(() => {});
       vi.spyOn(runner, "parseArgs").mockReturnValue({
-        mode: "unknown" as unknown as
-          | "help"
-          | "list"
-          | "interactive"
-          | "category"
-          | "direct",
         flags: [],
+        mode: "unknown" as unknown as
+          | "category"
+          | "direct"
+          | "help"
+          | "interactive"
+          | "list",
       });
 
       runner.run();
 
-      expect(showHelpSpy).toHaveBeenCalled();
+      expect(showHelpSpy).toHaveBeenCalledWith();
     });
   });
 
   describe("integration scenarios", () => {
-    it("should handle complete workflow for running unit tests", () => {
+    test("should handle complete workflow for running unit tests", () => {
       mockExecSync.mockReturnValue("success");
       process.argv = ["bun", "script", "test", "unit"];
 
@@ -851,13 +852,13 @@ describe("ScriptRunner", () => {
       expect(mockExecSync).toHaveBeenCalledWith(
         "bun vitest --config config/testing/vitest.config.ts",
         {
-          stdio: "inherit",
           cwd: process.cwd(),
+          stdio: "inherit",
         }
       );
     });
 
-    it("should handle complete workflow for running all tests in category", () => {
+    test("should handle complete workflow for running all tests in category", () => {
       mockExecSync.mockReturnValue("success");
       process.argv = ["bun", "script", "test", "--all"];
 
@@ -868,7 +869,7 @@ describe("ScriptRunner", () => {
       );
     });
 
-    it("should handle edge case with mixed case category and command", () => {
+    test("should handle edge case with mixed case category and command", () => {
       mockExecSync.mockReturnValue("success");
       process.argv = ["bun", "script", "QUALITY", "lint"];
 
@@ -879,7 +880,7 @@ describe("ScriptRunner", () => {
   });
 
   describe("error handling and edge cases", () => {
-    it("should gracefully handle empty category list", () => {
+    test("should gracefully handle empty category list", () => {
       // Create runner with empty categories for this test
       const emptyRunner = new ScriptRunner();
       (emptyRunner as unknown as { categories: unknown[] }).categories = [];
@@ -889,7 +890,7 @@ describe("ScriptRunner", () => {
       }).toThrow("process.exit unexpectedly called");
     });
 
-    it("should handle complex command strings with special characters", () => {
+    test("should handle complex command strings with special characters", () => {
       mockExecSync.mockReturnValue("success");
 
       // This tests that commands with special chars like && are handled properly
@@ -901,41 +902,41 @@ describe("ScriptRunner", () => {
       );
     });
 
-    it("should handle all flag shortcuts end-to-end", () => {
+    test("should handle all flag shortcuts end-to-end", () => {
       mockExecSync.mockReturnValue("success");
 
       const shortcuts = [
         {
           category: "test",
-          flag: "--e2e",
           expectedCommand:
             "playwright test --config config/testing/playwright.config.ts",
+          flag: "--e2e",
         },
         {
           category: "test",
-          flag: "--unit",
           expectedCommand:
             "bun vitest --config config/testing/vitest.config.ts",
+          flag: "--unit",
         },
         {
           category: "test",
-          flag: "--watch",
           expectedCommand:
             "bun vitest --config config/testing/vitest.config.ts --watch",
+          flag: "--watch",
         },
         {
           category: "dev",
-          flag: "--build",
           expectedCommand: "bun run next build",
+          flag: "--build",
         },
         {
           category: "quality",
-          flag: "--lint",
           expectedCommand: "bun run next lint",
+          flag: "--lint",
         },
       ];
 
-      shortcuts.forEach(({ category, flag, expectedCommand }) => {
+      for (const { category, expectedCommand, flag } of shortcuts) {
         mockExecSync.mockClear();
         process.argv = ["bun", "script", category, flag];
 
@@ -945,10 +946,10 @@ describe("ScriptRunner", () => {
           expectedCommand,
           expect.any(Object)
         );
-      });
+      }
     });
 
-    it("should maintain proper working directory context", () => {
+    test("should maintain proper working directory context", () => {
       mockExecSync.mockReturnValue("success");
 
       runner.executeCommand("test", "unit");

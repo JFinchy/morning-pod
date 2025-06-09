@@ -2,30 +2,30 @@
 
 import {
   ArrowLeft,
-  Play,
+  Download,
   Pause,
+  Play,
+  Repeat,
+  Share2,
+  Shuffle,
   SkipBack,
   SkipForward,
   Volume2,
-  Shuffle,
-  Repeat,
-  Download,
-  Share2,
 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
-import { ThemeSwitcher, Slider } from "@/components/ui";
+import { Slider, ThemeSwitcher } from "@/components/ui";
 
 interface PlayerLayoutProps {
   children: React.ReactNode;
   episode?: {
-    id: string;
-    title: string;
-    summary: string;
     audioUrl?: string;
     duration?: number;
+    id: string;
     source: string;
+    summary: string;
+    title: string;
   };
 }
 
@@ -51,7 +51,7 @@ export function PlayerLayout({ children, episode }: PlayerLayoutProps) {
       {/* Header */}
       <header className="navbar bg-base-100 shadow-sm border-b border-base-300">
         <div className="navbar-start">
-          <Link href="/" className="btn btn-ghost btn-circle">
+          <Link className="btn btn-ghost btn-circle" href="/">
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <div className="ml-4">
@@ -92,9 +92,9 @@ export function PlayerLayout({ children, episode }: PlayerLayoutProps) {
           {/* Progress Bar */}
           <div className="w-full">
             <Slider
-              value={progress}
-              max={100}
               className="w-full h-2 rounded-none"
+              max={100}
+              value={progress}
               variant="primary"
             />
           </div>
@@ -162,9 +162,9 @@ export function PlayerLayout({ children, episode }: PlayerLayoutProps) {
                 <div className="hidden sm:flex items-center gap-2">
                   <Volume2 className="w-4 h-4" />
                   <Slider
-                    value={volume}
-                    max={100}
                     className="w-20"
+                    max={100}
+                    value={volume}
                     variant="accent"
                   />
                 </div>

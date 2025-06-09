@@ -1,16 +1,16 @@
-import { Clock, Calendar, User, Tag } from "lucide-react";
+import { Calendar, Clock, Tag, User } from "lucide-react";
 
 import { PlayerLayout } from "@/components/layouts";
 import { Button } from "@/components/ui";
 
 const demoEpisode = {
-  id: "demo-1",
-  title: "TLDR Tech News - January 4th, 2024",
-  summary:
-    "Today's tech highlights: OpenAI announces new features for ChatGPT, Apple releases iOS 17.3 with security updates, Microsoft's AI integration reaches new milestones, and startup funding trends for Q1 2024.",
   audioUrl: "/demo-audio.mp3",
   duration: 185, // 3:05
+  id: "demo-1",
   source: "TLDR Newsletter",
+  summary:
+    "Today's tech highlights: OpenAI announces new features for ChatGPT, Apple releases iOS 17.3 with security updates, Microsoft's AI integration reaches new milestones, and startup funding trends for Q1 2024.",
+  title: "TLDR Tech News - January 4th, 2024",
 };
 
 export default function DemoEpisodePage() {
@@ -137,8 +137,8 @@ export default function DemoEpisodePage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {Array.from({ length: 4 }, (_, i) => (
                 <div
-                  key={i}
                   className="flex gap-3 p-3 hover:bg-base-200 rounded-lg transition-colors"
+                  key={i}
                 >
                   <div className="w-16 h-16 bg-primary/20 rounded-lg flex items-center justify-center flex-shrink-0">
                     <div className="text-primary font-bold text-sm">
@@ -154,16 +154,16 @@ export default function DemoEpisodePage() {
                     </p>
                     <div className="flex items-center mt-2 gap-2">
                       <Button
-                        size="sm"
                         btnStyle="ghost"
                         className="h-6 text-xs"
+                        size="sm"
                       >
                         Play
                       </Button>
                       <Button
-                        size="sm"
                         btnStyle="ghost"
                         className="h-6 text-xs"
+                        size="sm"
                       >
                         Queue
                       </Button>

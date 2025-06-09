@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
 test.describe("Pages Health Check After Merge Resolution", () => {
   test("homepage loads and displays correctly", async ({ page }) => {
@@ -18,8 +18,8 @@ test.describe("Pages Health Check After Merge Resolution", () => {
 
     // Take a screenshot for visual verification
     await page.screenshot({
-      path: "test-results/homepage.png",
       fullPage: true,
+      path: "test-results/homepage.png",
     });
   });
 
@@ -54,8 +54,8 @@ test.describe("Pages Health Check After Merge Resolution", () => {
     expect(hasEpisodes || hasEmptyState).toBeTruthy();
 
     await page.screenshot({
-      path: "test-results/episodes-page.png",
       fullPage: true,
+      path: "test-results/episodes-page.png",
     });
   });
 
@@ -76,9 +76,13 @@ test.describe("Pages Health Check After Merge Resolution", () => {
     // Wait for filter to apply
     await page.waitForTimeout(1000);
 
+    // Verify the page still loads and search functionality is accessible
+    await expect(page.locator("h1")).toContainText(/Episodes?/u);
+    await expect(searchInput).toBeVisible();
+
     await page.screenshot({
-      path: "test-results/episodes-search.png",
       fullPage: true,
+      path: "test-results/episodes-search.png",
     });
   });
 
@@ -86,14 +90,14 @@ test.describe("Pages Health Check After Merge Resolution", () => {
     await page.goto("/sources");
 
     // Check for sources page content
-    await expect(page.locator("h1, h2")).toContainText(/Source|Sources/);
+    await expect(page.locator("h1, h2")).toContainText(/Sources?/u);
 
     // Wait for content to load
     await page.waitForTimeout(2000);
 
     await page.screenshot({
-      path: "test-results/sources-page.png",
       fullPage: true,
+      path: "test-results/sources-page.png",
     });
   });
 
@@ -101,14 +105,14 @@ test.describe("Pages Health Check After Merge Resolution", () => {
     await page.goto("/queue");
 
     // Check for queue page content
-    await expect(page.locator("h1, h2")).toContainText(/Queue|Status/);
+    await expect(page.locator("h1, h2")).toContainText(/Queue|Status/u);
 
     // Wait for content to load
     await page.waitForTimeout(2000);
 
     await page.screenshot({
-      path: "test-results/queue-page.png",
       fullPage: true,
+      path: "test-results/queue-page.png",
     });
   });
 
@@ -117,15 +121,15 @@ test.describe("Pages Health Check After Merge Resolution", () => {
 
     // Check for internal page content
     await expect(page.locator("h1")).toContainText(
-      /Internal|Development|Component/
+      /Component|Development|Internal/u
     );
 
     // Check for component comparison links
-    await expect(page.locator("a")).toContainText(/Episode|Queue|Component/);
+    await expect(page.locator("a")).toContainText(/Component|Episode|Queue/u);
 
     await page.screenshot({
-      path: "test-results/internal-page.png",
       fullPage: true,
+      path: "test-results/internal-page.png",
     });
   });
 
@@ -136,11 +140,11 @@ test.describe("Pages Health Check After Merge Resolution", () => {
     await page.waitForTimeout(3000);
 
     // Check for variant headers
-    await expect(page.locator("h2, h3")).toContainText(/Episode|Card|Variant/);
+    await expect(page.locator("h2, h3")).toContainText(/Card|Episode|Variant/u);
 
     await page.screenshot({
-      path: "test-results/episode-variants.png",
       fullPage: true,
+      path: "test-results/episode-variants.png",
     });
   });
 
@@ -172,17 +176,20 @@ test.describe("Pages Health Check After Merge Resolution", () => {
       console.log(`Audio player visible: ${playerVisible}`);
 
       await page.screenshot({
-        path: "test-results/audio-player.png",
         fullPage: true,
+        path: "test-results/audio-player.png",
       });
     } else {
       console.log("No playable episodes found");
     }
+
+    // Always verify the page loaded correctly
+    await expect(page.locator("h1")).toContainText(/Episodes?/u);
   });
 
   test("responsive design - mobile view", async ({ page }) => {
     // Set mobile viewport
-    await page.setViewportSize({ width: 375, height: 667 });
+    await page.setViewportSize({ height: 667, width: 375 });
 
     await page.goto("/");
 
@@ -190,17 +197,20 @@ test.describe("Pages Health Check After Merge Resolution", () => {
     await expect(page.locator("h1")).toBeVisible();
 
     await page.screenshot({
-      path: "test-results/mobile-homepage.png",
       fullPage: true,
+      path: "test-results/mobile-homepage.png",
     });
 
     // Test episodes page on mobile
     await page.goto("/episodes");
     await page.waitForTimeout(2000);
 
+    // Verify episodes page loads on mobile
+    await expect(page.locator("h1")).toContainText(/Episodes?/u);
+
     await page.screenshot({
-      path: "test-results/mobile-episodes.png",
       fullPage: true,
+      path: "test-results/mobile-episodes.png",
     });
   });
 
@@ -219,12 +229,15 @@ test.describe("Pages Health Check After Merge Resolution", () => {
       await page.waitForTimeout(1000);
 
       await page.screenshot({
-        path: "test-results/theme-switcher.png",
         fullPage: true,
+        path: "test-results/theme-switcher.png",
       });
     } else {
       console.log("Theme switcher not found - might be in different location");
     }
+
+    // Always verify the page loaded correctly
+    await expect(page.locator("h1")).toBeVisible();
   });
 
   test("navigation between pages works", async ({ page }) => {
@@ -244,8 +257,8 @@ test.describe("Pages Health Check After Merge Resolution", () => {
     await page.waitForURL("/");
 
     await page.screenshot({
-      path: "test-results/navigation-test.png",
       fullPage: true,
+      path: "test-results/navigation-test.png",
     });
   });
 
@@ -271,8 +284,8 @@ test.describe("Pages Health Check After Merge Resolution", () => {
     }
 
     await page.screenshot({
-      path: "test-results/error-check.png",
       fullPage: true,
+      path: "test-results/error-check.png",
     });
   });
 });
