@@ -881,9 +881,21 @@ bun run script --help             # Show usage help
 ### Common Usage Examples
 ```bash
 # Development workflow
-bun run script dev start         # Start dev server
-bun run script test unit         # Run unit tests
-bun run script test --all        # Run all tests
+bun dev                          # Start dev server (direct)
+bun test                         # Run unit tests (direct)
+bun test:all                     # Run all tests (direct)
+bun lint                         # Run linting (direct)
+bun kill                         # Interactive process killer (direct)
+
+# Advanced script runner
+bun run script dev start         # Start dev server via script runner
+bun run script test unit         # Run unit tests via script runner
+bun run script test --all        # Run all tests via script runner
+
+# Process management
+bun kill                         # Interactive process selection
+bun kill --force                 # Force kill all processes
+bun kill --list                  # List running processes
 
 # Maintenance workflow  
 bun run script deps check        # Check for updates
@@ -964,6 +976,7 @@ bun run format      # Format code
 bun run type-check  # Check types
 
 # Utilities
+bun kill            # Interactive process killer
 bun run analyze     # Bundle analysis
 bun run clean       # Clean install
 ```

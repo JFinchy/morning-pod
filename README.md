@@ -250,18 +250,21 @@ Our project uses an interactive script runner for streamlined development:
 
 ```bash
 # Development
-bun run dev               # Start development server
-bun run build            # Production build
-bun run start            # Production server
+bun dev                  # Start development server
+bun build                # Production build
+bun start                # Production server
 
 # Testing & Quality
-bun run test             # Run all tests (unit + E2E)
-bun run quality          # Run all quality checks (lint + format + type)
+bun test                 # Run unit tests with Vitest
+bun test:all             # Run all tests (unit + E2E)
+bun lint                 # Run ESLint
+bun type-check           # TypeScript type checking
 
-# Database
+# Database & Advanced Tools
 bun run db generate      # Generate migrations
 bun run db migrate       # Run migrations
 bun run db seed          # Seed with sample data
+bun kill                 # Interactive process killer (test/lint/VSCode processes)
 ```
 
 ### Interactive Mode & Advanced Options
@@ -277,9 +280,14 @@ bun run test e2e --headed --debug       # E2E tests in headed debug mode
 bun run quality lint src/ --max-warnings 0  # Lint specific directory
 bun run quality format src/ --check     # Format check specific directory
 
-# Emergency tools
-bun run kill-processes      # Kill stuck test/lint processes
-bun run kill-processes --force  # Force kill with SIGKILL
+# Process Management
+bun kill                    # Interactive process killer (default)
+bun kill --force            # Force kill all test/lint/VSCode processes
+bun kill --list             # List running processes without killing
+
+# Advanced Script Runner
+bun run script             # Interactive script runner menu
+bun run script --help      # Show all available commands
 ```
 
 ### All Available Categories

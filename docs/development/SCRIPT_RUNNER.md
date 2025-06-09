@@ -190,6 +190,34 @@ bun run release --changeset # Create changeset
 bun run release --release   # Full release
 ```
 
+### 🛠️ Utilities (`bun run utils` or `bun kill`)
+
+| Flag      | Command      | Description                               |
+| --------- | ------------ | ----------------------------------------- |
+| `--force` | `kill:force` | Force kill all test/lint/VSCode processes |
+| `--list`  | `kill:list`  | List running processes without killing    |
+
+**Examples:**
+
+```bash
+bun kill                    # Interactive process selection (default)
+bun kill --force            # Force kill all processes immediately
+bun kill --list             # Just show what's running
+
+# Alternative syntax
+bun run utils               # Interactive menu
+bun run utils kill          # Interactive process killer
+```
+
+The interactive kill process tool targets:
+
+- Vitest processes
+- Playwright processes
+- ESLint processes
+- TypeScript language server
+- VSCode helper processes
+- Related node/bun processes
+
 ## Interactive Experience
 
 ### Type-to-Filter

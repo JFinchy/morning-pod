@@ -8,6 +8,7 @@
  */
 
 import { execSync } from "child_process";
+import * as p from "@clack/prompts";
 
 interface ProcessInfo {
   pid: string;
@@ -26,6 +27,13 @@ class ProcessKiller {
     "bun.*vitest",
     "bun.*playwright",
     "bun.*lint",
+    "tsserver",
+    "typescript-language-server",
+    "vscode-typescript-language-server",
+    "node.*typescript",
+    "node.*tsserver",
+    "extensionHost",
+    "vscode-helper",
   ];
 
   /**
@@ -55,6 +63,91 @@ class ProcessKiller {
     } catch (error) {
       // No processes found or grep failed
       return [];
+    }
+  }
+
+  /**
+   * Interactive process selection and killing
+   */
+  async killProcessesInteractive(): Promise<void> {
+    const processes = this.findProcesses();
+
+    if (processes.length === 0) {
+      console.log("✅ No test/lint/VSCode processes found running");
+      return;
+    }
+
+    p.intro("🎯 Process Killer - Interactive Mode");
+
+    const options = [
+      ...processes.map((proc, index) => ({
+        value: index.toString(),
+        label: `PID ${proc.pid}: ${proc.command.substring(0, 60)}${proc.command.length > 60 ? "..." : ""}`,
+      })),
+      { value: "all", label: "🔥 Kill ALL processes" },
+    ];
+
+    try {
+      const selected = await p.multiselect({
+        message: "Select processes to kill:",
+        options,
+        required: false,
+      });
+
+      if (!selected || selected.length === 0) {
+        p.outro("👋 No processes selected");
+        return;
+      }
+
+      const killAll = selected.includes("all");
+      const selectedProcesses = killAll
+        ? processes
+        : selected.map((index) => processes[parseInt(index)]).filter(Boolean);
+
+      if (selectedProcesses.length === 0) {
+        p.outro("👋 No valid processes selected");
+        return;
+      }
+
+      const forceKill = await p.confirm({
+        message: `Kill ${selectedProcesses.length} process(es) with force (SIGKILL)?`,
+        initialValue: false,
+      });
+
+      this.killSelectedProcesses(selectedProcesses, forceKill);
+      p.outro("✅ Process killing completed");
+    } catch (error) {
+      p.outro("👋 Cancelled");
+    }
+  }
+
+  /**
+   * Kill specific processes
+   */
+  killSelectedProcesses(
+    processes: ProcessInfo[],
+    force: boolean = false
+  ): void {
+    const pids = processes.map((p) => p.pid);
+
+    console.log(`\n🔍 Killing ${processes.length} processes:`);
+    processes.forEach((proc) => {
+      console.log(
+        `  PID ${proc.pid}: ${proc.command.substring(0, 80)}${proc.command.length > 80 ? "..." : ""}`
+      );
+    });
+
+    if (!force) {
+      console.log("\n🔄 Attempting graceful shutdown (SIGTERM)...");
+      try {
+        execSync(`kill ${pids.join(" ")}`, { stdio: "inherit" });
+        console.log("✅ Graceful kill completed");
+      } catch (error) {
+        console.log("❌ Graceful kill failed, trying force kill...");
+        this.forceKillPids(pids);
+      }
+    } else {
+      this.forceKillPids(pids);
     }
   }
 
@@ -97,17 +190,17 @@ class ProcessKiller {
         }, 2000);
       } catch (error) {
         console.log("❌ Graceful kill failed, trying force kill...");
-        this.forceKill(pids);
+        this.forceKillPids(pids);
       }
     } else {
-      this.forceKill(pids);
+      this.forceKillPids(pids);
     }
   }
 
   /**
    * Force kill with SIGKILL
    */
-  private forceKill(pids: string[]): void {
+  private forceKillPids(pids: string[]): void {
     console.log("\n💀 Force killing processes (SIGKILL)...");
     try {
       execSync(`kill -9 ${pids.join(" ")}`, { stdio: "inherit" });
@@ -150,15 +243,21 @@ class ProcessKiller {
   /**
    * Main execution method
    */
-  run(): void {
+  async run(): Promise<void> {
     const args = process.argv.slice(2);
     const force = args.includes("--force");
     const list = args.includes("--list");
+    const interactive =
+      args.includes("--interactive") ||
+      args.includes("-i") ||
+      args.length === 0;
 
-    console.log("🎯 Process Killer - Test & Lint Cleanup\n");
+    console.log("🎯 Process Killer - Test & Lint & VSCode Cleanup\n");
 
     if (list) {
       this.listProcesses();
+    } else if (interactive) {
+      await this.killProcessesInteractive();
     } else {
       this.killProcesses(force);
     }
@@ -168,23 +267,26 @@ class ProcessKiller {
 // Show help
 if (process.argv.includes("--help") || process.argv.includes("-h")) {
   console.log(`
-🎯 Process Killer - Kill runaway test and lint processes
+🎯 Process Killer - Kill runaway test, lint, and VSCode processes
 
 Usage:
-  bun run tools/scripts/kill-processes.ts           # Graceful kill (SIGTERM)
-  bun run tools/scripts/kill-processes.ts --force   # Force kill (SIGKILL)  
-  bun run tools/scripts/kill-processes.ts --list    # List processes without killing
+  bun run tools/scripts/kill-processes.ts             # Interactive mode (default)
+  bun run tools/scripts/kill-processes.ts -i          # Interactive mode  
+  bun run tools/scripts/kill-processes.ts --force     # Force kill all (SIGKILL)
+  bun run tools/scripts/kill-processes.ts --list      # List processes without killing
 
 Targets:
   - vitest processes
   - playwright processes  
   - eslint processes
+  - TypeScript language server
+  - VSCode helper processes
   - Related node/bun processes
 
 Examples:
-  bun run tools/scripts/kill-processes.ts           # Try graceful shutdown first
-  bun run tools/scripts/kill-processes.ts --force   # Immediate force kill
-  bun run tools/scripts/kill-processes.ts --list    # Just show what's running
+  bun run tools/scripts/kill-processes.ts             # Interactive selection
+  bun run tools/scripts/kill-processes.ts --force     # Immediate force kill all
+  bun run tools/scripts/kill-processes.ts --list      # Just show what's running
 `);
   process.exit(0);
 }
@@ -192,5 +294,8 @@ Examples:
 // Run the script only if this file is executed directly
 if (import.meta.url === `file://${process.argv[1]}`) {
   const killer = new ProcessKiller();
-  killer.run();
+  killer.run().catch((error) => {
+    console.error("Process killer failed:", error);
+    process.exit(1);
+  });
 }
