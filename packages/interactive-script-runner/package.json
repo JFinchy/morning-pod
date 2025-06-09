@@ -1,0 +1,72 @@
+{
+  "name": "@jacobfinch/interactive-script-runner",
+  "version": "0.1.0",
+  "description": "Beautiful interactive script runner for package.json commands with organized categories and direct execution",
+  "keywords": [
+    "cli",
+    "scripts",
+    "npm",
+    "interactive",
+    "developer-tools",
+    "package.json"
+  ],
+  "author": "Jacob Finch",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "script-runner": "./dist/cli.js",
+    "sr": "./dist/cli.js"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs",
+      "types": "./dist/index.d.ts"
+    },
+    "./cli": {
+      "import": "./dist/cli.js",
+      "require": "./dist/cli.cjs"
+    }
+  },
+  "files": [
+    "dist",
+    "templates",
+    "README.md",
+    "CHANGELOG.md"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "build": "tsup",
+    "build:watch": "tsup --watch",
+    "dev": "tsup --watch",
+    "type-check": "tsc --noEmit",
+    "test": "vitest",
+    "test:coverage": "vitest --coverage",
+    "prepublishOnly": "bun run build && bun run test",
+    "publish:beta": "npm publish --tag beta",
+    "publish:latest": "npm publish"
+  },
+  "dependencies": {
+    "@clack/prompts": "^0.7.0",
+    "@inquirer/prompts": "^5.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.0.0",
+    "vitest": "^1.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jacobfinch/interactive-script-runner.git"
+  },
+  "bugs": {
+    "url": "https://github.com/jacobfinch/interactive-script-runner/issues"
+  },
+  "homepage": "https://github.com/jacobfinch/interactive-script-runner#readme"
+}
