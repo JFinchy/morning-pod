@@ -40,25 +40,42 @@ graph TD
 
 ```bash
 # Main interactive menu - choose category then command
-bun run script
+bun run interactive
 
-# Category interactive menu - choose command within category
-bun run test
-bun run dev
-bun run quality
-bun run db
-bun run deps
-bun run release
+# Interactive development options (build, preview, clean)
+bun run go
+
+# Category interactive menus
+bun run quality                 # Interactive quality menu
+bun run db                      # Interactive database menu
+bun run deps                    # Interactive dependencies menu
+bun run release                 # Interactive release menu
+```
+
+### Standard Development Commands
+
+```bash
+# Standard commands developers expect
+bun run dev                     # Next.js dev server
+bun run build                   # Next.js build
+bun run start                   # Next.js start
+bun run test                    # Vitest unit tests
+bun run lint                    # ESLint
+bun run type-check              # TypeScript checking
+bun run changeset               # Changeset CLI
 ```
 
 ### Direct Execution
 
 ```bash
-# Run specific commands directly
-bun run test unit
-bun run dev build
-bun run quality lint
-bun run db migrate
+# Run specific commands directly through interactive script
+bun run interactive quality lint
+bun run interactive db migrate
+
+# Or use standard commands
+bun run dev                     # Standard Next.js dev server
+bun run test                    # Standard Vitest tests
+bun run lint                    # Standard ESLint
 ```
 
 ### Flag Shortcuts
