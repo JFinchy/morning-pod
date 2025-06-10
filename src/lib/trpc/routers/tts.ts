@@ -14,9 +14,10 @@ export const ttsRouter = createTRPCRouter({
         message: "TTS cache cleared successfully",
         success: true,
       };
-    } catch (error: any) {
+    } catch (error) {
       return {
-        error: error.message || "Failed to clear TTS cache",
+        error:
+          error instanceof Error ? error.message : "Failed to clear TTS cache",
         success: false,
       };
     }
@@ -83,11 +84,12 @@ export const ttsRouter = createTRPCRouter({
           data: result,
           success: true,
         };
-      } catch (error: any) {
+      } catch (error) {
         return {
-          code: error.code || "UNKNOWN",
-          error: error.message || "TTS generation failed",
-          retryable: error.retryable || false,
+          code: (error as { code?: string }).code || "UNKNOWN",
+          error:
+            error instanceof Error ? error.message : "TTS generation failed",
+          retryable: (error as { retryable?: boolean }).retryable || false,
           success: false,
         };
       }
@@ -164,9 +166,12 @@ export const ttsRouter = createTRPCRouter({
         },
         success: true,
       };
-    } catch (error: any) {
+    } catch (error) {
       return {
-        error: error.message || "Failed to get cache statistics",
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to get cache statistics",
         success: false,
       };
     }

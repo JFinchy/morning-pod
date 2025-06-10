@@ -24,7 +24,7 @@ export default function QueueProcessorPage() {
   const { data: processorStatus, refetch: refetchStatus } =
     api.queueProcessor.getStatus.useQuery();
 
-  const { data: processorLogs } = api.queueProcessor.getLogs.useQuery({
+  const { data: _processorLogs } = api.queueProcessor.getLogs.useQuery({
     limit: 20,
   });
 

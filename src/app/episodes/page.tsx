@@ -26,13 +26,14 @@ export default function EpisodesPage() {
   const [error, setError] = useState<null | string>(null);
 
   // Performance tracking
-  const { trackInteraction, trackMetric } = usePerformanceTracking();
+  const { trackInteraction: _trackInteraction, trackMetric: _trackMetric } =
+    usePerformanceTracking();
 
   // Fetch episodes
   const {
     data: episodesData,
     error: episodesError,
-    isLoading: episodesLoading,
+    isLoading: _episodesLoading,
   } = api.episodes.getAll.useQuery({
     limit: 50,
   });

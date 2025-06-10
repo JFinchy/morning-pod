@@ -54,3 +54,6 @@ next-env.d.ts
 
 google-credentials.json
 .env.local
+
+packages/**/dist
+packages/**/node_modules

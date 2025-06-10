@@ -27,8 +27,8 @@ export default function ScrapingPage() {
 
   // Mutations
   const scrapeAll = api.scraping.scrapeAll.useMutation({
-    onError: (error) => {
-      console.error("Failed to scrape all sources:", error);
+    onError: (_error) => {
+      // Error handled by mutation state
     },
     onSuccess: () => {
       refetchCached();
@@ -37,8 +37,7 @@ export default function ScrapingPage() {
   });
 
   const scrapeSource = api.scraping.scrapeSource.useMutation({
-    onError: (error) => {
-      console.error(`Failed to scrape source:`, error);
+    onError: (_error) => {
       setSelectedSource("");
     },
     onSuccess: () => {
@@ -231,7 +230,7 @@ export default function ScrapingPage() {
           <div className="card-body p-6">
             <h3 className="card-title text-lg mb-4">Recent Content</h3>
             <div className="space-y-4">
-              {cachedContent.content
+              {[...cachedContent.content]
                 .sort(
                   (a, b) =>
                     new Date(b.publishedAt).getTime() -

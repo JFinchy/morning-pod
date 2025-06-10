@@ -1,6 +1,9 @@
-const { getCSP } = require("../tooling/security.config");
+import { getCSP } from "./config/tooling/security.config.mjs";
 
-/** @type {import('next').NextConfig} */
+/**
+ * Next.js configuration
+ * @type {import('next').NextConfig}
+ */
 const nextConfig = {
   async headers() {
     return [
@@ -70,4 +73,4 @@ const nextConfig = {
   },
 };
 
-module.exports = nextConfig;
+export default nextConfig;

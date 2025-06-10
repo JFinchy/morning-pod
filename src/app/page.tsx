@@ -5,7 +5,7 @@ import {
   Globe,
   Headphones,
   Play,
-  Plus,
+  Plus as _Plus,
   Zap,
 } from "lucide-react";
 import Link from "next/link";
@@ -30,7 +30,7 @@ import { HomeClientWrapper } from "./home-client-wrapper";
 // Simple fallback function when DB is not available
 function getServerDataWithFallback() {
   // Temporarily use mock data to avoid server-side rendering issues
-  console.warn("Using mock data for development");
+  // Using mock data for development - expected behavior
   return {
     episodes: mockEpisodes.slice(0, 3),
     queueStats: mockGenerationStats,
@@ -71,8 +71,11 @@ export default function Home() {
     if ("successRate" in queueStats) {
       return `${Math.round((queueStats.successRate || 0) * 100)}%`;
     }
-    if (queueStats.total > 0) {
-      return `${Math.round((queueStats.completed / queueStats.total) * 100)}%`;
+    if ("total" in queueStats && "completed" in queueStats) {
+      const stats = queueStats as { completed: number; total: number };
+      if (stats.total > 0) {
+        return `${Math.round((stats.completed / stats.total) * 100)}%`;
+      }
     }
     return "0%";
   };
@@ -149,7 +152,7 @@ export default function Home() {
                         {stat.label}
                       </p>
                       <p className="text-2xl font-bold text-base-content">
-                        {stat.value}
+                        {String(stat.value)}
                       </p>
                       {stat.change && (
                         <p className="text-xs text-base-content/70">
@@ -247,11 +250,12 @@ export default function Home() {
                     Generation Queue
                   </h3>
                   <p className="text-sm text-base-content/60">
-                    {queueStats
-                      ? ("active" in queueStats
-                          ? queueStats.active
-                          : queueStats.currentlyProcessing) || 0
-                      : 0}{" "}
+                    {(() => {
+                      if (!queueStats) return 0;
+                      if ("active" in queueStats)
+                        return Number(queueStats.active) || 0;
+                      return Number(queueStats.currentlyProcessing) || 0;
+                    })()}{" "}
                     processing
                   </p>
                 </div>

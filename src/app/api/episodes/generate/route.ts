@@ -4,9 +4,16 @@ import { z } from "zod";
 
 import { db } from "@/lib/db";
 import { episodes } from "@/lib/db/schema";
-import { createSummarizationService } from "@/lib/services/ai/summarization";
-import { createTTSService } from "@/lib/services/ai/tts";
+import {
+  createSummarizationService,
+  type SummaryOutput,
+} from "@/lib/services/ai/summarization";
+import { createTTSService, type TTSResult } from "@/lib/services/ai/tts";
 import { createScrapingService } from "@/lib/services/scraping/scraping-service";
+import { type ScrapedContent } from "@/lib/services/scraping/types";
+
+const INTERNAL_SERVER_ERROR = "Internal server error";
+const UNKNOWN_ERROR = "Unknown error";
 
 /**
  * Request validation schema
@@ -26,7 +33,23 @@ type GenerateRequest = z.infer<typeof GenerateRequestSchema>;
  * Response types for different stages
  */
 interface GenerationProgress {
-  data?: any;
+  data?:
+    | { contentLength: number; source: string; title: string } // scraping
+    | { audioUrl: string; cost: number; duration: number; fileSize: number } // generating_audio
+    | {
+        cost: number;
+        estimatedReadTime: number;
+        keyPoints: string[];
+        title: string;
+      } // summarizing
+    | {
+        audioUrl: string;
+        duration: number;
+        episodeId: string;
+        processingTime: number;
+        title: string;
+        totalCost: number;
+      }; // completed
   error?: string;
   message: string;
   progress: number; // 0-100
@@ -44,12 +67,12 @@ interface GenerationProgress {
  *
  * Handles the complete pipeline: scrape → summarize → TTS → save
  *
- * @business-context This MVP approach generates episodes on-demand when user clicks
+ * @remarks This MVP approach generates episodes on-demand when user clicks
  *                   "Generate" rather than using a complex background queue system.
  *                   Perfect for initial validation and user testing.
  *
  * POST /api/episodes/generate
- * Body: { sourceUrl: string, voice?: string, model?: string, title?: string }
+ * Body: \{ sourceUrl: string, voice?: string, model?: string, title?: string \}
  *
  * Returns: Streaming JSON responses with progress updates
  */
@@ -72,7 +95,7 @@ export async function POST(request: NextRequest) {
           controller.close();
         } catch (error) {
           const errorProgress: GenerationProgress = {
-            error: error instanceof Error ? error.message : "Unknown error",
+            error: error instanceof Error ? error.message : UNKNOWN_ERROR,
             message: "Generation failed",
             progress: 0,
             stage: "error",
@@ -107,8 +130,8 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(
       {
-        error: "Internal server error",
-        message: error instanceof Error ? error.message : "Unknown error",
+        error: INTERNAL_SERVER_ERROR,
+        message: error instanceof Error ? error.message : UNKNOWN_ERROR,
       },
       { status: 500 }
     );
@@ -118,7 +141,7 @@ export async function POST(request: NextRequest) {
 /**
  * Main generation pipeline function
  *
- * @business-context Orchestrates the complete episode generation process
+ * @remarks Orchestrates the complete episode generation process
  *                   with progress tracking and error handling at each stage
  */
 async function generateEpisode(
@@ -132,9 +155,9 @@ async function generateEpisode(
   const summarizationService = createSummarizationService();
   const ttsService = createTTSService();
 
-  let scrapedContent: any;
-  let summary: any;
-  let audioResult: any;
+  let scrapedContent: ScrapedContent;
+  let summary: SummaryOutput;
+  let audioResult: TTSResult;
   let episodeId: string | undefined;
 
   try {
@@ -145,6 +168,7 @@ async function generateEpisode(
       stage: "scraping",
     });
 
+    // eslint-disable-next-line fp/no-mutation
     scrapedContent = await scrapingService.scrapeUrl(request.sourceUrl);
 
     if (!scrapedContent || !scrapedContent.content) {
@@ -179,6 +203,7 @@ async function generateEpisode(
       url: request.sourceUrl,
     });
 
+    // eslint-disable-next-line fp/no-mutation, prefer-destructuring
     summary = summaryResult.summary;
 
     onProgress({
@@ -200,6 +225,7 @@ async function generateEpisode(
       stage: "generating_audio",
     });
 
+    // eslint-disable-next-line fp/no-mutation
     audioResult = await ttsService.generateSpeech({
       options: {
         model: request.model,
@@ -249,17 +275,18 @@ async function generateEpisode(
       .insert(episodes)
       .values(episodeData)
       .returning();
+    // eslint-disable-next-line fp/no-mutation
     episodeId = newEpisode.id;
 
     // Stage 5: Completed
     onProgress({
       data: {
-        audioUrl: newEpisode.audioUrl,
+        audioUrl: newEpisode.audioUrl || "",
         duration: newEpisode.duration,
         episodeId: newEpisode.id,
         processingTime: Date.now() - startTime,
         title: newEpisode.title,
-        totalCost: newEpisode.generationCost,
+        totalCost: Number(newEpisode.generationCost) || 0,
       },
       message: "Episode generated successfully!",
       progress: 100,
@@ -323,7 +350,7 @@ export async function GET() {
 
     return NextResponse.json(
       {
-        error: error instanceof Error ? error.message : "Unknown error",
+        error: error instanceof Error ? error.message : UNKNOWN_ERROR,
         status: "unhealthy",
         timestamp: new Date().toISOString(),
       },

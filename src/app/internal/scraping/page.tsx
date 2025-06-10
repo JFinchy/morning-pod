@@ -221,15 +221,15 @@ export default function ScrapingInternalPage() {
                               Status:
                             </span>
                             <span
-                              className={`capitalize ${
-                                scraper.status === "success"
-                                  ? "text-success"
-                                  : scraper.status === "error"
-                                    ? "text-error"
-                                    : scraper.status === "running"
-                                      ? "text-warning"
-                                      : "text-base-content/50"
-                              }`}
+                              className={`capitalize ${(() => {
+                                if (scraper.status === "success")
+                                  return "text-success";
+                                if (scraper.status === "error")
+                                  return "text-error";
+                                if (scraper.status === "running")
+                                  return "text-warning";
+                                return "text-base-content/50";
+                              })()}`}
                             >
                               {scraper.status}
                             </span>
@@ -377,15 +377,14 @@ export default function ScrapingInternalPage() {
                       </div>
                       <div className="w-full bg-base-300 rounded-full h-2 mt-1">
                         <div
-                          className={`h-2 rounded-full ${
-                            scraper.status === "success"
-                              ? "bg-success"
-                              : scraper.status === "error"
-                                ? "bg-error"
-                                : scraper.status === "running"
-                                  ? "bg-warning"
-                                  : "bg-base-content/20"
-                          }`}
+                          className={`h-2 rounded-full ${(() => {
+                            if (scraper.status === "success")
+                              return "bg-success";
+                            if (scraper.status === "error") return "bg-error";
+                            if (scraper.status === "running")
+                              return "bg-warning";
+                            return "bg-base-content/20";
+                          })()}`}
                           style={{
                             width: `${Math.min(100, (scraper.responseTime / 5000) * 100)}%`,
                           }}

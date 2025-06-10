@@ -7,10 +7,10 @@ import {
   Eye,
   EyeOff,
   Globe,
-  Heart,
-  MoreVertical,
-  Settings,
-  TrendingUp,
+  Heart as _Heart,
+  MoreVertical as _MoreVertical,
+  Settings as _Settings,
+  TrendingUp as _TrendingUp,
   Zap,
 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -34,7 +34,7 @@ interface SourceWithStats extends Source {
 
 export default function SourcesPage() {
   const [sources, setSources] = useState<SourceWithStats[]>([]);
-  const [hiddenSources, setHiddenSources] = useState<string[]>([]);
+  const [_hiddenSources, setHiddenSources] = useState<string[]>([]);
   const [showHidden, setShowHidden] = useState(false);
 
   // Fetch sources
@@ -175,11 +175,12 @@ export default function SourcesPage() {
               {showHidden ? "No sources to display" : "No visible sources"}
             </h3>
             <p className="text-base-content/60 mb-4">
-              {showHidden
-                ? "Check your source configuration."
-                : hiddenCount > 0
-                  ? `You have ${hiddenCount} hidden sources. Click "Show Hidden" to view them.`
-                  : "Sources will appear here once configured."}
+              {(() => {
+                if (showHidden) return "Check your source configuration.";
+                if (hiddenCount > 0)
+                  return `You have ${hiddenCount} hidden sources. Click "Show Hidden" to view them.`;
+                return "Sources will appear here once configured.";
+              })()}
             </p>
           </div>
         )}

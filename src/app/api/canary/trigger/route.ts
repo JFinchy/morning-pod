@@ -6,10 +6,13 @@ import {
   VercelPostHogCanaryTesting,
 } from "../../../../lib/testing/vercel-posthog-integration";
 
+const INTERNAL_SERVER_ERROR = "Internal server error";
+const UNKNOWN_ERROR = "Unknown error";
+
 /**
  * Canary Test Trigger API Endpoint
  *
- * @business-context Allows manual triggering of canary tests for deployment validation
+ * @remarks Allows manual triggering of canary tests for deployment validation
  *                   and automated feature flag rollouts based on test results
  */
 
@@ -128,8 +131,8 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(
       {
-        error: "Internal server error",
-        message: error instanceof Error ? error.message : "Unknown error",
+        error: INTERNAL_SERVER_ERROR,
+        message: error instanceof Error ? error.message : UNKNOWN_ERROR,
       },
       { status: 500 }
     );
@@ -161,10 +164,10 @@ async function runCanaryTest(
     console.error(`❌ Canary test ${testId} failed:`, error);
 
     return {
-      error: error instanceof Error ? error.message : "Unknown error",
+      error: error instanceof Error ? error.message : UNKNOWN_ERROR,
       passed: false,
       score: 0,
-      summary: `Test execution failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+      summary: `Test execution failed: ${error instanceof Error ? error.message : UNKNOWN_ERROR}`,
       testId,
       timestamp: new Date().toISOString(),
     };
@@ -173,7 +176,13 @@ async function runCanaryTest(
 
 async function processTestResultsInBackground(
   integration: VercelPostHogCanaryTesting,
-  testResult: any,
+  testResult: {
+    passed: boolean;
+    score: number;
+    summary: string;
+    testId: string;
+    timestamp: string;
+  },
   config: TriggerRequest,
   testId: string
 ) {
@@ -203,7 +212,7 @@ async function processTestResultsInBackground(
 async function triggerAutomatedRollout(
   integration: VercelPostHogCanaryTesting,
   config: TriggerRequest,
-  testResult: any
+  testResult: { passed: boolean; score: number; summary: string }
 ) {
   try {
     // Determine rollout strategy based on test score
@@ -214,10 +223,12 @@ async function triggerAutomatedRollout(
     // Mock automated rollout - would trigger actual rollout process
     const rolloutSteps = getRolloutSteps(strategy, testResult.score);
 
+    // eslint-disable-next-line fp/no-loops
     for (const step of rolloutSteps) {
       console.log(`📈 Rolling out to ${step.percentage}% of users`);
 
       // Update feature flags
+      // eslint-disable-next-line fp/no-loops
       for (const flag of config.featureFlags) {
         console.log(`  🎯 ${flag.flagKey}: ${step.percentage}%`);
 
@@ -243,7 +254,7 @@ async function triggerAutomatedRollout(
 
 async function logTestFailure(
   testId: string,
-  testResult: any,
+  testResult: { passed: boolean; score: number; summary: string },
   config: TriggerRequest
 ) {
   // Log test failure for analysis

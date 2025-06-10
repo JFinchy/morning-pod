@@ -233,15 +233,15 @@ export default function QueueComparisonPage() {
                       <span className="font-mono text-xs">#{index + 1}</span>
                       <span className="truncate">{item.episodeTitle}</span>
                       <span
-                        className={`text-xs px-1 py-0.5 rounded ${
-                          item.status === "failed"
-                            ? "bg-error/10 text-error"
-                            : item.status === "completed"
-                              ? "bg-success/10 text-success"
-                              : item.progress > 0
-                                ? "bg-primary/10 text-primary"
-                                : "bg-base-300 text-base-content/60"
-                        }`}
+                        className={`text-xs px-1 py-0.5 rounded ${(() => {
+                          if (item.status === "failed")
+                            return "bg-error/10 text-error";
+                          if (item.status === "completed")
+                            return "bg-success/10 text-success";
+                          if (item.progress > 0)
+                            return "bg-primary/10 text-primary";
+                          return "bg-base-300 text-base-content/60";
+                        })()}`}
                       >
                         {item.status}
                       </span>

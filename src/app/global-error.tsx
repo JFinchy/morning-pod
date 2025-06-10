@@ -14,7 +14,11 @@ interface GlobalErrorProps {
 export default function GlobalError({ error, reset }: GlobalErrorProps) {
   useEffect(() => {
     // Log the error to an error reporting service
-    console.error("Global error:", error);
+    // TODO: Replace with proper error reporting service
+    if (process.env.NODE_ENV === "development") {
+      // eslint-disable-next-line no-console
+      console.error("Global error:", error);
+    }
   }, [error]);
 
   return (

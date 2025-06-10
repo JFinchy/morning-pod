@@ -17,7 +17,7 @@ export default function PlayerComparisonPage() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(0.8);
 
-  const episode = mockEpisodes[selectedEpisodeIndex];
+  const episode = mockEpisodes[selectedEpisodeIndex] || mockEpisodes[0];
   const duration = 300; // 5 minutes
 
   const playerVariants = [

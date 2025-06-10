@@ -468,13 +468,13 @@ export default function ScrapingComparisonPage() {
                     <h3 className="card-title text-lg mb-4">
                       {strategy.name}
                       <div
-                        className={`badge ${
-                          strategy.complexity === "Low"
-                            ? "badge-success"
-                            : strategy.complexity === "Medium"
-                              ? "badge-warning"
-                              : "badge-error"
-                        }`}
+                        className={`badge ${(() => {
+                          if (strategy.complexity === "Low")
+                            return "badge-success";
+                          if (strategy.complexity === "Medium")
+                            return "badge-warning";
+                          return "badge-error";
+                        })()}`}
                       >
                         {strategy.complexity}
                       </div>
@@ -549,13 +549,13 @@ export default function ScrapingComparisonPage() {
                           <td className="font-semibold">{strategy.name}</td>
                           <td>
                             <div
-                              className={`badge ${
-                                strategy.complexity === "Low"
-                                  ? "badge-success"
-                                  : strategy.complexity === "Medium"
-                                    ? "badge-warning"
-                                    : "badge-error"
-                              }`}
+                              className={`badge ${(() => {
+                                if (strategy.complexity === "Low")
+                                  return "badge-success";
+                                if (strategy.complexity === "Medium")
+                                  return "badge-warning";
+                                return "badge-error";
+                              })()}`}
                             >
                               {strategy.complexity}
                             </div>

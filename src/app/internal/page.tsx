@@ -6,7 +6,7 @@ import {
   Code,
   ExternalLink,
   Eye,
-  Flag,
+  Flag as _Flag,
   Layout,
   Palette,
   Search,

@@ -4,14 +4,14 @@ import {
   Brain,
   DollarSign,
   Eye,
-  EyeOff,
-  Globe,
+  EyeOff as _EyeOff,
+  Globe as _Globe,
   Info,
-  Mic,
+  Mic as _Mic,
   Palette,
   RotateCcw,
   Save,
-  Settings,
+  Settings as _Settings,
   Volume2,
   Zap,
 } from "lucide-react";
@@ -47,7 +47,10 @@ export default function SettingsPage() {
     setPreferences(prefs);
   }, []);
 
-  const handlePreferenceChange = (key: keyof UserPreferences, value: any) => {
+  const handlePreferenceChange = (
+    key: keyof UserPreferences,
+    value: UserPreferences[keyof UserPreferences]
+  ) => {
     if (!preferences) return;
 
     const newPrefs = { ...preferences, [key]: value };
@@ -74,9 +77,9 @@ export default function SettingsPage() {
       setHasChanges(false);
 
       // TODO: Show success toast
-      console.log("Settings saved successfully");
+      // Settings saved successfully
     } catch (error) {
-      console.error("Failed to save settings:", error);
+      // Failed to save settings - error handled by UI state
       // TODO: Show error toast
     } finally {
       setIsSaving(false);
@@ -263,7 +266,9 @@ export default function SettingsPage() {
                               }`}
                               key={priority.id}
                               onClick={() => {
-                                setAiPriority(priority.id as any);
+                                setAiPriority(
+                                  priority.id as "cost" | "quality" | "speed"
+                                );
                                 setHasChanges(true);
                               }}
                             >

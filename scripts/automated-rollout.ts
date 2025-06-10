@@ -3,7 +3,7 @@
 /**
  * Automated Feature Flag Rollout Script
  *
- * @business-context Automatically rolls out feature flags based on successful
+ * @businessContext Automatically rolls out feature flags based on successful
  *                   canary test results with configurable rollout percentages
  */
 
@@ -87,7 +87,7 @@ async function main() {
     // Send success notification
     await sendRolloutNotification({
       config,
-      finalPercentage: strategy.steps.at(-1).percentage,
+      finalPercentage: strategy.steps.at(-1)?.percentage || 100,
       status: "success",
     });
   } catch (error) {

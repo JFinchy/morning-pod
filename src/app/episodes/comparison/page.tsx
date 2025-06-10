@@ -17,7 +17,7 @@ export default function EpisodeComparisonPage() {
   const [selectedEpisode, setSelectedEpisode] = useState(0);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
-  const episode = mockEpisodes[selectedEpisode];
+  const episode = mockEpisodes[selectedEpisode] || mockEpisodes[0];
 
   // TODO: Implement episode playback handlers
   // const handlePlay = () => console.log("Play episode:", episode.id);

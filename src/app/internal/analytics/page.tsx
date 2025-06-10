@@ -91,11 +91,12 @@ export default function AnalyticsPage() {
   };
 
   const testPodcastEvents = () => {
-    trackGenerationStarted("tldr", "TLDR Newsletter", 30);
-    trackContentScraped("tldr", "TLDR Newsletter", 5, 3.2);
+    const testSource = "TLDR Newsletter";
+    trackGenerationStarted("tldr", testSource, 30);
+    trackContentScraped("tldr", testSource, 5, 3.2);
     trackContentSummarized("tldr", 2500, 250, "gpt-4", 0.12, 8.5);
     trackAudioGenerated("tldr", 250, 45, "alloy", 0.68);
-    trackGenerationCompleted("tldr", "TLDR Newsletter", 32.5, 45, 0.8);
+    trackGenerationCompleted("tldr", testSource, 32.5, 45, 0.8);
 
     setLastEvent("Podcast Generation Flow");
     setEventCount((prev) => prev + 5);

@@ -140,7 +140,7 @@ class ProcessKiller {
         required: false,
       });
 
-      if (!selected || selected.length === 0) {
+      if (!selected || typeof selected === "symbol" || selected.length === 0) {
         p.outro("👋 No processes selected");
         return;
       }
@@ -149,7 +149,7 @@ class ProcessKiller {
       const selectedProcesses = killAll
         ? processes
         : selected
-            .map((index) => processes[Number.parseInt(index)])
+            .map((index: string) => processes[Number.parseInt(index)])
             .filter(Boolean);
 
       if (selectedProcesses.length === 0) {
@@ -162,7 +162,10 @@ class ProcessKiller {
         message: `Kill ${selectedProcesses.length} process(es) with force (SIGKILL)?`,
       });
 
-      this.killSelectedProcesses(selectedProcesses, forceKill);
+      this.killSelectedProcesses(
+        selectedProcesses,
+        typeof forceKill === "boolean" ? forceKill : false
+      );
       p.outro("✅ Process killing completed");
     } catch (error) {
       p.outro("👋 Cancelled");

@@ -26,7 +26,9 @@ test.describe("Performance - Core Web Vitals (POC)", () => {
         new PerformanceObserver((entryList) => {
           const entries = entryList.getEntries();
           const lastEntry = entries.at(-1);
-          vitals.lcp = lastEntry.startTime;
+          if (lastEntry) {
+            vitals.lcp = lastEntry.startTime;
+          }
         }).observe({ entryTypes: ["largest-contentful-paint"] });
 
         // Cumulative Layout Shift (CLS)

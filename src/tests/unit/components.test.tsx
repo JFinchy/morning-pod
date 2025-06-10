@@ -174,7 +174,7 @@ describe("UI Components", () => {
       render(<MockButton disabled>Disabled</MockButton>);
 
       const button = screen.getByRole("button", { name: /disabled/i });
-      await expect(button).toBeDisabled();
+      expect(button).toBeDisabled();
     });
   });
 

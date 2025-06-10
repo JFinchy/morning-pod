@@ -11,7 +11,7 @@ export default defineConfig({
   dts: true,
 
   // Code splitting for better tree shaking
-  splitting: true,
+  splitting: false,
 
   // Source maps for debugging
   sourcemap: true,
@@ -30,11 +30,6 @@ export default defineConfig({
 
   // Target Node.js 18+
   target: "node18",
-
-  // Preserve shebang for CLI
-  banner: {
-    js: "#!/usr/bin/env node",
-  },
 
   // Output file naming
   outDir: "dist",

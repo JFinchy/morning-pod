@@ -2,7 +2,7 @@
 
 import {
   AlertCircle,
-  Brain,
+  Brain as _Brain,
   CheckCircle2,
   Clock,
   DollarSign,

@@ -1,4 +1,4 @@
-import { ScraperManager } from "./src/lib/services/scraping/scraper-manager";
+import { ScraperManager } from "../../src/lib/services/scraping/scraper-manager";
 
 async function testDatabasePersistence() {
   console.log("🚀 Testing Database Persistence...\n");

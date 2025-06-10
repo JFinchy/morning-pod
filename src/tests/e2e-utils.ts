@@ -1,4 +1,4 @@
-import { test as base, expect, Page } from "@playwright/test";
+import { expect, Page, test as base } from "@playwright/test";
 
 // Extended test interface with custom fixtures
 export const test = base.extend<{

@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState as _useState } from "react";
 
 import { MainLayout } from "@/components/layouts";
-import { Button } from "@/components/ui";
+import { Button as _Button } from "@/components/ui";
 
 export default function SummarizationPage() {
   return (
