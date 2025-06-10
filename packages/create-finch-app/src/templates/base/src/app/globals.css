@@ -1,0 +1,48 @@
+@import "tailwindcss";
+@plugin "daisyui" {
+  themes:
+    forest --default,
+    light --preferslight,
+    dark --prefersdark,
+    cupcake,
+    bumblebee,
+    emerald,
+    corporate,
+    synthwave,
+    retro,
+    cyberpunk,
+    valentine,
+    halloween,
+    garden,
+    forest,
+    aqua,
+    lofi,
+    pastel,
+    fantasy,
+    wireframe,
+    black,
+    luxury,
+    dracula,
+    cmyk,
+    autumn,
+    business,
+    acid,
+    lemonade,
+    night,
+    coffee,
+    winter,
+    dim,
+    nord,
+    sunset;
+  logs: false;
+}
+
+@theme inline {
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+/* Custom styles */
+.container {
+  @apply mx-auto max-w-7xl px-4 sm:px-6 lg:px-8;
+}

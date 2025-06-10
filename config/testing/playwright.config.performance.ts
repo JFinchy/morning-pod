@@ -1,4 +1,9 @@
 import { defineConfig, devices } from "@playwright/test";
+import path, { dirname } from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 /**
  * Performance-optimized Playwright configuration for resource-constrained environments
@@ -18,9 +23,9 @@ export default defineConfig({
   fullyParallel: false,
 
   /* Global setup and teardown */
-  globalSetup: require.resolve("../../src/tests/global-setup.ts"),
+  globalSetup: path.resolve(__dirname, "../../src/tests/global-setup.ts"),
 
-  globalTeardown: require.resolve("../../src/tests/global-teardown.ts"),
+  globalTeardown: path.resolve(__dirname, "../../src/tests/global-teardown.ts"),
 
   /* Output directories */
   outputDir: "./test-results",

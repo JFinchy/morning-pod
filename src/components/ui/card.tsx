@@ -18,7 +18,7 @@ export function Card({ children, className = "" }: CardProps) {
   return (
     <div
       className={cn(
-        "card bg-base-100 shadow-sm border border-base-300 rounded-lg",
+        "card bg-base-100 border-base-300 rounded-lg border shadow-sm",
         className
       )}
     >
@@ -36,7 +36,7 @@ export function CardHeader({ children, className = "" }: CardHeaderProps) {
   return (
     <div
       className={cn(
-        "card-header px-6 py-4 border-b border-base-300",
+        "card-header border-base-300 border-b px-6 py-4",
         className
       )}
     >
@@ -54,7 +54,7 @@ export function CardTitle({ children, className = "" }: CardTitleProps) {
   return (
     <h3
       className={cn(
-        "card-title text-lg font-semibold text-base-content",
+        "card-title text-base-content text-lg font-semibold",
         className
       )}
     >

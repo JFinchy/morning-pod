@@ -19,7 +19,7 @@ import sonarjsPlugin from "eslint-plugin-sonarjs";
 import treeShakingPlugin from "eslint-plugin-tree-shaking";
 // @ts-expect-error - No types available for these plugins
 import tsdocPlugin from "eslint-plugin-tsdoc";
-// @ts-expect-error - No types available for these plugins  
+// @ts-expect-error - No types available for these plugins
 import unicornPlugin from "eslint-plugin-unicorn";
 // @ts-expect-error - No types available for these plugins
 import vitestPlugin from "eslint-plugin-vitest";
@@ -38,9 +38,12 @@ const eslintConfig = [
   {
     ignores: [
       ".next/**",
-      "node_modules/**", 
+      "node_modules/**",
       "dist/**",
       "build/**",
+      "packages/**/dist/**",
+      "**/dist/**",
+      "packages/**/*.cjs",
       "*.config.js",
       "*.config.mjs",
       "*.config.ts",
@@ -51,15 +54,15 @@ const eslintConfig = [
   },
 
   ...compat.extends("next/core-web-vitals", "next/typescript"),
-  
-  // Prettier integration (must come first to prevent conflicts)  
+
+  // Prettier integration (must come first to prevent conflicts)
   ...compat.extends("prettier"),
-  
+
   // Core working plugins
   ...compat.plugins("simple-import-sort"),
   ...compat.extends("plugin:testing-library/react"),
   ...compat.extends("plugin:playwright/recommended"),
-  
+
   // Native flat config for modern plugins
   {
     plugins: {
@@ -77,7 +80,7 @@ const eslintConfig = [
       vitest: vitestPlugin,
     },
   },
-  
+
   // Main configuration for all files
   {
     files: ["**/*.{js,mjs,cjs,ts,jsx,tsx}"],
@@ -95,7 +98,7 @@ const eslintConfig = [
       // Enhanced TypeScript rules
       "@typescript-eslint/no-unused-vars": [
         "warn",
-        { 
+        {
           argsIgnorePattern: "^_",
           caughtErrorsIgnorePattern: "^_",
           varsIgnorePattern: "^_",
@@ -103,7 +106,7 @@ const eslintConfig = [
       ],
 
       "brace-style": ["warn", "1tbs", { allowSingleLine: true }],
-      "camelcase": ["warn", { properties: "never" }],
+      camelcase: ["warn", { properties: "never" }],
       // Useful Standard Style rules (cherry-picked)
       "comma-spacing": "warn",
       // Functional Programming rules (encourage immutability)
@@ -147,7 +150,7 @@ const eslintConfig = [
 
       "jsx-a11y/role-supports-aria-props": "error",
       "keyword-spacing": "warn",
-      // Node.js best practices  
+      // Node.js best practices
       "n/no-deprecated-api": "error",
       "n/no-extraneous-import": "off", // Handled by import rules
       "n/no-extraneous-require": "off", // Handled by import rules
@@ -227,7 +230,7 @@ const eslintConfig = [
       "react-hooks/exhaustive-deps": "warn",
       "react-hooks/rules-of-hooks": "error",
       "react/jsx-boolean-value": ["warn", "never"],
-      "react/jsx-curly-brace-presence": ["warn", "never"], 
+      "react/jsx-curly-brace-presence": ["warn", "never"],
       "react/jsx-fragments": ["warn", "syntax"],
       "react/jsx-no-useless-fragment": "warn",
       // Enhanced React rules
@@ -377,7 +380,7 @@ const eslintConfig = [
       "unicorn/prefer-number-properties": "warn",
 
       "unicorn/prefer-query-selector": "warn",
-      "unicorn/prefer-regexp-test": "warn", 
+      "unicorn/prefer-regexp-test": "warn",
       "unicorn/prefer-spread": "warn",
       "unicorn/prefer-string-slice": "warn",
       "unicorn/prefer-string-starts-ends-with": "warn",
@@ -386,16 +389,13 @@ const eslintConfig = [
       "unicorn/prefer-type-error": "warn",
       "unicorn/throw-new-error": "warn",
 
-      "yoda": "warn",
+      yoda: "warn",
     },
   },
 
   // File-specific overrides
   {
-    files: [
-      "**/*.config.{js,mjs,ts}",
-      "**/scripts/**",
-    ],
+    files: ["**/*.config.{js,mjs,ts}", "**/scripts/**"],
     rules: {
       "@typescript-eslint/no-explicit-any": "off", // Config files might need any
       "@typescript-eslint/no-require-imports": "off", // Allow require in config files
@@ -405,14 +405,11 @@ const eslintConfig = [
 
   // Test utility files
   {
-    files: [
-      "**/test-utils.{js,ts,tsx}",
-      "**/tests/test-utils.{js,ts,tsx}",
-    ],
+    files: ["**/test-utils.{js,ts,tsx}", "**/tests/test-utils.{js,ts,tsx}"],
     rules: {
       "@typescript-eslint/no-explicit-any": "off",
       "no-console": "off",
-      
+
       "testing-library/no-node-access": "off",
       "testing-library/no-render-in-setup": "off",
       // Disable testing-library rules for test utilities (they have different patterns)
@@ -422,24 +419,21 @@ const eslintConfig = [
 
   // Unit test file specific rules (Vitest)
   {
-    files: [
-      "**/*.test.{js,ts,tsx}",
-      "**/tests/unit/**/*.{js,ts,tsx}",
-    ],
+    files: ["**/*.test.{js,ts,tsx}", "**/tests/unit/**/*.{js,ts,tsx}"],
     rules: {
       "@typescript-eslint/no-explicit-any": "off", // Tests might need any for mocking
       "no-console": "off", // Allow console in tests
-      
+
       // Disable conflicting Playwright rules for unit tests
       "playwright/expect-expect": "off",
       "playwright/no-standalone-expect": "off",
-      
+
       // Vitest-specific rules for unit tests
       "vitest/consistent-test-it": ["warn", { fn: "test" }],
       "vitest/expect-expect": "error",
       "vitest/no-alias-methods": "warn",
       "vitest/no-conditional-expect": "off", // Allow conditional expects in unit tests
-      "vitest/no-conditional-in-test": "off", // Allow conditional logic in unit tests 
+      "vitest/no-conditional-in-test": "off", // Allow conditional logic in unit tests
       "vitest/no-conditional-tests": "error",
       "vitest/no-disabled-tests": "warn",
       "vitest/no-done-callback": "error",
@@ -484,17 +478,17 @@ const eslintConfig = [
     rules: {
       "@typescript-eslint/no-explicit-any": "off", // Tests might need any for mocking
       "no-console": "off", // Allow console in tests
-      
+
       // Allow networkidle in E2E tests (legacy but still functional)
       "playwright/no-networkidle": "off",
       "testing-library/no-render-in-setup": "off",
-      
+
       "testing-library/no-wait-for-multiple-assertions": "off",
       "testing-library/prefer-find-by": "off",
       // Disable testing-library rules for E2E tests (Playwright doesn't use React Testing Library)
       "testing-library/prefer-screen-queries": "off",
       "vitest/no-standalone-expect": "off", // Playwright expects work differently
-      
+
       // Disable conflicting Vitest rules for E2E tests
       "vitest/require-hook": "off", // Playwright has different structure
     },
@@ -505,7 +499,7 @@ const eslintConfig = [
     files: ["**/e2e/**/*.{js,ts}", "**/*.spec.ts"],
     rules: {
       "playwright/expect-expect": "error",
-      "playwright/no-element-handle": "warn", 
+      "playwright/no-element-handle": "warn",
       "playwright/no-page-pause": "error",
     },
   },
@@ -515,14 +509,14 @@ const eslintConfig = [
     files: ["src/app/api/**/*.{js,ts}"],
     rules: {
       "no-console": "off", // API routes might need console for logging
-      
+
       "no-secrets/no-secrets": ["error", { tolerance: 3.5 }], // Stricter for APIs
       "security/detect-eval-with-expression": "error", // No eval in APIs
       "security/detect-non-literal-require": "error", // Prevent dynamic requires
       // Enhanced security for API routes
       "security/detect-object-injection": "error", // Critical for APIs
       "security/detect-possible-timing-attacks": "error", // Prevent timing attacks
-      
+
       // Enhanced SonarJS rules for APIs
       "sonarjs/cognitive-complexity": ["error", 10], // Stricter complexity for APIs
       "sonarjs/no-identical-expressions": "error",

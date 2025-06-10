@@ -75,29 +75,29 @@ function DefaultErrorFallback({
   resetError: () => void;
 }) {
   return (
-    <div className="flex flex-col items-center justify-center min-h-[200px] p-6 bg-base-100 rounded-lg border border-error/20">
-      <div className="flex items-center gap-3 mb-4">
-        <AlertTriangle className="w-8 h-8 text-error" />
-        <h3 className="text-lg font-semibold text-base-content">
+    <div className="bg-base-100 border-error/20 flex min-h-[200px] flex-col items-center justify-center rounded-lg border p-6">
+      <div className="mb-4 flex items-center gap-3">
+        <AlertTriangle className="text-error h-8 w-8" />
+        <h3 className="text-base-content text-lg font-semibold">
           Something went wrong
         </h3>
       </div>
 
-      <p className="text-sm text-base-content/70 text-center mb-6 max-w-md">
+      <p className="text-base-content/70 mb-6 max-w-md text-center text-sm">
         {error?.message || "An unexpected error occurred. Please try again."}
       </p>
 
       <button className="btn btn-primary btn-sm gap-2" onClick={resetError}>
-        <RefreshCw className="w-4 h-4" />
+        <RefreshCw className="h-4 w-4" />
         Try Again
       </button>
 
       {process.env.NODE_ENV === "development" && error && (
-        <details className="mt-6 p-4 bg-base-200 rounded-lg text-xs max-w-full overflow-auto">
-          <summary className="cursor-pointer font-medium text-base-content/80 mb-2">
+        <details className="bg-base-200 mt-6 max-w-full overflow-auto rounded-lg p-4 text-xs">
+          <summary className="text-base-content/80 mb-2 cursor-pointer font-medium">
             Error Details (Development)
           </summary>
-          <pre className="whitespace-pre-wrap break-words text-base-content/60">
+          <pre className="text-base-content/60 break-words whitespace-pre-wrap">
             {error.stack}
           </pre>
         </details>

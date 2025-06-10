@@ -3,7 +3,7 @@
 /**
  * Automated Feature Flag Rollout Script
  *
- * @business-context Automatically rolls out feature flags based on successful
+ * @businessContext Automatically rolls out feature flags based on successful
  *                   canary test results with configurable rollout percentages
  */
 

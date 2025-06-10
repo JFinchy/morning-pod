@@ -178,10 +178,10 @@ export function CanaryMonitoringDashboard({
     return (
       <div className={`space-y-4 ${className}`}>
         <div className="animate-pulse">
-          <div className="h-6 bg-gray-200 rounded mb-4" />
+          <div className="mb-4 h-6 rounded bg-gray-200" />
           <div className="space-y-3">
-            <div className="h-32 bg-gray-200 rounded" />
-            <div className="h-32 bg-gray-200 rounded" />
+            <div className="h-32 rounded bg-gray-200" />
+            <div className="h-32 rounded bg-gray-200" />
           </div>
         </div>
       </div>
@@ -191,7 +191,7 @@ export function CanaryMonitoringDashboard({
   return (
     <div className={`space-y-6 ${className}`}>
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold">Canary Monitoring</h2>
           <p className="text-gray-600">
@@ -201,7 +201,7 @@ export function CanaryMonitoringDashboard({
 
         <div className="flex items-center gap-2">
           <div
-            className={`w-3 h-3 rounded-full ${isConnected ? "bg-green-500" : "bg-red-500"}`}
+            className={`h-3 w-3 rounded-full ${isConnected ? "bg-green-500" : "bg-red-500"}`}
           />
           <span className="text-sm text-gray-600">
             {isConnected ? "Connected" : "Disconnected"}
@@ -214,19 +214,19 @@ export function CanaryMonitoringDashboard({
         <div className="space-y-2">
           {alerts.map((alert, index) => (
             <div
-              className={`p-4 rounded-lg border ${
+              className={`rounded-lg border p-4 ${
                 alert.severity === "critical"
-                  ? "bg-red-50 border-red-200"
+                  ? "border-red-200 bg-red-50"
                   : alert.severity === "high"
-                    ? "bg-yellow-50 border-yellow-200"
-                    : "bg-blue-50 border-blue-200"
+                    ? "border-yellow-200 bg-yellow-50"
+                    : "border-blue-200 bg-blue-50"
               }`}
               key={index}
             >
-              <div className="flex justify-between items-start">
+              <div className="flex items-start justify-between">
                 <div>
-                  <h4 className="font-semibold text-sm">{alert.message}</h4>
-                  <p className="text-sm text-gray-600 mt-1">{alert.type}</p>
+                  <h4 className="text-sm font-semibold">{alert.message}</h4>
+                  <p className="mt-1 text-sm text-gray-600">{alert.type}</p>
                 </div>
                 <Badge
                   variant={
@@ -246,12 +246,12 @@ export function CanaryMonitoringDashboard({
         {deployments.map((deployment) => (
           <Card className="relative" key={deployment.id}>
             <CardHeader className="pb-3">
-              <div className="flex justify-between items-start">
+              <div className="flex items-start justify-between">
                 <div>
                   <CardTitle className="text-lg">
                     {deployment.branchName}
                   </CardTitle>
-                  <p className="text-sm text-gray-600 mt-1">
+                  <p className="mt-1 text-sm text-gray-600">
                     {deployment.deploymentUrl}
                   </p>
                 </div>
@@ -277,7 +277,7 @@ export function CanaryMonitoringDashboard({
 
             <CardContent className="space-y-4">
               {/* Test Score */}
-              <div className="flex justify-between items-center">
+              <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">Test Score</span>
                 <span
                   className={`text-lg font-bold ${getTestScoreColor(deployment.testScore)}`}
@@ -288,7 +288,7 @@ export function CanaryMonitoringDashboard({
 
               {/* Rollout Progress */}
               <div className="space-y-2">
-                <div className="flex justify-between items-center">
+                <div className="flex items-center justify-between">
                   <span className="text-sm font-medium">Rollout Progress</span>
                   <span className="text-sm text-gray-600">
                     {deployment.rolloutPercentage}% of users
@@ -331,9 +331,9 @@ export function CanaryMonitoringDashboard({
 
         {deployments.length === 0 && (
           <Card>
-            <CardContent className="text-center py-8">
+            <CardContent className="py-8 text-center">
               <p className="text-gray-600">No active canary deployments</p>
-              <p className="text-sm text-gray-500 mt-1">
+              <p className="mt-1 text-sm text-gray-500">
                 Canary deployments will appear here when triggered by PR
                 deployments
               </p>
@@ -349,8 +349,8 @@ export function CanaryMonitoringDashboard({
             <CardTitle>System Metrics</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="bg-white p-4 rounded-lg border">
+            <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+              <div className="rounded-lg border bg-white p-4">
                 <h4 className="text-sm font-medium text-gray-600">
                   Success Rate
                 </h4>
@@ -361,7 +361,7 @@ export function CanaryMonitoringDashboard({
                 </p>
               </div>
 
-              <div className="bg-white p-4 rounded-lg border">
+              <div className="rounded-lg border bg-white p-4">
                 <h4 className="text-sm font-medium text-gray-600">
                   Avg Response Time
                 </h4>
@@ -372,7 +372,7 @@ export function CanaryMonitoringDashboard({
                 </p>
               </div>
 
-              <div className="bg-white p-4 rounded-lg border">
+              <div className="rounded-lg border bg-white p-4">
                 <h4 className="text-sm font-medium text-gray-600">
                   Total Tests
                 </h4>
@@ -381,7 +381,7 @@ export function CanaryMonitoringDashboard({
                 </p>
               </div>
 
-              <div className="bg-white p-4 rounded-lg border">
+              <div className="rounded-lg border bg-white p-4">
                 <h4 className="text-sm font-medium text-gray-600">
                   Active Alerts
                 </h4>

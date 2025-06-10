@@ -183,16 +183,16 @@ export function AudioPlayer({
     return (
       <div className={`bg-base-200 rounded-xl p-6 ${className}`}>
         <div className="flex items-center gap-4">
-          <div className="w-16 h-16 bg-base-300 rounded-lg flex items-center justify-center">
+          <div className="bg-base-300 flex h-16 w-16 items-center justify-center rounded-lg">
             {episode.status === "generating" ? (
-              <Loader2 className="w-8 h-8 animate-spin text-primary" />
+              <Loader2 className="text-primary h-8 w-8 animate-spin" />
             ) : (
-              <Music className="w-8 h-8 text-base-content/30" />
+              <Music className="text-base-content/30 h-8 w-8" />
             )}
           </div>
           <div className="flex-1">
-            <h3 className="font-semibold text-base-content">{episode.title}</h3>
-            <p className="text-sm text-base-content/60">
+            <h3 className="text-base-content font-semibold">{episode.title}</h3>
+            <p className="text-base-content/60 text-sm">
               {episode.status === "generating"
                 ? "Generating audio..."
                 : episode.status === "pending"
@@ -211,7 +211,7 @@ export function AudioPlayer({
 
   return (
     <div
-      className={`bg-gradient-to-r from-base-100 to-base-200 rounded-xl shadow-lg overflow-hidden ${className}`}
+      className={`from-base-100 to-base-200 overflow-hidden rounded-xl bg-gradient-to-r shadow-lg ${className}`}
     >
       {/* Hidden HTML5 Audio Element */}
       <audio
@@ -223,16 +223,16 @@ export function AudioPlayer({
       />
 
       {/* Episode Header */}
-      <div className="bg-primary/10 px-6 py-4 border-b border-primary/20">
+      <div className="bg-primary/10 border-primary/20 border-b px-6 py-4">
         <div className="flex items-center gap-4">
-          <div className="w-14 h-14 bg-primary/20 rounded-lg flex items-center justify-center">
-            <Music className="w-7 h-7 text-primary" />
+          <div className="bg-primary/20 flex h-14 w-14 items-center justify-center rounded-lg">
+            <Music className="text-primary h-7 w-7" />
           </div>
-          <div className="flex-1 min-w-0">
-            <h3 className="font-bold text-lg text-base-content truncate">
+          <div className="min-w-0 flex-1">
+            <h3 className="text-base-content truncate text-lg font-bold">
               {episode.title}
             </h3>
-            <p className="text-sm text-primary font-medium">
+            <p className="text-primary text-sm font-medium">
               Duration: {formatTime(episode.duration)} •{episode.playCount}{" "}
               plays
             </p>
@@ -243,8 +243,8 @@ export function AudioPlayer({
       <div className="p-6">
         {/* Error Display */}
         {error && (
-          <div className="mb-4 p-3 bg-error/10 border border-error/20 rounded-lg">
-            <p className="text-sm text-error">{error}</p>
+          <div className="bg-error/10 border-error/20 mb-4 rounded-lg border p-3">
+            <p className="text-error text-sm">{error}</p>
             <Button
               btnStyle="outline"
               className="mt-2"
@@ -258,29 +258,29 @@ export function AudioPlayer({
         )}
 
         {/* Main Controls */}
-        <div className="flex items-center justify-center gap-4 mb-6">
+        <div className="mb-6 flex items-center justify-center gap-4">
           <Button
             btnStyle="ghost"
             disabled={!duration}
             onClick={() => skipTime(-10)}
             size="sm"
           >
-            <SkipBack className="w-5 h-5" />
+            <SkipBack className="h-5 w-5" />
           </Button>
 
           <Button
-            className="btn-circle shadow-lg hover:scale-105 transition-transform"
+            className="btn-circle shadow-lg transition-transform hover:scale-105"
             disabled={isLoading || !duration}
             onClick={togglePlayPause}
             size="lg"
             variant="primary"
           >
             {isLoading ? (
-              <Loader2 className="w-7 h-7 animate-spin" />
+              <Loader2 className="h-7 w-7 animate-spin" />
             ) : isPlaying ? (
-              <Pause className="w-7 h-7" />
+              <Pause className="h-7 w-7" />
             ) : (
-              <Play className="w-7 h-7 ml-1" />
+              <Play className="ml-1 h-7 w-7" />
             )}
           </Button>
 
@@ -290,27 +290,27 @@ export function AudioPlayer({
             onClick={() => skipTime(10)}
             size="sm"
           >
-            <SkipForward className="w-5 h-5" />
+            <SkipForward className="h-5 w-5" />
           </Button>
         </div>
 
         {/* Progress Bar */}
-        <div className="space-y-3 mb-6">
+        <div className="mb-6 space-y-3">
           <div
-            className="h-2 bg-base-300 rounded-full cursor-pointer relative group"
+            className="bg-base-300 group relative h-2 cursor-pointer rounded-full"
             onClick={handleSeek}
           >
             <div
-              className="h-full bg-primary rounded-full transition-all duration-150"
+              className="bg-primary h-full rounded-full transition-all duration-150"
               style={{ width: `${progress}%` }}
             />
             <div
-              className="absolute top-1/2 -translate-y-1/2 w-4 h-4 bg-primary rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg border-2 border-white"
+              className="bg-primary absolute top-1/2 h-4 w-4 -translate-y-1/2 rounded-full border-2 border-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100"
               style={{ left: `calc(${progress}% - 8px)` }}
             />
           </div>
 
-          <div className="flex justify-between text-sm text-base-content/60">
+          <div className="text-base-content/60 flex justify-between text-sm">
             <span>{formatTime(currentTime)}</span>
             <span>{formatTime(duration)}</span>
           </div>
@@ -321,7 +321,7 @@ export function AudioPlayer({
           {/* Playback Speed */}
           <Button
             btnStyle="ghost"
-            className="text-xs font-mono"
+            className="font-mono text-xs"
             onClick={changePlaybackRate}
             size="sm"
           >
@@ -329,30 +329,30 @@ export function AudioPlayer({
           </Button>
 
           {/* Volume Control */}
-          <div className="flex items-center gap-3 flex-1 max-w-xs mx-4">
+          <div className="mx-4 flex max-w-xs flex-1 items-center gap-3">
             <Button btnStyle="ghost" onClick={toggleMute} size="sm">
               {isMuted || volume === 0 ? (
-                <VolumeX className="w-5 h-5" />
+                <VolumeX className="h-5 w-5" />
               ) : (
-                <Volume2 className="w-5 h-5" />
+                <Volume2 className="h-5 w-5" />
               )}
             </Button>
 
             <div
-              className="flex-1 h-1 bg-base-300 rounded-full cursor-pointer relative group"
+              className="bg-base-300 group relative h-1 flex-1 cursor-pointer rounded-full"
               onClick={handleVolumeChange}
             >
               <div
-                className="h-full bg-primary/70 rounded-full"
+                className="bg-primary/70 h-full rounded-full"
                 style={{ width: `${isMuted ? 0 : volume * 100}%` }}
               />
               <div
-                className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-primary rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                className="bg-primary absolute top-1/2 h-3 w-3 -translate-y-1/2 rounded-full opacity-0 transition-opacity group-hover:opacity-100"
                 style={{ left: `calc(${(isMuted ? 0 : volume) * 100}% - 6px)` }}
               />
             </div>
 
-            <span className="text-xs text-base-content/50 min-w-[3ch]">
+            <span className="text-base-content/50 min-w-[3ch] text-xs">
               {Math.round((isMuted ? 0 : volume) * 100)}
             </span>
           </div>
@@ -363,7 +363,7 @@ export function AudioPlayer({
             onClick={() => skipTime(-currentTime)}
             size="sm"
           >
-            <RotateCcw className="w-4 h-4" />
+            <RotateCcw className="h-4 w-4" />
           </Button>
         </div>
       </div>

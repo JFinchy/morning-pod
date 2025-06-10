@@ -90,7 +90,7 @@ export function ThemeSwitcherCompact() {
         onClick={() => setIsOpen(!isOpen)}
         ref={buttonRef}
       >
-        <Palette className="w-5 h-5" />
+        <Palette className="h-5 w-5" />
       </button>
 
       {isOpen && (
@@ -103,7 +103,7 @@ export function ThemeSwitcherCompact() {
 
           {/* Ultra Compact Dropdown - single continuous column */}
           <div
-            className={`absolute right-0 z-[100] w-44 bg-base-100 rounded-box shadow-2xl border border-base-300 p-1.5 ${
+            className={`bg-base-100 rounded-box border-base-300 absolute right-0 z-[100] w-44 border p-1.5 shadow-2xl ${
               dropdownPosition === "above"
                 ? "bottom-full mb-2"
                 : "top-full mt-2"
@@ -111,15 +111,15 @@ export function ThemeSwitcherCompact() {
           >
             <div className="max-h-80 overflow-y-auto">
               {/* Header */}
-              <div className="px-2 py-1 mb-1">
-                <span className="text-xs font-medium text-base-content">
+              <div className="mb-1 px-2 py-1">
+                <span className="text-base-content text-xs font-medium">
                   Choose Theme
                 </span>
               </div>
 
               {/* Dark Themes Section */}
               <div className="px-2 py-0.5">
-                <span className="text-[10px] opacity-60 uppercase tracking-wide">
+                <span className="text-[10px] tracking-wide uppercase opacity-60">
                   Dark Themes
                 </span>
               </div>
@@ -127,7 +127,7 @@ export function ThemeSwitcherCompact() {
               {/* Dark Theme Items */}
               {darkThemes.map((theme) => (
                 <button
-                  className={`flex items-center gap-1.5 w-full text-xs py-1 px-2 rounded hover:bg-base-200 transition-colors ${
+                  className={`hover:bg-base-200 flex w-full items-center gap-1.5 rounded px-2 py-1 text-xs transition-colors ${
                     currentTheme === theme.name
                       ? "bg-primary/10 text-primary"
                       : ""
@@ -136,21 +136,21 @@ export function ThemeSwitcherCompact() {
                   onClick={() => handleThemeChange(theme.name)}
                 >
                   <div
-                    className="w-2.5 h-2.5 rounded-full bg-primary border border-base-content/20 flex-shrink-0"
+                    className="bg-primary border-base-content/20 h-2.5 w-2.5 flex-shrink-0 rounded-full border"
                     data-theme={theme.name}
                   />
-                  <span className="flex-1 text-left truncate text-xs">
+                  <span className="flex-1 truncate text-left text-xs">
                     {theme.label}
                   </span>
                   {currentTheme === theme.name && (
-                    <Check className="w-2.5 h-2.5 text-primary flex-shrink-0" />
+                    <Check className="text-primary h-2.5 w-2.5 flex-shrink-0" />
                   )}
                 </button>
               ))}
 
               {/* Light Themes Section */}
-              <div className="px-2 py-0.5 mt-2">
-                <span className="text-[10px] opacity-60 uppercase tracking-wide">
+              <div className="mt-2 px-2 py-0.5">
+                <span className="text-[10px] tracking-wide uppercase opacity-60">
                   Light Themes
                 </span>
               </div>
@@ -158,7 +158,7 @@ export function ThemeSwitcherCompact() {
               {/* Light Theme Items */}
               {lightThemes.map((theme) => (
                 <button
-                  className={`flex items-center gap-1.5 w-full text-xs py-1 px-2 rounded hover:bg-base-200 transition-colors ${
+                  className={`hover:bg-base-200 flex w-full items-center gap-1.5 rounded px-2 py-1 text-xs transition-colors ${
                     currentTheme === theme.name
                       ? "bg-primary/10 text-primary"
                       : ""
@@ -167,14 +167,14 @@ export function ThemeSwitcherCompact() {
                   onClick={() => handleThemeChange(theme.name)}
                 >
                   <div
-                    className="w-2.5 h-2.5 rounded-full bg-primary border border-base-content/20 flex-shrink-0"
+                    className="bg-primary border-base-content/20 h-2.5 w-2.5 flex-shrink-0 rounded-full border"
                     data-theme={theme.name}
                   />
-                  <span className="flex-1 text-left truncate text-xs">
+                  <span className="flex-1 truncate text-left text-xs">
                     {theme.label}
                   </span>
                   {currentTheme === theme.name && (
-                    <Check className="w-2.5 h-2.5 text-primary flex-shrink-0" />
+                    <Check className="text-primary h-2.5 w-2.5 flex-shrink-0" />
                   )}
                 </button>
               ))}

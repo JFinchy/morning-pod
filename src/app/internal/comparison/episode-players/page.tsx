@@ -31,10 +31,10 @@ export default function EpisodePlayerShowcase() {
     <div className="space-y-8">
       {/* Header */}
       <div className="text-center">
-        <h1 className="text-3xl font-bold text-base-content mb-2">
+        <h1 className="text-base-content mb-2 text-3xl font-bold">
           Episode Player Variants
         </h1>
-        <p className="text-base-content/60 max-w-2xl mx-auto">
+        <p className="text-base-content/60 mx-auto max-w-2xl">
           Compare different audio player designs for podcast episodes.
         </p>
       </div>
@@ -42,7 +42,7 @@ export default function EpisodePlayerShowcase() {
       {/* Player Variants */}
       <div className="space-y-8">
         <div className="space-y-4">
-          <h3 className="text-xl font-semibold text-base-content">
+          <h3 className="text-base-content text-xl font-semibold">
             V1: Traditional
           </h3>
           <EpisodePlayerV1
@@ -58,7 +58,7 @@ export default function EpisodePlayerShowcase() {
         </div>
 
         <div className="space-y-4">
-          <h3 className="text-xl font-semibold text-base-content">
+          <h3 className="text-base-content text-xl font-semibold">
             V2: Spotify-Style
           </h3>
           <EpisodePlayerV2
@@ -74,7 +74,7 @@ export default function EpisodePlayerShowcase() {
         </div>
 
         <div className="space-y-4">
-          <h3 className="text-xl font-semibold text-base-content">
+          <h3 className="text-base-content text-xl font-semibold">
             V3: Minimalist
           </h3>
           <EpisodePlayerV3

@@ -58,7 +58,7 @@ const CircularProgress = ({
 
   return (
     <div className="relative flex items-center justify-center">
-      <svg className="transform -rotate-90" height={size} width={size}>
+      <svg className="-rotate-90 transform" height={size} width={size}>
         {/* Background circle */}
         <circle
           className="text-base-300"
@@ -84,7 +84,7 @@ const CircularProgress = ({
         />
       </svg>
       <div className="absolute inset-0 flex items-center justify-center">
-        <span className="text-xs font-semibold text-base-content">
+        <span className="text-base-content text-xs font-semibold">
           {progress}%
         </span>
       </div>
@@ -106,7 +106,7 @@ const StatusIcon = ({ status }: { status: QueueItem["status"] }) => {
   const IconComponent = iconMap[status];
   const colorClass = getStatusColor(status);
 
-  return <IconComponent className={`w-5 h-5 ${colorClass}`} />;
+  return <IconComponent className={`h-5 w-5 ${colorClass}`} />;
 };
 
 export function QueueStatus({
@@ -139,11 +139,11 @@ export function QueueStatus({
       <div className="space-y-4">
         {/* Compact Header */}
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-base-content">
+          <h3 className="text-base-content text-lg font-semibold">
             Queue Status
           </h3>
-          <div className="flex items-center gap-2 text-sm text-base-content/60">
-            <div className="w-2 h-2 bg-success rounded-full animate-pulse" />
+          <div className="text-base-content/60 flex items-center gap-2 text-sm">
+            <div className="bg-success h-2 w-2 animate-pulse rounded-full" />
             {stats.currentlyProcessing} processing
           </div>
         </div>
@@ -157,7 +157,7 @@ export function QueueStatus({
                 {/* Timeline indicator */}
                 <div className="flex flex-col items-center">
                   <div
-                    className={`w-4 h-4 rounded-full border-2 ${
+                    className={`h-4 w-4 rounded-full border-2 ${
                       isActive
                         ? "bg-primary border-primary"
                         : item.status === "completed"
@@ -168,23 +168,23 @@ export function QueueStatus({
                     }`}
                   />
                   {index < visibleItems.length - 1 && (
-                    <div className="w-0.5 h-8 bg-base-300 mt-1" />
+                    <div className="bg-base-300 mt-1 h-8 w-0.5" />
                   )}
                 </div>
 
                 {/* Item content */}
-                <div className="flex-1 min-w-0 pb-2">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h4 className="font-medium text-sm text-base-content truncate">
+                <div className="min-w-0 flex-1 pb-2">
+                  <div className="mb-1 flex items-center gap-2">
+                    <h4 className="text-base-content truncate text-sm font-medium">
                       {item.episodeTitle}
                     </h4>
                     {isActive && (
-                      <div className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+                      <div className="bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs">
                         {Math.round(item.progress)}%
                       </div>
                     )}
                   </div>
-                  <p className="text-xs text-base-content/60 mb-1">
+                  <p className="text-base-content/60 mb-1 text-xs">
                     {item.sourceName}
                   </p>
                   <div className="flex items-center gap-2 text-xs">
@@ -214,15 +214,15 @@ export function QueueStatus({
         </div>
 
         {remainingCount > 0 && (
-          <div className="text-center py-2 text-sm text-base-content/60">
+          <div className="text-base-content/60 py-2 text-center text-sm">
             + {remainingCount} more items
           </div>
         )}
 
         {queueItems.length === 0 && (
-          <div className="text-center py-8">
-            <CheckCircle className="w-8 h-8 mx-auto mb-2 text-success" />
-            <p className="text-sm text-base-content/60">Queue is empty</p>
+          <div className="py-8 text-center">
+            <CheckCircle className="text-success mx-auto mb-2 h-8 w-8" />
+            <p className="text-base-content/60 text-sm">Queue is empty</p>
           </div>
         )}
       </div>
@@ -231,62 +231,62 @@ export function QueueStatus({
 
   // Default dashboard variant
   return (
-    <div className="card bg-gradient-to-br from-base-100 to-base-200/50 border border-base-300 shadow-lg">
+    <div className="card from-base-100 to-base-200/50 border-base-300 border bg-gradient-to-br shadow-lg">
       <div className="card-body p-6">
         {/* Header with Real-time Badge */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="mb-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <h3 className="text-xl font-bold text-base-content">
+            <h3 className="text-base-content text-xl font-bold">
               Processing Queue
             </h3>
-            <div className="flex items-center gap-1 px-2 py-1 bg-success/10 rounded-full">
-              <div className="w-2 h-2 bg-success rounded-full animate-pulse" />
-              <span className="text-xs text-success font-medium">Live</span>
+            <div className="bg-success/10 flex items-center gap-1 rounded-full px-2 py-1">
+              <div className="bg-success h-2 w-2 animate-pulse rounded-full" />
+              <span className="text-success text-xs font-medium">Live</span>
             </div>
           </div>
-          <div className="text-sm text-base-content/60">
+          <div className="text-base-content/60 text-sm">
             {currentTime.toLocaleTimeString()}
           </div>
         </div>
 
         {/* Key Metrics Dashboard */}
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
+        <div className="mb-8 grid grid-cols-2 gap-4 md:grid-cols-3">
           {/* Processing Status */}
-          <div className="flex items-center gap-4 p-4 bg-primary/5 rounded-xl border border-primary/20">
-            <div className="w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center">
-              <TrendingUp className="w-6 h-6 text-primary" />
+          <div className="bg-primary/5 border-primary/20 flex items-center gap-4 rounded-xl border p-4">
+            <div className="bg-primary/20 flex h-12 w-12 items-center justify-center rounded-full">
+              <TrendingUp className="text-primary h-6 w-6" />
             </div>
             <div>
-              <div className="text-2xl font-bold text-primary">
+              <div className="text-primary text-2xl font-bold">
                 {stats.currentlyProcessing}
               </div>
-              <div className="text-xs text-base-content/60">Processing Now</div>
+              <div className="text-base-content/60 text-xs">Processing Now</div>
             </div>
           </div>
 
           {/* Queue Length */}
-          <div className="flex items-center gap-4 p-4 bg-warning/5 rounded-xl border border-warning/20">
-            <div className="w-12 h-12 bg-warning/20 rounded-full flex items-center justify-center">
-              <Clock className="w-6 h-6 text-warning" />
+          <div className="bg-warning/5 border-warning/20 flex items-center gap-4 rounded-xl border p-4">
+            <div className="bg-warning/20 flex h-12 w-12 items-center justify-center rounded-full">
+              <Clock className="text-warning h-6 w-6" />
             </div>
             <div>
-              <div className="text-2xl font-bold text-warning">
+              <div className="text-warning text-2xl font-bold">
                 {stats.totalInQueue}
               </div>
-              <div className="text-xs text-base-content/60">In Queue</div>
+              <div className="text-base-content/60 text-xs">In Queue</div>
             </div>
           </div>
 
           {/* Success Rate */}
-          <div className="flex items-center gap-4 p-4 bg-success/5 rounded-xl border border-success/20">
-            <div className="w-12 h-12 bg-success/20 rounded-full flex items-center justify-center">
-              <CheckCircle className="w-6 h-6 text-success" />
+          <div className="bg-success/5 border-success/20 flex items-center gap-4 rounded-xl border p-4">
+            <div className="bg-success/20 flex h-12 w-12 items-center justify-center rounded-full">
+              <CheckCircle className="text-success h-6 w-6" />
             </div>
             <div>
-              <div className="text-2xl font-bold text-success">
+              <div className="text-success text-2xl font-bold">
                 {Math.round(stats.successRate * 100)}%
               </div>
-              <div className="text-xs text-base-content/60">Success Rate</div>
+              <div className="text-base-content/60 text-xs">Success Rate</div>
             </div>
           </div>
         </div>
@@ -294,14 +294,14 @@ export function QueueStatus({
         {/* Active Processing Items */}
         {activeItems.length > 0 && (
           <div className="mb-6">
-            <h4 className="font-semibold text-base-content mb-4 flex items-center gap-2">
-              <div className="w-3 h-3 bg-primary rounded-full animate-pulse" />
+            <h4 className="text-base-content mb-4 flex items-center gap-2 font-semibold">
+              <div className="bg-primary h-3 w-3 animate-pulse rounded-full" />
               Currently Processing
             </h4>
             <div className="grid gap-4">
               {activeItems.map((item) => (
                 <div
-                  className="flex items-center gap-4 p-4 bg-primary/5 rounded-xl border border-primary/20"
+                  className="bg-primary/5 border-primary/20 flex items-center gap-4 rounded-xl border p-4"
                   key={item.id}
                 >
                   <CircularProgress
@@ -309,14 +309,14 @@ export function QueueStatus({
                     size={70}
                     status={item.status}
                   />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
+                  <div className="min-w-0 flex-1">
+                    <div className="mb-1 flex items-center gap-2">
                       <StatusIcon status={item.status} />
-                      <h5 className="font-medium text-base-content truncate">
+                      <h5 className="text-base-content truncate font-medium">
                         {item.episodeTitle}
                       </h5>
                     </div>
-                    <p className="text-sm text-base-content/60 mb-1">
+                    <p className="text-base-content/60 mb-1 text-sm">
                       {item.sourceName}
                     </p>
                     <div className="flex items-center gap-4 text-xs">
@@ -340,7 +340,7 @@ export function QueueStatus({
         {/* Queue Preview */}
         {queueItems.length > activeItems.length && (
           <div>
-            <h4 className="font-semibold text-base-content mb-4">
+            <h4 className="text-base-content mb-4 font-semibold">
               Upcoming in Queue
             </h4>
             <div className="space-y-2">
@@ -348,38 +348,38 @@ export function QueueStatus({
                 .filter((item) => !activeItems.includes(item))
                 .map((item, index) => (
                   <div
-                    className="flex items-center gap-3 p-3 rounded-lg hover:bg-base-200/50 transition-colors"
+                    className="hover:bg-base-200/50 flex items-center gap-3 rounded-lg p-3 transition-colors"
                     key={item.id}
                   >
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-mono text-base-content/40 w-6">
+                      <span className="text-base-content/40 w-6 font-mono text-xs">
                         #{index + 1}
                       </span>
                       <StatusIcon status={item.status} />
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <h6 className="font-medium text-sm text-base-content truncate">
+                    <div className="min-w-0 flex-1">
+                      <h6 className="text-base-content truncate text-sm font-medium">
                         {item.episodeTitle}
                       </h6>
-                      <p className="text-xs text-base-content/60">
+                      <p className="text-base-content/60 text-xs">
                         {item.sourceName}
                       </p>
                     </div>
                     <div className="text-right">
                       {item.estimatedTimeRemaining && (
-                        <div className="text-xs text-base-content/60">
+                        <div className="text-base-content/60 text-xs">
                           ~{formatTimeRemaining(item.estimatedTimeRemaining)}
                         </div>
                       )}
                       {item.status === "failed" && (
-                        <div className="text-xs text-error">Failed</div>
+                        <div className="text-error text-xs">Failed</div>
                       )}
                     </div>
                   </div>
                 ))}
 
               {remainingCount > 0 && (
-                <div className="text-center py-2 text-sm text-base-content/60">
+                <div className="text-base-content/60 py-2 text-center text-sm">
                   + {remainingCount} more items
                 </div>
               )}
@@ -389,11 +389,11 @@ export function QueueStatus({
 
         {/* Empty State */}
         {queueItems.length === 0 && (
-          <div className="text-center py-12">
-            <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-base-200 flex items-center justify-center">
-              <CheckCircle className="w-10 h-10 text-success" />
+          <div className="py-12 text-center">
+            <div className="bg-base-200 mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full">
+              <CheckCircle className="text-success h-10 w-10" />
             </div>
-            <h4 className="text-lg font-semibold text-base-content mb-2">
+            <h4 className="text-base-content mb-2 text-lg font-semibold">
               All Caught Up!
             </h4>
             <p className="text-base-content/60">
@@ -404,7 +404,7 @@ export function QueueStatus({
 
         {/* Performance Footer */}
         {showDetails && (
-          <div className="mt-6 pt-4 border-t border-base-300 flex justify-between text-xs text-base-content/60">
+          <div className="border-base-300 text-base-content/60 mt-6 flex justify-between border-t pt-4 text-xs">
             <span>
               Avg processing: {formatTimeRemaining(stats.averageProcessingTime)}
             </span>

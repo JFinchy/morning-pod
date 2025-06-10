@@ -15,7 +15,7 @@ updates:
     commit-message:
       prefix: "chore(deps)"
       include: "scope"
-    
+
   # Security updates only for critical/high severity
   - package-ecosystem: "bun"
     directory: "/"

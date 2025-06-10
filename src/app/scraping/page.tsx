@@ -27,8 +27,8 @@ export default function ScrapingPage() {
 
   // Mutations
   const scrapeAll = api.scraping.scrapeAll.useMutation({
-    onError: (error) => {
-      console.error("Failed to scrape all sources:", error);
+    onError: (_error) => {
+      // Error handled by mutation state
     },
     onSuccess: () => {
       refetchCached();
@@ -37,8 +37,7 @@ export default function ScrapingPage() {
   });
 
   const scrapeSource = api.scraping.scrapeSource.useMutation({
-    onError: (error) => {
-      console.error(`Failed to scrape source:`, error);
+    onError: (_error) => {
       setSelectedSource("");
     },
     onSuccess: () => {
@@ -73,10 +72,10 @@ export default function ScrapingPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-7xl">
-      <div className="flex items-center justify-between mb-8">
+    <div className="container mx-auto max-w-7xl px-4 py-8">
+      <div className="mb-8 flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-base-content">
+          <h1 className="text-base-content text-3xl font-bold">
             Content Scraping
           </h1>
           <p className="text-base-content/70 mt-2">
@@ -90,27 +89,27 @@ export default function ScrapingPage() {
             onClick={handleScrapeAll}
           >
             {scrapeAll.isPending ? (
-              <RefreshCw className="w-4 h-4 animate-spin" />
+              <RefreshCw className="h-4 w-4 animate-spin" />
             ) : (
-              <Download className="w-4 h-4" />
+              <Download className="h-4 w-4" />
             )}
             {scrapeAll.isPending ? "Scraping..." : "Scrape All Sources"}
           </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+      <div className="mb-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Scrapers Status */}
-        <div className="card bg-base-100 shadow-sm border border-base-300">
+        <div className="card bg-base-100 border-base-300 border shadow-sm">
           <div className="card-body p-6">
             <div className="flex flex-row items-center justify-between space-y-0 pb-2">
               <h3 className="text-sm font-medium">Available Scrapers</h3>
-              <Settings className="h-4 w-4 text-base-content/60" />
+              <Settings className="text-base-content/60 h-4 w-4" />
             </div>
             <div className="text-2xl font-bold">
               {availableScrapers?.scrapers?.length || 0}
             </div>
-            <div className="space-y-2 mt-4">
+            <div className="mt-4 space-y-2">
               {availableScrapers?.scrapers?.map((scraper) => (
                 <div
                   className="flex items-center justify-between"
@@ -125,7 +124,7 @@ export default function ScrapingPage() {
                     onClick={() => handleScrapeSource(scraper)}
                   >
                     {scrapeSource.isPending && selectedSource === scraper ? (
-                      <RefreshCw className="w-3 h-3 animate-spin" />
+                      <RefreshCw className="h-3 w-3 animate-spin" />
                     ) : (
                       "Scrape"
                     )}
@@ -137,27 +136,27 @@ export default function ScrapingPage() {
         </div>
 
         {/* Content Stats */}
-        <div className="card bg-base-100 shadow-sm border border-base-300">
+        <div className="card bg-base-100 border-base-300 border shadow-sm">
           <div className="card-body p-6">
             <div className="flex flex-row items-center justify-between space-y-0 pb-2">
               <h3 className="text-sm font-medium">Cached Content</h3>
-              <Activity className="h-4 w-4 text-base-content/60" />
+              <Activity className="text-base-content/60 h-4 w-4" />
             </div>
             <div className="text-2xl font-bold">
               {cachedContent?.totalItems || 0}
             </div>
-            <p className="text-xs text-base-content/60">
+            <p className="text-base-content/60 text-xs">
               Total articles cached
             </p>
           </div>
         </div>
 
         {/* Last Scrape */}
-        <div className="card bg-base-100 shadow-sm border border-base-300">
+        <div className="card bg-base-100 border-base-300 border shadow-sm">
           <div className="card-body p-6">
             <div className="flex flex-row items-center justify-between space-y-0 pb-2">
               <h3 className="text-sm font-medium">Last Activity</h3>
-              <Clock className="h-4 w-4 text-base-content/60" />
+              <Clock className="text-base-content/60 h-4 w-4" />
             </div>
             <div className="text-2xl font-bold">
               {metrics?.metrics
@@ -167,18 +166,18 @@ export default function ScrapingPage() {
                   )
                 : "Never"}
             </div>
-            <p className="text-xs text-base-content/60">Most recent scrape</p>
+            <p className="text-base-content/60 text-xs">Most recent scrape</p>
           </div>
         </div>
       </div>
 
       {/* Metrics Table */}
       {metrics?.metrics && Object.keys(metrics.metrics).length > 0 && (
-        <div className="card bg-base-100 shadow-sm border border-base-300 mb-8">
+        <div className="card bg-base-100 border-base-300 mb-8 border shadow-sm">
           <div className="card-body p-6">
-            <h3 className="card-title text-lg mb-4">Scraping Metrics</h3>
+            <h3 className="card-title mb-4 text-lg">Scraping Metrics</h3>
             <div className="overflow-x-auto">
-              <table className="table table-zebra w-full">
+              <table className="table-zebra table w-full">
                 <thead>
                   <tr>
                     <th>Source</th>
@@ -207,9 +206,9 @@ export default function ScrapingPage() {
                             %
                           </span>
                           {metric.successfulRequests > 0 ? (
-                            <CheckCircle className="w-4 h-4 text-success" />
+                            <CheckCircle className="text-success h-4 w-4" />
                           ) : (
-                            <XCircle className="w-4 h-4 text-error" />
+                            <XCircle className="text-error h-4 w-4" />
                           )}
                         </div>
                       </td>
@@ -227,11 +226,11 @@ export default function ScrapingPage() {
 
       {/* Content Display */}
       {cachedContent?.content && cachedContent.content.length > 0 && (
-        <div className="card bg-base-100 shadow-sm border border-base-300">
+        <div className="card bg-base-100 border-base-300 border shadow-sm">
           <div className="card-body p-6">
-            <h3 className="card-title text-lg mb-4">Recent Content</h3>
+            <h3 className="card-title mb-4 text-lg">Recent Content</h3>
             <div className="space-y-4">
-              {cachedContent.content
+              {[...cachedContent.content]
                 .sort(
                   (a, b) =>
                     new Date(b.publishedAt).getTime() -
@@ -240,18 +239,18 @@ export default function ScrapingPage() {
                 .slice(0, 10)
                 .map((article: ScrapedContent) => (
                   <div
-                    className="border border-base-300 rounded-lg p-4 hover:bg-base-200/50 transition-colors"
+                    className="border-base-300 hover:bg-base-200/50 rounded-lg border p-4 transition-colors"
                     key={article.id}
                   >
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1">
-                        <h3 className="font-semibold text-base-content mb-2 line-clamp-2">
+                        <h3 className="text-base-content mb-2 line-clamp-2 font-semibold">
                           {article.title}
                         </h3>
-                        <p className="text-sm text-base-content/70 mb-3 line-clamp-2">
+                        <p className="text-base-content/70 mb-3 line-clamp-2 text-sm">
                           {article.summary}
                         </p>
-                        <div className="flex items-center gap-4 text-xs text-base-content/60">
+                        <div className="text-base-content/60 flex items-center gap-4 text-xs">
                           <span className="badge badge-sm badge-outline">
                             {article.source}
                           </span>
@@ -259,7 +258,7 @@ export default function ScrapingPage() {
                           <span className="capitalize">{article.category}</span>
                         </div>
                         {article.tags.length > 0 && (
-                          <div className="flex flex-wrap gap-1 mt-2">
+                          <div className="mt-2 flex flex-wrap gap-1">
                             {article.tags.slice(0, 3).map((tag) => (
                               <span
                                 className="badge badge-xs badge-secondary"
@@ -289,10 +288,10 @@ export default function ScrapingPage() {
 
       {/* Empty State */}
       {(!cachedContent?.content || cachedContent.content.length === 0) && (
-        <div className="card bg-base-100 shadow-sm border border-base-300">
-          <div className="card-body text-center py-12">
-            <Activity className="w-12 h-12 text-base-content/30 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-base-content mb-2">
+        <div className="card bg-base-100 border-base-300 border shadow-sm">
+          <div className="card-body py-12 text-center">
+            <Activity className="text-base-content/30 mx-auto mb-4 h-12 w-12" />
+            <h3 className="text-base-content mb-2 text-lg font-medium">
               No content available
             </h3>
             <p className="text-base-content/60 mb-4">

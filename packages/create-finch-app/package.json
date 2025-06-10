@@ -1,0 +1,59 @@
+{
+  "name": "@finch/create-app",
+  "version": "0.1.0",
+  "description": "Opinionated Next.js starter with TypeScript, Tailwind, and battle-tested patterns",
+  "keywords": [
+    "nextjs",
+    "typescript",
+    "tailwind",
+    "cli",
+    "starter",
+    "template",
+    "finch"
+  ],
+  "author": "Jacob Finch",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "bin": {
+    "create-finch-app": "./bin/index.js"
+  },
+  "files": [
+    "dist",
+    "bin",
+    "templates",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc && npm run copy-templates",
+    "copy-templates": "cp -r src/templates dist/",
+    "dev": "tsc --watch",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepublishOnly": "npm run build",
+    "create-app": "node ./bin/index.js"
+  },
+  "dependencies": {
+    "@inquirer/prompts": "^6.0.1",
+    "chalk": "^4.1.2",
+    "commander": "^12.1.0",
+    "fs-extra": "^11.2.0",
+    "ora": "^5.4.1",
+    "validate-npm-package-name": "^5.0.1"
+  },
+  "devDependencies": {
+    "@types/fs-extra": "^11.0.4",
+    "@types/node": "^20.0.0",
+    "@types/validate-npm-package-name": "^4.0.2",
+    "typescript": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jacobfinch/create-finch-app.git"
+  },
+  "bugs": {
+    "url": "https://github.com/jacobfinch/create-finch-app/issues"
+  },
+  "homepage": "https://github.com/jacobfinch/create-finch-app#readme"
+}

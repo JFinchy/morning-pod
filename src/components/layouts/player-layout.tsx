@@ -47,18 +47,18 @@ export function PlayerLayout({ children, episode }: PlayerLayoutProps) {
   const speedOptions = [0.5, 0.75, 1, 1.25, 1.5, 2];
 
   return (
-    <div className="min-h-screen bg-base-100 flex flex-col">
+    <div className="bg-base-100 flex min-h-screen flex-col">
       {/* Header */}
-      <header className="navbar bg-base-100 shadow-sm border-b border-base-300">
+      <header className="navbar bg-base-100 border-base-300 border-b shadow-sm">
         <div className="navbar-start">
           <Link className="btn btn-ghost btn-circle" href="/">
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft className="h-5 w-5" />
           </Link>
           <div className="ml-4">
-            <h1 className="font-semibold text-lg truncate max-w-xs">
+            <h1 className="max-w-xs truncate text-lg font-semibold">
               {episode?.title || "Episode Player"}
             </h1>
-            <p className="text-sm text-base-content/70">
+            <p className="text-base-content/70 text-sm">
               {episode?.source || "Morning Pod"}
             </p>
           </div>
@@ -70,13 +70,13 @@ export function PlayerLayout({ children, episode }: PlayerLayoutProps) {
               className="btn btn-ghost btn-circle tooltip tooltip-left"
               data-tip="Download"
             >
-              <Download className="w-5 h-5" />
+              <Download className="h-5 w-5" />
             </button>
             <button
               className="btn btn-ghost btn-circle tooltip tooltip-left"
               data-tip="Share"
             >
-              <Share2 className="w-5 h-5" />
+              <Share2 className="h-5 w-5" />
             </button>
             <ThemeSwitcher />
           </div>
@@ -84,15 +84,15 @@ export function PlayerLayout({ children, episode }: PlayerLayoutProps) {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 container mx-auto px-4 py-6">{children}</main>
+      <main className="container mx-auto flex-1 px-4 py-6">{children}</main>
 
       {/* Audio Player - Fixed Bottom */}
       {episode && (
-        <div className="sticky bottom-0 bg-base-100 border-t border-base-300 shadow-lg">
+        <div className="bg-base-100 border-base-300 sticky bottom-0 border-t shadow-lg">
           {/* Progress Bar */}
           <div className="w-full">
             <Slider
-              className="w-full h-2 rounded-none"
+              className="h-2 w-full rounded-none"
               max={100}
               value={progress}
               variant="primary"
@@ -103,18 +103,18 @@ export function PlayerLayout({ children, episode }: PlayerLayoutProps) {
           <div className="px-4 py-3">
             <div className="flex items-center justify-between">
               {/* Time Display */}
-              <div className="text-xs text-base-content/70 min-w-0 flex-shrink-0">
+              <div className="text-base-content/70 min-w-0 flex-shrink-0 text-xs">
                 {formatTime(currentTime)} / {formatTime(duration)}
               </div>
 
               {/* Center Controls */}
-              <div className="flex items-center gap-2 mx-4">
+              <div className="mx-4 flex items-center gap-2">
                 <button className="btn btn-ghost btn-circle btn-sm">
-                  <Shuffle className="w-4 h-4" />
+                  <Shuffle className="h-4 w-4" />
                 </button>
 
                 <button className="btn btn-ghost btn-circle btn-sm">
-                  <SkipBack className="w-4 h-4" />
+                  <SkipBack className="h-4 w-4" />
                 </button>
 
                 <button
@@ -122,29 +122,29 @@ export function PlayerLayout({ children, episode }: PlayerLayoutProps) {
                   onClick={() => setIsPlaying(!isPlaying)}
                 >
                   {isPlaying ? (
-                    <Pause className="w-5 h-5" />
+                    <Pause className="h-5 w-5" />
                   ) : (
-                    <Play className="w-5 h-5 ml-0.5" />
+                    <Play className="ml-0.5 h-5 w-5" />
                   )}
                 </button>
 
                 <button className="btn btn-ghost btn-circle btn-sm">
-                  <SkipForward className="w-4 h-4" />
+                  <SkipForward className="h-4 w-4" />
                 </button>
 
                 <button className="btn btn-ghost btn-circle btn-sm">
-                  <Repeat className="w-4 h-4" />
+                  <Repeat className="h-4 w-4" />
                 </button>
               </div>
 
               {/* Right Controls */}
-              <div className="flex items-center gap-2 min-w-0 flex-shrink-0">
+              <div className="flex min-w-0 flex-shrink-0 items-center gap-2">
                 {/* Playback Speed */}
                 <div className="dropdown dropdown-top dropdown-end">
                   <button className="btn btn-ghost btn-sm text-xs">
                     {playbackSpeed}x
                   </button>
-                  <ul className="dropdown-content menu bg-base-100 rounded-box shadow-lg p-2 w-20">
+                  <ul className="dropdown-content menu bg-base-100 rounded-box w-20 p-2 shadow-lg">
                     {speedOptions.map((speed) => (
                       <li key={speed}>
                         <button
@@ -159,8 +159,8 @@ export function PlayerLayout({ children, episode }: PlayerLayoutProps) {
                 </div>
 
                 {/* Volume */}
-                <div className="hidden sm:flex items-center gap-2">
-                  <Volume2 className="w-4 h-4" />
+                <div className="hidden items-center gap-2 sm:flex">
+                  <Volume2 className="h-4 w-4" />
                   <Slider
                     className="w-20"
                     max={100}
@@ -173,8 +173,8 @@ export function PlayerLayout({ children, episode }: PlayerLayoutProps) {
 
             {/* Episode Info (Mobile) */}
             <div className="mt-2 sm:hidden">
-              <p className="text-sm font-medium truncate">{episode.title}</p>
-              <p className="text-xs text-base-content/70">{episode.source}</p>
+              <p className="truncate text-sm font-medium">{episode.title}</p>
+              <p className="text-base-content/70 text-xs">{episode.source}</p>
             </div>
           </div>
         </div>

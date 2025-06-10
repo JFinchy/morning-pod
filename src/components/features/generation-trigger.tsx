@@ -34,7 +34,7 @@ export function GenerationTrigger({
           size={size}
           variant={variant}
         >
-          <Plus className="w-5 h-5" />
+          <Plus className="h-5 w-5" />
           {children || "Generate New Episode"}
         </Button>
       }

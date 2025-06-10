@@ -184,11 +184,11 @@ export default function ScrapingComparisonPage() {
   };
 
   return (
-    <div className="min-h-screen bg-base-100">
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
+    <div className="bg-base-100 min-h-screen">
+      <div className="container mx-auto max-w-7xl px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-base-content mb-2">
+          <h1 className="text-base-content mb-2 text-3xl font-bold">
             Content Source & Strategy Comparison
           </h1>
           <p className="text-base-content/70">
@@ -204,14 +204,14 @@ export default function ScrapingComparisonPage() {
               className={`tab tab-lg ${comparisonMode === "sources" ? "tab-active" : ""}`}
               onClick={() => setComparisonMode("sources")}
             >
-              <Globe className="w-4 h-4 mr-2" />
+              <Globe className="mr-2 h-4 w-4" />
               Content Sources
             </button>
             <button
               className={`tab tab-lg ${comparisonMode === "strategies" ? "tab-active" : ""}`}
               onClick={() => setComparisonMode("strategies")}
             >
-              <Zap className="w-4 h-4 mr-2" />
+              <Zap className="mr-2 h-4 w-4" />
               Scraping Strategies
             </button>
           </div>
@@ -220,10 +220,10 @@ export default function ScrapingComparisonPage() {
         {comparisonMode === "sources" ? (
           <>
             {/* Content Sources Overview */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+            <div className="mb-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
               {contentSources.map((source) => (
                 <div
-                  className={`card bg-base-100 shadow-lg border-2 cursor-pointer transition-all duration-200 ${
+                  className={`card bg-base-100 cursor-pointer border-2 shadow-lg transition-all duration-200 ${
                     selectedSource === source.id
                       ? "border-primary shadow-xl"
                       : "border-base-300 hover:border-primary/50"
@@ -236,7 +236,7 @@ export default function ScrapingComparisonPage() {
                   }
                 >
                   <div className="card-body">
-                    <h3 className="card-title text-lg mb-2">
+                    <h3 className="card-title mb-2 text-lg">
                       {source.name}
                       {source.apiAvailable && (
                         <div className="badge badge-success badge-sm">API</div>
@@ -285,10 +285,10 @@ export default function ScrapingComparisonPage() {
                     </div>
 
                     <div className="mt-4">
-                      <div className="text-xs text-base-content/70 mb-2">
+                      <div className="text-base-content/70 mb-2 text-xs">
                         Audience Match
                       </div>
-                      <div className="w-full bg-base-300 rounded-full h-2">
+                      <div className="bg-base-300 h-2 w-full rounded-full">
                         <div
                           className="bg-primary h-2 rounded-full transition-all duration-300"
                           style={{ width: `${source.contentQuality * 10}%` }}
@@ -302,7 +302,7 @@ export default function ScrapingComparisonPage() {
 
             {/* Detailed Source Analysis */}
             {selectedSource && (
-              <div className="card bg-base-100 shadow-xl border-2 border-primary mb-8">
+              <div className="card bg-base-100 border-primary mb-8 border-2 shadow-xl">
                 <div className="card-body">
                   {(() => {
                     const source = contentSources.find(
@@ -312,31 +312,31 @@ export default function ScrapingComparisonPage() {
 
                     return (
                       <>
-                        <h2 className="card-title text-2xl mb-6">
+                        <h2 className="card-title mb-6 text-2xl">
                           {source.name} - Detailed Analysis
                         </h2>
 
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
                           {/* Pros & Cons */}
                           <div>
-                            <h3 className="text-lg font-semibold mb-4 flex items-center">
-                              <BarChart3 className="w-5 h-5 mr-2" />
+                            <h3 className="mb-4 flex items-center text-lg font-semibold">
+                              <BarChart3 className="mr-2 h-5 w-5" />
                               Pros & Cons Analysis
                             </h3>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                               <div>
-                                <h4 className="font-medium text-success mb-2 flex items-center">
-                                  <CheckCircle className="w-4 h-4 mr-1" />
+                                <h4 className="text-success mb-2 flex items-center font-medium">
+                                  <CheckCircle className="mr-1 h-4 w-4" />
                                   Advantages
                                 </h4>
                                 <ul className="space-y-1">
                                   {source.pros.map((pro, index) => (
                                     <li
-                                      className="text-sm text-base-content/80 flex items-start"
+                                      className="text-base-content/80 flex items-start text-sm"
                                       key={index}
                                     >
-                                      <span className="w-1 h-1 bg-success rounded-full mt-2 mr-2 flex-shrink-0" />
+                                      <span className="bg-success mt-2 mr-2 h-1 w-1 flex-shrink-0 rounded-full" />
                                       {pro}
                                     </li>
                                   ))}
@@ -344,17 +344,17 @@ export default function ScrapingComparisonPage() {
                               </div>
 
                               <div>
-                                <h4 className="font-medium text-error mb-2 flex items-center">
-                                  <AlertCircle className="w-4 h-4 mr-1" />
+                                <h4 className="text-error mb-2 flex items-center font-medium">
+                                  <AlertCircle className="mr-1 h-4 w-4" />
                                   Challenges
                                 </h4>
                                 <ul className="space-y-1">
                                   {source.cons.map((con, index) => (
                                     <li
-                                      className="text-sm text-base-content/80 flex items-start"
+                                      className="text-base-content/80 flex items-start text-sm"
                                       key={index}
                                     >
-                                      <span className="w-1 h-1 bg-error rounded-full mt-2 mr-2 flex-shrink-0" />
+                                      <span className="bg-error mt-2 mr-2 h-1 w-1 flex-shrink-0 rounded-full" />
                                       {con}
                                     </li>
                                   ))}
@@ -365,17 +365,17 @@ export default function ScrapingComparisonPage() {
 
                           {/* Sample Content */}
                           <div>
-                            <h3 className="text-lg font-semibold mb-4 flex items-center">
-                              <FileText className="w-5 h-5 mr-2" />
+                            <h3 className="mb-4 flex items-center text-lg font-semibold">
+                              <FileText className="mr-2 h-5 w-5" />
                               Sample Content
                             </h3>
 
                             <div className="card bg-base-200 border">
                               <div className="card-body p-4">
-                                <h4 className="font-semibold text-base mb-2">
+                                <h4 className="mb-2 text-base font-semibold">
                                   {source.sampleContent.title}
                                 </h4>
-                                <p className="text-sm text-base-content/80 mb-3">
+                                <p className="text-base-content/80 mb-3 text-sm">
                                   {source.sampleContent.summary}
                                 </p>
                                 <div className="flex flex-wrap gap-1">
@@ -397,17 +397,17 @@ export default function ScrapingComparisonPage() {
 
                         {/* Technical Metrics */}
                         <div className="mt-8">
-                          <h3 className="text-lg font-semibold mb-4">
+                          <h3 className="mb-4 text-lg font-semibold">
                             Technical Metrics
                           </h3>
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                          <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
                             <div className="text-center">
                               <div
                                 className={`text-2xl font-bold ${getQualityColor(source.contentQuality)}`}
                               >
                                 {source.contentQuality}/10
                               </div>
-                              <div className="text-sm text-base-content/70">
+                              <div className="text-base-content/70 text-sm">
                                 Content Quality
                               </div>
                             </div>
@@ -417,23 +417,23 @@ export default function ScrapingComparisonPage() {
                               >
                                 {source.scrapingDifficulty}/10
                               </div>
-                              <div className="text-sm text-base-content/70">
+                              <div className="text-base-content/70 text-sm">
                                 Scraping Difficulty
                               </div>
                             </div>
                             <div className="text-center">
-                              <div className="text-2xl font-bold text-primary">
+                              <div className="text-primary text-2xl font-bold">
                                 {source.apiAvailable ? "Yes" : "No"}
                               </div>
-                              <div className="text-sm text-base-content/70">
+                              <div className="text-base-content/70 text-sm">
                                 API Available
                               </div>
                             </div>
                             <div className="text-center">
-                              <div className="text-2xl font-bold text-info">
+                              <div className="text-info text-2xl font-bold">
                                 {source.rateLimit}
                               </div>
-                              <div className="text-sm text-base-content/70">
+                              <div className="text-base-content/70 text-sm">
                                 Rate Limit
                               </div>
                             </div>
@@ -449,10 +449,10 @@ export default function ScrapingComparisonPage() {
         ) : (
           <>
             {/* Scraping Strategies */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <div className="mb-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
               {scrapingStrategies.map((strategy, index) => (
                 <div
-                  className={`card bg-base-100 shadow-lg border-2 cursor-pointer transition-all duration-200 ${
+                  className={`card bg-base-100 cursor-pointer border-2 shadow-lg transition-all duration-200 ${
                     selectedStrategy === strategy.name
                       ? "border-primary shadow-xl"
                       : "border-base-300 hover:border-primary/50"
@@ -465,16 +465,16 @@ export default function ScrapingComparisonPage() {
                   }
                 >
                   <div className="card-body">
-                    <h3 className="card-title text-lg mb-4">
+                    <h3 className="card-title mb-4 text-lg">
                       {strategy.name}
                       <div
-                        className={`badge ${
-                          strategy.complexity === "Low"
-                            ? "badge-success"
-                            : strategy.complexity === "Medium"
-                              ? "badge-warning"
-                              : "badge-error"
-                        }`}
+                        className={`badge ${(() => {
+                          if (strategy.complexity === "Low")
+                            return "badge-success";
+                          if (strategy.complexity === "Medium")
+                            return "badge-warning";
+                          return "badge-error";
+                        })()}`}
                       >
                         {strategy.complexity}
                       </div>
@@ -482,11 +482,11 @@ export default function ScrapingComparisonPage() {
 
                     <div className="space-y-4">
                       <div>
-                        <div className="flex justify-between text-sm mb-1">
+                        <div className="mb-1 flex justify-between text-sm">
                           <span>Reliability</span>
                           <span>{strategy.reliability}/10</span>
                         </div>
-                        <div className="w-full bg-base-300 rounded-full h-2">
+                        <div className="bg-base-300 h-2 w-full rounded-full">
                           <div
                             className="bg-success h-2 rounded-full"
                             style={{ width: `${strategy.reliability * 10}%` }}
@@ -495,11 +495,11 @@ export default function ScrapingComparisonPage() {
                       </div>
 
                       <div>
-                        <div className="flex justify-between text-sm mb-1">
+                        <div className="mb-1 flex justify-between text-sm">
                           <span>Speed</span>
                           <span>{strategy.speed}/10</span>
                         </div>
-                        <div className="w-full bg-base-300 rounded-full h-2">
+                        <div className="bg-base-300 h-2 w-full rounded-full">
                           <div
                             className="bg-info h-2 rounded-full"
                             style={{ width: `${strategy.speed * 10}%` }}
@@ -509,10 +509,10 @@ export default function ScrapingComparisonPage() {
                     </div>
 
                     <div className="mt-4">
-                      <div className="text-sm font-medium text-success mb-1">
+                      <div className="text-success mb-1 text-sm font-medium">
                         Pros:
                       </div>
-                      <ul className="text-xs space-y-1">
+                      <ul className="space-y-1 text-xs">
                         {strategy.pros.slice(0, 2).map((pro, i) => (
                           <li className="text-base-content/70" key={i}>
                             • {pro}
@@ -526,14 +526,14 @@ export default function ScrapingComparisonPage() {
             </div>
 
             {/* Strategy Comparison Matrix */}
-            <div className="card bg-base-100 shadow-xl border">
+            <div className="card bg-base-100 border shadow-xl">
               <div className="card-body">
-                <h2 className="card-title text-xl mb-6">
+                <h2 className="card-title mb-6 text-xl">
                   Strategy Comparison Matrix
                 </h2>
 
                 <div className="overflow-x-auto">
-                  <table className="table table-zebra w-full">
+                  <table className="table-zebra table w-full">
                     <thead>
                       <tr>
                         <th>Strategy</th>
@@ -549,13 +549,13 @@ export default function ScrapingComparisonPage() {
                           <td className="font-semibold">{strategy.name}</td>
                           <td>
                             <div
-                              className={`badge ${
-                                strategy.complexity === "Low"
-                                  ? "badge-success"
-                                  : strategy.complexity === "Medium"
-                                    ? "badge-warning"
-                                    : "badge-error"
-                              }`}
+                              className={`badge ${(() => {
+                                if (strategy.complexity === "Low")
+                                  return "badge-success";
+                                if (strategy.complexity === "Medium")
+                                  return "badge-warning";
+                                return "badge-error";
+                              })()}`}
                             >
                               {strategy.complexity}
                             </div>
@@ -563,7 +563,7 @@ export default function ScrapingComparisonPage() {
                           <td>
                             <div className="flex items-center gap-2">
                               <span>{strategy.reliability}/10</span>
-                              <div className="w-16 bg-base-300 rounded-full h-2">
+                              <div className="bg-base-300 h-2 w-16 rounded-full">
                                 <div
                                   className="bg-success h-2 rounded-full"
                                   style={{
@@ -576,7 +576,7 @@ export default function ScrapingComparisonPage() {
                           <td>
                             <div className="flex items-center gap-2">
                               <span>{strategy.speed}/10</span>
-                              <div className="w-16 bg-base-300 rounded-full h-2">
+                              <div className="bg-base-300 h-2 w-16 rounded-full">
                                 <div
                                   className="bg-info h-2 rounded-full"
                                   style={{ width: `${strategy.speed * 10}%` }}
@@ -584,7 +584,7 @@ export default function ScrapingComparisonPage() {
                               </div>
                             </div>
                           </td>
-                          <td className="text-sm text-base-content/70">
+                          <td className="text-base-content/70 text-sm">
                             {strategy.pros[0]}
                           </td>
                         </tr>
@@ -598,7 +598,7 @@ export default function ScrapingComparisonPage() {
         )}
 
         {/* Action Buttons */}
-        <div className="mt-8 flex flex-wrap gap-4 justify-center">
+        <div className="mt-8 flex flex-wrap justify-center gap-4">
           <Button variant="primary">Implement Selected Strategy</Button>
           <Button btnStyle="outline">Export Comparison Report</Button>
           <Button btnStyle="outline">View Implementation Guide</Button>

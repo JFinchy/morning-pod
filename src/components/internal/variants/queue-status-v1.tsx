@@ -40,7 +40,7 @@ const StatusIcon = ({ status }: { status: QueueItem["status"] }) => {
   const IconComponent = iconMap[status];
   const colorClass = getStatusColor(status);
 
-  return <IconComponent className={`w-4 h-4 ${colorClass}`} />;
+  return <IconComponent className={`h-4 w-4 ${colorClass}`} />;
 };
 
 export function QueueStatusV1({
@@ -84,11 +84,11 @@ export function QueueStatusV1({
   const remainingCount = Math.max(0, queueItems.length - maxVisible);
 
   return (
-    <div className="card bg-base-100 border border-base-300 shadow-sm">
+    <div className="card bg-base-100 border-base-300 border shadow-sm">
       <div className="card-body p-6">
         {/* Header */}
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-base-content">
+        <div className="mb-4 flex items-center justify-between">
+          <h3 className="text-base-content text-lg font-semibold">
             Generation Queue
           </h3>
           <div className="badge badge-primary badge-outline">
@@ -97,26 +97,26 @@ export function QueueStatusV1({
         </div>
 
         {/* Queue Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <div className="stat p-3 bg-base-200/50 rounded-lg">
+        <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4">
+          <div className="stat bg-base-200/50 rounded-lg p-3">
             <div className="stat-title text-xs">Processing</div>
-            <div className="stat-value text-lg text-primary">
+            <div className="stat-value text-primary text-lg">
               {stats.currentlyProcessing}
             </div>
           </div>
-          <div className="stat p-3 bg-base-200/50 rounded-lg">
+          <div className="stat bg-base-200/50 rounded-lg p-3">
             <div className="stat-title text-xs">Est. Wait</div>
             <div className="stat-value text-lg">
               {formatTimeRemaining(stats.estimatedWaitTime)}
             </div>
           </div>
-          <div className="stat p-3 bg-base-200/50 rounded-lg">
+          <div className="stat bg-base-200/50 rounded-lg p-3">
             <div className="stat-title text-xs">Success Rate</div>
-            <div className="stat-value text-lg text-success">
+            <div className="stat-value text-success text-lg">
               {Math.round(stats.successRate * 100)}%
             </div>
           </div>
-          <div className="stat p-3 bg-base-200/50 rounded-lg">
+          <div className="stat bg-base-200/50 rounded-lg p-3">
             <div className="stat-title text-xs">Cost Today</div>
             <div className="stat-value text-lg">
               ${stats.totalCostToday.toFixed(2)}
@@ -128,7 +128,7 @@ export function QueueStatusV1({
         <div className="space-y-3">
           {visibleItems.map((item, index) => (
             <div
-              className={`p-4 rounded-lg border transition-all duration-300 ${
+              className={`rounded-lg border p-4 transition-all duration-300 ${
                 item.status === "failed"
                   ? "border-error/30 bg-error/5"
                   : item.progress > 0
@@ -138,31 +138,31 @@ export function QueueStatusV1({
               key={item.id}
             >
               {/* Item Header */}
-              <div className="flex items-center justify-between mb-3">
+              <div className="mb-3 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-mono text-base-content/60">
+                    <span className="text-base-content/60 font-mono text-xs">
                       #{index + 1}
                     </span>
                     <StatusIcon status={item.status} />
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <h4 className="font-medium text-sm text-base-content truncate">
+                  <div className="min-w-0 flex-1">
+                    <h4 className="text-base-content truncate text-sm font-medium">
                       {item.episodeTitle}
                     </h4>
-                    <p className="text-xs text-base-content/60">
+                    <p className="text-base-content/60 text-xs">
                       {item.sourceName}
                     </p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="text-xs text-base-content/60">
+                  <div className="text-base-content/60 text-xs">
                     {getStatusLabel(item.status)}
                   </div>
                   {item.estimatedTimeRemaining &&
                     item.status !== "completed" &&
                     item.status !== "failed" && (
-                      <div className="text-xs text-primary">
+                      <div className="text-primary text-xs">
                         {formatTimeRemaining(item.estimatedTimeRemaining)} left
                       </div>
                     )}
@@ -172,11 +172,11 @@ export function QueueStatusV1({
               {/* Progress Bar */}
               {item.progress > 0 && item.status !== "completed" && (
                 <div className="mb-2">
-                  <div className="flex justify-between text-xs mb-1">
+                  <div className="mb-1 flex justify-between text-xs">
                     <span className="text-base-content/60">Progress</span>
                     <span className="text-base-content">{item.progress}%</span>
                   </div>
-                  <div className="w-full bg-base-300 rounded-full h-2">
+                  <div className="bg-base-300 h-2 w-full rounded-full">
                     <div
                       className={`h-2 rounded-full transition-all duration-1000 ease-out ${
                         item.status === "failed" ? "bg-error" : "bg-primary"
@@ -189,14 +189,14 @@ export function QueueStatusV1({
 
               {/* Error Message */}
               {item.status === "failed" && item.errorMessage && (
-                <div className="mt-2 p-2 bg-error/10 rounded text-xs text-error">
+                <div className="bg-error/10 text-error mt-2 rounded p-2 text-xs">
                   {item.errorMessage}
                 </div>
               )}
 
               {/* Cost Display */}
               {item.cost && showDetails && (
-                <div className="mt-2 text-xs text-base-content/60">
+                <div className="text-base-content/60 mt-2 text-xs">
                   Cost: ${item.cost.toFixed(3)}
                 </div>
               )}
@@ -205,8 +205,8 @@ export function QueueStatusV1({
 
           {/* Remaining Items Indicator */}
           {remainingCount > 0 && (
-            <div className="text-center py-2">
-              <span className="text-sm text-base-content/60">
+            <div className="py-2 text-center">
+              <span className="text-base-content/60 text-sm">
                 + {remainingCount} more items in queue
               </span>
             </div>
@@ -214,14 +214,14 @@ export function QueueStatusV1({
 
           {/* Empty State */}
           {queueItems.length === 0 && (
-            <div className="text-center py-8">
-              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-base-200 flex items-center justify-center">
-                <Clock className="w-8 h-8 text-base-content/40" />
+            <div className="py-8 text-center">
+              <div className="bg-base-200 mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full">
+                <Clock className="text-base-content/40 h-8 w-8" />
               </div>
-              <h4 className="font-medium text-base-content mb-2">
+              <h4 className="text-base-content mb-2 font-medium">
                 Queue is empty
               </h4>
-              <p className="text-sm text-base-content/60">
+              <p className="text-base-content/60 text-sm">
                 New episodes will appear here when generation starts
               </p>
             </div>

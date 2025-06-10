@@ -63,16 +63,16 @@ export function EpisodePlayerV2({
 
   if (episode.status !== "ready" || !episode.audioUrl) {
     return (
-      <div className="bg-gradient-to-r from-base-200 to-base-300 rounded-xl p-6">
+      <div className="from-base-200 to-base-300 rounded-xl bg-gradient-to-r p-6">
         <div className="flex items-center gap-4">
-          <div className="w-16 h-16 bg-base-300 rounded-lg flex items-center justify-center">
-            <Play className="w-8 h-8 text-base-content/30" />
+          <div className="bg-base-300 flex h-16 w-16 items-center justify-center rounded-lg">
+            <Play className="text-base-content/30 h-8 w-8" />
           </div>
           <div className="flex-1">
-            <h3 className="font-semibold text-base-content/70">
+            <h3 className="text-base-content/70 font-semibold">
               {episode.title}
             </h3>
-            <p className="text-sm text-base-content/50">
+            <p className="text-base-content/50 text-sm">
               {episode.status === "generating"
                 ? "Generating audio..."
                 : episode.status === "pending"
@@ -88,18 +88,18 @@ export function EpisodePlayerV2({
   }
 
   return (
-    <div className="bg-gradient-to-r from-base-100 to-base-200 rounded-xl overflow-hidden shadow-lg">
+    <div className="from-base-100 to-base-200 overflow-hidden rounded-xl bg-gradient-to-r shadow-lg">
       {/* Now Playing Header */}
-      <div className="bg-primary/10 px-6 py-3 border-b border-primary/20">
+      <div className="bg-primary/10 border-primary/20 border-b px-6 py-3">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center">
-            <div className="w-6 h-6 bg-primary rounded-sm" />
+          <div className="bg-primary/20 flex h-12 w-12 items-center justify-center rounded-lg">
+            <div className="bg-primary h-6 w-6 rounded-sm" />
           </div>
           <div>
-            <h3 className="font-bold text-lg text-base-content">
+            <h3 className="text-base-content text-lg font-bold">
               {episode.title}
             </h3>
-            <p className="text-sm text-primary font-medium">
+            <p className="text-primary text-sm font-medium">
               {episode.source?.name || `Source ${episode.sourceId}`}
             </p>
           </div>
@@ -108,19 +108,19 @@ export function EpisodePlayerV2({
 
       <div className="p-6">
         {/* Secondary Controls */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="mb-6 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <button
               className={`btn btn-ghost btn-sm ${isShuffle ? "text-primary" : "text-base-content/60"}`}
               onClick={() => setIsShuffle(!isShuffle)}
             >
-              <Shuffle className="w-4 h-4" />
+              <Shuffle className="h-4 w-4" />
             </button>
             <button
               className={`btn btn-ghost btn-sm ${isRepeat ? "text-primary" : "text-base-content/60"}`}
               onClick={() => setIsRepeat(!isRepeat)}
             >
-              <Repeat className="w-4 h-4" />
+              <Repeat className="h-4 w-4" />
             </button>
           </div>
 
@@ -128,20 +128,20 @@ export function EpisodePlayerV2({
             className={`btn btn-ghost btn-sm ${isLiked ? "text-error" : "text-base-content/60"}`}
             onClick={() => setIsLiked(!isLiked)}
           >
-            <Heart className={`w-5 h-5 ${isLiked ? "fill-current" : ""}`} />
+            <Heart className={`h-5 w-5 ${isLiked ? "fill-current" : ""}`} />
           </button>
         </div>
 
         {/* Main Play Control */}
-        <div className="flex items-center justify-center mb-6">
+        <div className="mb-6 flex items-center justify-center">
           <button
-            className="btn btn-circle btn-primary btn-lg shadow-lg hover:scale-105 transition-transform"
+            className="btn btn-circle btn-primary btn-lg shadow-lg transition-transform hover:scale-105"
             onClick={onPlayPause}
           >
             {isPlaying ? (
-              <Pause className="w-7 h-7" />
+              <Pause className="h-7 w-7" />
             ) : (
-              <Play className="w-7 h-7 ml-1" />
+              <Play className="ml-1 h-7 w-7" />
             )}
           </button>
         </div>
@@ -149,44 +149,44 @@ export function EpisodePlayerV2({
         {/* Progress Section */}
         <div className="space-y-3">
           <div
-            className="h-1 bg-base-300 rounded-full cursor-pointer relative group"
+            className="bg-base-300 group relative h-1 cursor-pointer rounded-full"
             onClick={handleProgressClick}
             ref={progressBarRef}
           >
             <div
-              className="h-full bg-primary rounded-full transition-all duration-300"
+              className="bg-primary h-full rounded-full transition-all duration-300"
               style={{ width: `${progress}%` }}
             />
             <div
-              className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-primary rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
+              className="bg-primary absolute top-1/2 h-3 w-3 -translate-y-1/2 rounded-full opacity-0 shadow-lg transition-opacity group-hover:opacity-100"
               style={{ left: `calc(${progress}% - 6px)` }}
             />
           </div>
 
-          <div className="flex justify-between text-xs text-base-content/60">
+          <div className="text-base-content/60 flex justify-between text-xs">
             <span>{formatTime(currentTime)}</span>
             <span>{formatTime(duration)}</span>
           </div>
         </div>
 
         {/* Volume Control */}
-        <div className="flex items-center gap-3 mt-6">
-          <Volume2 className="w-5 h-5 text-base-content/60" />
+        <div className="mt-6 flex items-center gap-3">
+          <Volume2 className="text-base-content/60 h-5 w-5" />
           <div
-            className="flex-1 h-1 bg-base-300 rounded-full cursor-pointer relative group"
+            className="bg-base-300 group relative h-1 flex-1 cursor-pointer rounded-full"
             onClick={handleVolumeClick}
             ref={volumeBarRef}
           >
             <div
-              className="h-full bg-primary/70 rounded-full"
+              className="bg-primary/70 h-full rounded-full"
               style={{ width: `${volume * 100}%` }}
             />
             <div
-              className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-primary rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+              className="bg-primary absolute top-1/2 h-3 w-3 -translate-y-1/2 rounded-full opacity-0 transition-opacity group-hover:opacity-100"
               style={{ left: `calc(${volume * 100}% - 6px)` }}
             />
           </div>
-          <span className="text-xs text-base-content/50 min-w-[3ch]">
+          <span className="text-base-content/50 min-w-[3ch] text-xs">
             {Math.round(volume * 100)}
           </span>
         </div>

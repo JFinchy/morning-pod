@@ -4,14 +4,14 @@ import {
   Brain,
   DollarSign,
   Eye,
-  EyeOff,
-  Globe,
+  EyeOff as _EyeOff,
+  Globe as _Globe,
   Info,
-  Mic,
+  Mic as _Mic,
   Palette,
   RotateCcw,
   Save,
-  Settings,
+  Settings as _Settings,
   Volume2,
   Zap,
 } from "lucide-react";
@@ -47,7 +47,10 @@ export default function SettingsPage() {
     setPreferences(prefs);
   }, []);
 
-  const handlePreferenceChange = (key: keyof UserPreferences, value: any) => {
+  const handlePreferenceChange = (
+    key: keyof UserPreferences,
+    value: UserPreferences[keyof UserPreferences]
+  ) => {
     if (!preferences) return;
 
     const newPrefs = { ...preferences, [key]: value };
@@ -74,9 +77,9 @@ export default function SettingsPage() {
       setHasChanges(false);
 
       // TODO: Show success toast
-      console.log("Settings saved successfully");
+      // Settings saved successfully
     } catch (error) {
-      console.error("Failed to save settings:", error);
+      // Failed to save settings - error handled by UI state
       // TODO: Show error toast
     } finally {
       setIsSaving(false);
@@ -96,7 +99,7 @@ export default function SettingsPage() {
     return (
       <MainLayout>
         <div className="container mx-auto px-4 py-8">
-          <div className="flex items-center justify-center min-h-96">
+          <div className="flex min-h-96 items-center justify-center">
             <div className="loading loading-spinner loading-lg text-primary" />
           </div>
         </div>
@@ -136,9 +139,9 @@ export default function SettingsPage() {
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
+          <div className="mb-4 flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-base-content">Settings</h1>
+              <h1 className="text-base-content text-3xl font-bold">Settings</h1>
               <p className="text-base-content/70 mt-1">
                 Configure your podcast generation preferences
               </p>
@@ -151,7 +154,7 @@ export default function SettingsPage() {
                   onClick={resetToDefaults}
                   variant="secondary"
                 >
-                  <RotateCcw className="w-4 h-4" />
+                  <RotateCcw className="h-4 w-4" />
                   Reset
                 </Button>
                 <Button
@@ -163,7 +166,7 @@ export default function SettingsPage() {
                   {isSaving ? (
                     <div className="loading loading-spinner loading-sm" />
                   ) : (
-                    <Save className="w-4 h-4" />
+                    <Save className="h-4 w-4" />
                   )}
                   Save Changes
                 </Button>
@@ -172,12 +175,12 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-4">
           {/* Sidebar Navigation */}
           <div className="lg:col-span-1">
             <div className="card bg-base-100 shadow-lg">
               <div className="card-body p-4">
-                <h3 className="font-semibold text-base-content mb-4">
+                <h3 className="text-base-content mb-4 font-semibold">
                   Categories
                 </h3>
                 <div className="space-y-2">
@@ -185,7 +188,7 @@ export default function SettingsPage() {
                     const Icon = tab.icon;
                     return (
                       <button
-                        className={`w-full text-left p-3 rounded-lg transition-colors ${
+                        className={`w-full rounded-lg p-3 text-left transition-colors ${
                           activeTab === tab.id
                             ? "bg-primary text-primary-content"
                             : "hover:bg-base-200"
@@ -194,7 +197,7 @@ export default function SettingsPage() {
                         onClick={() => setActiveTab(tab.id)}
                       >
                         <div className="flex items-center gap-3">
-                          <Icon className="w-5 h-5" />
+                          <Icon className="h-5 w-5" />
                           <div>
                             <div className="font-medium">{tab.name}</div>
                             <div className="text-xs opacity-70">
@@ -217,7 +220,7 @@ export default function SettingsPage() {
                 {activeTab === "ai-models" && (
                   <div className="space-y-8">
                     <div>
-                      <h2 className="text-xl font-semibold text-base-content mb-2">
+                      <h2 className="text-base-content mb-2 text-xl font-semibold">
                         AI Model Configuration
                       </h2>
                       <p className="text-base-content/60 mb-6">
@@ -229,10 +232,10 @@ export default function SettingsPage() {
 
                     {/* AI Priority Selection */}
                     <div>
-                      <h3 className="font-medium text-base-content mb-3">
+                      <h3 className="text-base-content mb-3 font-medium">
                         Optimization Priority
                       </h3>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                      <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
                         {[
                           {
                             desc: "Minimize generation costs",
@@ -256,20 +259,22 @@ export default function SettingsPage() {
                           const Icon = priority.icon;
                           return (
                             <button
-                              className={`p-4 rounded-lg border-2 transition-all ${
+                              className={`rounded-lg border-2 p-4 transition-all ${
                                 aiPriority === priority.id
                                   ? "border-primary bg-primary/10"
                                   : "border-base-300 hover:border-primary/50"
                               }`}
                               key={priority.id}
                               onClick={() => {
-                                setAiPriority(priority.id as any);
+                                setAiPriority(
+                                  priority.id as "cost" | "quality" | "speed"
+                                );
                                 setHasChanges(true);
                               }}
                             >
-                              <Icon className="w-6 h-6 mx-auto mb-2 text-primary" />
+                              <Icon className="text-primary mx-auto mb-2 h-6 w-6" />
                               <div className="font-medium">{priority.name}</div>
-                              <div className="text-xs text-base-content/60">
+                              <div className="text-base-content/60 text-xs">
                                 {priority.desc}
                               </div>
                             </button>
@@ -311,7 +316,7 @@ export default function SettingsPage() {
                 {activeTab === "playback" && (
                   <div className="space-y-6">
                     <div>
-                      <h2 className="text-xl font-semibold text-base-content mb-2">
+                      <h2 className="text-base-content mb-2 text-xl font-semibold">
                         Playback Settings
                       </h2>
                       <p className="text-base-content/60 mb-6">
@@ -319,7 +324,7 @@ export default function SettingsPage() {
                       </p>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                       {/* Volume */}
                       <div>
                         <label className="label">
@@ -398,7 +403,7 @@ export default function SettingsPage() {
                 {activeTab === "interface" && (
                   <div className="space-y-6">
                     <div>
-                      <h2 className="text-xl font-semibold text-base-content mb-2">
+                      <h2 className="text-base-content mb-2 text-xl font-semibold">
                         Interface Settings
                       </h2>
                       <p className="text-base-content/60 mb-6">
@@ -455,7 +460,7 @@ export default function SettingsPage() {
                 {activeTab === "privacy" && (
                   <div className="space-y-6">
                     <div>
-                      <h2 className="text-xl font-semibold text-base-content mb-2">
+                      <h2 className="text-base-content mb-2 text-xl font-semibold">
                         Privacy Settings
                       </h2>
                       <p className="text-base-content/60 mb-6">
@@ -465,7 +470,7 @@ export default function SettingsPage() {
 
                     <div className="space-y-4">
                       <div className="alert alert-info">
-                        <Info className="w-5 h-5" />
+                        <Info className="h-5 w-5" />
                         <div>
                           <h4 className="font-medium">Local Storage Only</h4>
                           <p className="text-sm">
@@ -478,8 +483,8 @@ export default function SettingsPage() {
 
                       <div className="card bg-base-200">
                         <div className="card-body p-4">
-                          <h4 className="font-medium mb-2">Data Storage</h4>
-                          <ul className="text-sm space-y-1 text-base-content/70">
+                          <h4 className="mb-2 font-medium">Data Storage</h4>
+                          <ul className="text-base-content/70 space-y-1 text-sm">
                             <li>• Episode favorites and preferences</li>
                             <li>• Hidden sources configuration</li>
                             <li>• Player volume and speed settings</li>

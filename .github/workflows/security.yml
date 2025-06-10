@@ -2,35 +2,35 @@ name: Security Checks
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   security:
     runs-on: ubuntu-latest
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Setup Bun
-      uses: oven-sh/setup-bun@v1
-      with:
-        bun-version: latest
-        
-    - name: Install dependencies
-      run: bun install
-      
-    - name: Run security audit
-      run: bun audit
-        
-    - name: Type check
-      run: bun run type-check
-      
-    - name: Lint check
-      run: bun run lint:check
-      
-    - name: Security health check
-      run: bun run test src/tests/unit/security-health.test.ts
-      if: false # Enable when test exists
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Run security audit
+        run: bun audit
+
+      - name: Type check
+        run: bun run type-check
+
+      - name: Lint check
+        run: bun run lint:check
+
+      - name: Security health check
+        run: bun run test src/tests/unit/security-health.test.ts
+        if: false # Enable when test exists

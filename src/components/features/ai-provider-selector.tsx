@@ -2,7 +2,7 @@
 
 import {
   AlertCircle,
-  Brain,
+  Brain as _Brain,
   CheckCircle2,
   Clock,
   DollarSign,
@@ -91,13 +91,13 @@ export function AIProviderSelector({
   const getSpeedIcon = (speed: string) => {
     switch (speed) {
       case "fast":
-        return <Zap className="w-4 h-4 text-success" />;
+        return <Zap className="text-success h-4 w-4" />;
       case "medium":
-        return <Clock className="w-4 h-4 text-warning" />;
+        return <Clock className="text-warning h-4 w-4" />;
       case "slow":
-        return <Clock className="w-4 h-4 text-error" />;
+        return <Clock className="text-error h-4 w-4" />;
       default:
-        return <Clock className="w-4 h-4" />;
+        return <Clock className="h-4 w-4" />;
     }
   };
 
@@ -134,11 +134,11 @@ export function AIProviderSelector({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-semibold text-base-content">
+          <h3 className="text-base-content text-lg font-semibold">
             {type === "summarization" ? "Summarization" : "Text-to-Speech"}{" "}
             Models
           </h3>
-          <p className="text-sm text-base-content/60">
+          <p className="text-base-content/60 text-sm">
             Choose the AI model for{" "}
             {type === "summarization"
               ? "content summarization"
@@ -166,26 +166,26 @@ export function AIProviderSelector({
 
       {/* Recommendations */}
       {recommendations.length > 0 && (
-        <div className="bg-gradient-to-r from-primary/5 to-secondary/5 rounded-lg p-4 border border-primary/20">
-          <div className="flex items-center gap-2 mb-3">
-            <Sparkles className="w-5 h-5 text-primary" />
-            <h4 className="font-medium text-base-content">
+        <div className="from-primary/5 to-secondary/5 border-primary/20 rounded-lg border bg-gradient-to-r p-4">
+          <div className="mb-3 flex items-center gap-2">
+            <Sparkles className="text-primary h-5 w-5" />
+            <h4 className="text-base-content font-medium">
               Recommended for {priority}
             </h4>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
             {recommendations.map((rec, index) => (
               <div
-                className="bg-base-100 rounded-lg p-3 border border-base-300"
+                className="bg-base-100 border-base-300 rounded-lg border p-3"
                 key={rec.model.id}
               >
-                <div className="flex items-center justify-between mb-2">
-                  <span className="font-medium text-sm">{rec.model.name}</span>
+                <div className="mb-2 flex items-center justify-between">
+                  <span className="text-sm font-medium">{rec.model.name}</span>
                   <div className="badge badge-primary badge-sm">
                     #{index + 1}
                   </div>
                 </div>
-                <div className="text-xs text-base-content/60 mb-2">
+                <div className="text-base-content/60 mb-2 text-xs">
                   {rec.reasons.join(", ")}
                 </div>
                 <div className="flex items-center justify-between">
@@ -193,7 +193,7 @@ export function AIProviderSelector({
                     {formatCost(rec.estimatedCost)}
                   </span>
                   <Button
-                    className="text-xs px-2 py-1"
+                    className="px-2 py-1 text-xs"
                     onClick={() => onModelSelect(rec.model.id)}
                     size="sm"
                     variant={
@@ -211,7 +211,7 @@ export function AIProviderSelector({
 
       {/* Models Grid/Comparison */}
       {viewMode === "grid" ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
           {models.map((model) => {
             const isConfigured = isProviderConfigured(model.provider);
             const cost = calculateModelCost(model);
@@ -219,17 +219,17 @@ export function AIProviderSelector({
 
             return (
               <div
-                className={`card bg-base-100 shadow-lg hover:shadow-xl transition-all duration-300 border-0 overflow-hidden ${
-                  selectedModel === model.id ? "ring-2 ring-primary" : ""
+                className={`card bg-base-100 overflow-hidden border-0 shadow-lg transition-all duration-300 hover:shadow-xl ${
+                  selectedModel === model.id ? "ring-primary ring-2" : ""
                 } ${!isConfigured ? "opacity-50" : ""}`}
                 key={model.id}
               >
                 <div className="card-body p-4">
                   {/* Header */}
-                  <div className="flex items-start justify-between mb-3">
+                  <div className="mb-3 flex items-start justify-between">
                     <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h4 className="font-semibold text-base-content">
+                      <div className="mb-1 flex items-center gap-2">
+                        <h4 className="text-base-content font-semibold">
                           {model.name}
                         </h4>
                         {rank && (
@@ -238,19 +238,19 @@ export function AIProviderSelector({
                           </div>
                         )}
                       </div>
-                      <p className="text-xs text-base-content/60 capitalize">
+                      <p className="text-base-content/60 text-xs capitalize">
                         {model.provider}
                       </p>
                     </div>
                     {!isConfigured && (
                       <div title="API key required">
-                        <AlertCircle className="w-4 h-4 text-warning" />
+                        <AlertCircle className="text-warning h-4 w-4" />
                       </div>
                     )}
                   </div>
 
                   {/* Quality & Speed */}
-                  <div className="flex items-center justify-between mb-3">
+                  <div className="mb-3 flex items-center justify-between">
                     <div
                       className={`badge ${getQualityBadge(model.quality)} badge-sm`}
                     >
@@ -265,14 +265,14 @@ export function AIProviderSelector({
                   {/* Cost */}
                   <div className="mb-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs text-base-content/60">
+                      <span className="text-base-content/60 text-xs">
                         Estimated cost:
                       </span>
-                      <span className="font-medium text-sm">
+                      <span className="text-sm font-medium">
                         {formatCost(cost)}
                       </span>
                     </div>
-                    <div className="text-xs text-base-content/50">
+                    <div className="text-base-content/50 text-xs">
                       {type === "summarization"
                         ? `${formatCost(model.costPer1kTokens || 0)}/1k tokens`
                         : `${formatCost(model.costPerCharacter || 0)}/char`}
@@ -305,7 +305,7 @@ export function AIProviderSelector({
                   >
                     {selectedModel === model.id ? (
                       <>
-                        <CheckCircle2 className="w-3 h-3 mr-1" />
+                        <CheckCircle2 className="mr-1 h-3 w-3" />
                         Selected
                       </>
                     ) : (
@@ -320,7 +320,7 @@ export function AIProviderSelector({
       ) : (
         /* Comparison Table */
         <div className="overflow-x-auto">
-          <table className="table table-zebra w-full">
+          <table className="table-zebra table w-full">
             <thead>
               <tr>
                 <th>Model</th>
@@ -372,7 +372,7 @@ export function AIProviderSelector({
                     <td>
                       <div>
                         <div className="font-medium">{formatCost(cost)}</div>
-                        <div className="text-xs text-base-content/50">
+                        <div className="text-base-content/50 text-xs">
                           {type === "summarization"
                             ? `${formatCost(model.costPer1kTokens || 0)}/1k tokens`
                             : `${formatCost(model.costPerCharacter || 0)}/char`}
@@ -414,7 +414,7 @@ export function AIProviderSelector({
       {/* Provider Configuration Notice */}
       {configuredProviders.length < AI_PROVIDERS.length && (
         <div className="alert alert-warning">
-          <Info className="w-5 h-5" />
+          <Info className="h-5 w-5" />
           <div>
             <h4 className="font-medium">Additional providers available</h4>
             <p className="text-sm">

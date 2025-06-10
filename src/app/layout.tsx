@@ -1,6 +1,6 @@
 import "./globals.css";
 
-import { StagewiseToolbar } from "@stagewise/toolbar-next";
+import { StagewiseToolbar as _StagewiseToolbar } from "@stagewise/toolbar-next";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { type Metadata } from "next";

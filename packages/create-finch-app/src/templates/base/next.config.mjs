@@ -1,8 +1,11 @@
-const { getCSP } = require("../tooling/security.config");
+{{#if hasAdvanced}}import { getCSP } from "./config/tooling/security.config.mjs";{{/if}}
 
-/** @type {import('next').NextConfig} */
+/**
+ * Next.js configuration
+ * @type {import('next').NextConfig}
+ */
 const nextConfig = {
-  async headers() {
+{{#if hasAdvanced}}  async headers() {
     return [
       {
         headers: [
@@ -19,11 +22,6 @@ const nextConfig = {
             key: "Referrer-Policy",
             value: "strict-origin-when-cross-origin", // Controls referrer information
           },
-          // Note: X-XSS-Protection is deprecated and can conflict with CSP
-          // {
-          //   key: "X-XSS-Protection",
-          //   value: "1; mode=block",
-          // },
           {
             key: "Permissions-Policy",
             value:
@@ -37,8 +35,8 @@ const nextConfig = {
         source: "/(.*)",
       },
     ];
-  },
-  async rewrites() {
+  },{{/if}}
+{{#if hasAnalytics}}  async rewrites() {
     return [
       {
         destination: "https://us-assets.i.posthog.com/static/:path*",
@@ -56,7 +54,7 @@ const nextConfig = {
   },
   serverExternalPackages: ["posthog-node"],
   // This is required to support PostHog trailing slash API requests
-  skipTrailingSlashRedirect: true,
+  skipTrailingSlashRedirect: true,{{/if}}
   webpack: (config, { isServer }) => {
     if (!isServer) {
       config.resolve.fallback = {
@@ -70,4 +68,4 @@ const nextConfig = {
   },
 };
 
-module.exports = nextConfig;
+export default nextConfig;

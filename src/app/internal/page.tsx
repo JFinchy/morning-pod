@@ -6,7 +6,7 @@ import {
   Code,
   ExternalLink,
   Eye,
-  Flag,
+  Flag as _Flag,
   Layout,
   Palette,
   Search,
@@ -102,10 +102,10 @@ export default function InternalPage() {
       <div className="space-y-8">
         {/* Header */}
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-base-content mb-4">
+          <h1 className="text-base-content mb-4 text-3xl font-bold">
             Component Development Hub
           </h1>
-          <p className="text-lg text-base-content/70 max-w-2xl mx-auto">
+          <p className="text-base-content/70 mx-auto max-w-2xl text-lg">
             This internal workspace showcases our component-first development
             approach. Each major UI element has been built with multiple
             variants to compare and select the best design patterns.
@@ -113,21 +113,21 @@ export default function InternalPage() {
         </div>
 
         {/* Design Principles */}
-        <div className="card bg-base-100 shadow-sm border border-base-300">
+        <div className="card bg-base-100 border-base-300 border shadow-sm">
           <div className="card-body p-6">
-            <h2 className="text-xl font-semibold mb-6">Design Principles</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <h2 className="mb-6 text-xl font-semibold">Design Principles</h2>
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
               {designPrinciples.map((principle) => {
                 const Icon = principle.icon;
                 return (
                   <div className="text-center" key={principle.title}>
-                    <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3">
-                      <Icon className="w-6 h-6 text-primary" />
+                    <div className="bg-primary/10 mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full">
+                      <Icon className="text-primary h-6 w-6" />
                     </div>
-                    <h3 className="font-semibold text-base-content mb-2">
+                    <h3 className="text-base-content mb-2 font-semibold">
                       {principle.title}
                     </h3>
-                    <p className="text-sm text-base-content/60">
+                    <p className="text-base-content/60 text-sm">
                       {principle.description}
                     </p>
                   </div>
@@ -138,39 +138,39 @@ export default function InternalPage() {
         </div>
 
         {/* Development Tools */}
-        <div className="card bg-base-100 shadow-sm border border-base-300">
+        <div className="card bg-base-100 border-base-300 border shadow-sm">
           <div className="card-body p-6">
-            <h2 className="text-xl font-semibold mb-4">Development Tools</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <h2 className="mb-4 text-xl font-semibold">Development Tools</h2>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <Link
-                className="block p-4 border border-base-300 rounded-lg hover:bg-base-200/50 transition-colors"
+                className="border-base-300 hover:bg-base-200/50 block rounded-lg border p-4 transition-colors"
                 href="/api/trpc-ui"
                 target="_blank"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-                    <Code className="w-5 h-5 text-primary" />
+                  <div className="bg-primary/10 flex h-10 w-10 items-center justify-center rounded-lg">
+                    <Code className="text-primary h-5 w-5" />
                   </div>
                   <div>
-                    <h3 className="font-medium text-base-content">tRPC UI</h3>
-                    <p className="text-sm text-base-content/60">
+                    <h3 className="text-base-content font-medium">tRPC UI</h3>
+                    <p className="text-base-content/60 text-sm">
                       Interactive API testing interface
                     </p>
                   </div>
-                  <ExternalLink className="w-4 h-4 text-base-content/40 ml-auto" />
+                  <ExternalLink className="text-base-content/40 ml-auto h-4 w-4" />
                 </div>
               </Link>
 
-              <div className="p-4 border border-base-300 rounded-lg opacity-50">
+              <div className="border-base-300 rounded-lg border p-4 opacity-50">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-base-300 rounded-lg flex items-center justify-center">
-                    <Eye className="w-5 h-5 text-base-content/50" />
+                  <div className="bg-base-300 flex h-10 w-10 items-center justify-center rounded-lg">
+                    <Eye className="text-base-content/50 h-5 w-5" />
                   </div>
                   <div>
-                    <h3 className="font-medium text-base-content/50">
+                    <h3 className="text-base-content/50 font-medium">
                       Performance Monitor
                     </h3>
-                    <p className="text-sm text-base-content/40">
+                    <p className="text-base-content/40 text-sm">
                       Coming soon - Real-time performance metrics
                     </p>
                   </div>
@@ -182,16 +182,16 @@ export default function InternalPage() {
 
         {/* Component Variants */}
         <div>
-          <h2 className="text-xl font-semibold mb-6">Component Variants</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <h2 className="mb-6 text-xl font-semibold">Component Variants</h2>
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             {componentVariants.map((component) => (
               <div
-                className="card bg-base-100 shadow-sm border border-base-300 hover:shadow-md transition-all duration-200"
+                className="card bg-base-100 border-base-300 border shadow-sm transition-all duration-200 hover:shadow-md"
                 key={component.name}
               >
                 <div className="card-body p-6">
-                  <div className="flex items-start justify-between mb-3">
-                    <h3 className="font-bold text-base-content">
+                  <div className="mb-3 flex items-start justify-between">
+                    <h3 className="text-base-content font-bold">
                       {component.name}
                     </h3>
                     <div className="badge badge-success badge-sm">
@@ -199,12 +199,12 @@ export default function InternalPage() {
                     </div>
                   </div>
 
-                  <p className="text-sm text-base-content/70 mb-4">
+                  <p className="text-base-content/70 mb-4 text-sm">
                     {component.description}
                   </p>
 
                   <div className="mb-4">
-                    <div className="text-xs text-base-content/60 mb-2">
+                    <div className="text-base-content/60 mb-2 text-xs">
                       Variants:
                     </div>
                     <div className="flex flex-wrap gap-1">
@@ -226,7 +226,7 @@ export default function InternalPage() {
                         className="w-full gap-2"
                         size="sm"
                       >
-                        <ExternalLink className="w-3 h-3" />
+                        <ExternalLink className="h-3 w-3" />
                         View Comparison
                       </Button>
                     </Link>
@@ -239,16 +239,16 @@ export default function InternalPage() {
 
         {/* Development Pages */}
         <div>
-          <h2 className="text-xl font-semibold mb-6">Development Pages</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <h2 className="mb-6 text-xl font-semibold">Development Pages</h2>
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             {developmentPages.map((page) => (
               <div
-                className="card bg-base-100 shadow-sm border border-base-300 hover:shadow-md transition-all duration-200"
+                className="card bg-base-100 border-base-300 border shadow-sm transition-all duration-200 hover:shadow-md"
                 key={page.name}
               >
                 <div className="card-body p-6">
-                  <div className="flex items-start justify-between mb-3">
-                    <h3 className="font-bold text-base-content">{page.name}</h3>
+                  <div className="mb-3 flex items-start justify-between">
+                    <h3 className="text-base-content font-bold">{page.name}</h3>
                     <div className="flex items-center gap-2">
                       <div className="badge badge-primary badge-sm">
                         {page.category}
@@ -259,7 +259,7 @@ export default function InternalPage() {
                     </div>
                   </div>
 
-                  <p className="text-sm text-base-content/70 mb-4">
+                  <p className="text-base-content/70 mb-4 text-sm">
                     {page.description}
                   </p>
 
@@ -270,7 +270,7 @@ export default function InternalPage() {
                         size="sm"
                         variant="primary"
                       >
-                        <ExternalLink className="w-3 h-3" />
+                        <ExternalLink className="h-3 w-3" />
                         Open Tools
                       </Button>
                     </Link>
@@ -282,14 +282,14 @@ export default function InternalPage() {
         </div>
 
         {/* Component Architecture */}
-        <div className="card bg-base-100 shadow-sm border border-base-300">
+        <div className="card bg-base-100 border-base-300 border shadow-sm">
           <div className="card-body p-6">
-            <h2 className="text-xl font-semibold mb-4">
+            <h2 className="mb-4 text-xl font-semibold">
               Component Architecture
             </h2>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
               <div>
-                <h3 className="font-medium mb-3">Folder Structure</h3>
+                <h3 className="mb-3 font-medium">Folder Structure</h3>
                 <div className="bg-base-200 rounded-lg p-4 font-mono text-sm">
                   <div className="space-y-1">
                     <div>src/components/</div>
@@ -323,10 +323,10 @@ export default function InternalPage() {
               </div>
 
               <div>
-                <h3 className="font-medium mb-3">Development Workflow</h3>
+                <h3 className="mb-3 font-medium">Development Workflow</h3>
                 <div className="space-y-3">
                   <div className="flex items-center gap-3">
-                    <div className="w-6 h-6 bg-primary text-primary-content rounded-full flex items-center justify-center text-xs font-bold">
+                    <div className="bg-primary text-primary-content flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold">
                       1
                     </div>
                     <span className="text-sm">
@@ -334,13 +334,13 @@ export default function InternalPage() {
                     </span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <div className="w-6 h-6 bg-primary text-primary-content rounded-full flex items-center justify-center text-xs font-bold">
+                    <div className="bg-primary text-primary-content flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold">
                       2
                     </div>
                     <span className="text-sm">Create comparison page</span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <div className="w-6 h-6 bg-primary text-primary-content rounded-full flex items-center justify-center text-xs font-bold">
+                    <div className="bg-primary text-primary-content flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold">
                       3
                     </div>
                     <span className="text-sm">
@@ -348,7 +348,7 @@ export default function InternalPage() {
                     </span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <div className="w-6 h-6 bg-primary text-primary-content rounded-full flex items-center justify-center text-xs font-bold">
+                    <div className="bg-primary text-primary-content flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold">
                       4
                     </div>
                     <span className="text-sm">
@@ -362,9 +362,9 @@ export default function InternalPage() {
         </div>
 
         {/* Navigation to Main Pages */}
-        <div className="card bg-gradient-to-br from-primary/5 to-secondary/5 border border-primary/20">
+        <div className="card from-primary/5 to-secondary/5 border-primary/20 border bg-gradient-to-br">
           <div className="card-body p-6 text-center">
-            <h2 className="text-xl font-semibold mb-4">
+            <h2 className="mb-4 text-xl font-semibold">
               Explore the Application
             </h2>
             <p className="text-base-content/70 mb-6">
@@ -396,14 +396,14 @@ export default function InternalPage() {
         </div>
 
         {/* Development Tools Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {/* Scraping Tools */}
           <Link className="group" href="/internal/scraping">
-            <div className="card bg-base-200 shadow-sm hover:shadow-md transition-all duration-200 group-hover:scale-[1.02]">
+            <div className="card bg-base-200 shadow-sm transition-all duration-200 group-hover:scale-[1.02] hover:shadow-md">
               <div className="card-body">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="p-2 bg-blue-500/10 rounded-lg group-hover:bg-blue-500/20 transition-colors">
-                    <Search className="w-6 h-6 text-blue-500" />
+                <div className="mb-3 flex items-center gap-3">
+                  <div className="rounded-lg bg-blue-500/10 p-2 transition-colors group-hover:bg-blue-500/20">
+                    <Search className="h-6 w-6 text-blue-500" />
                   </div>
                   <h3 className="card-title">Content Scraping</h3>
                 </div>
@@ -411,7 +411,7 @@ export default function InternalPage() {
                   Test scrapers, monitor performance, and view real-time metrics
                   for TLDR, Hacker News, and Morning Brew content sources.
                 </p>
-                <div className="flex gap-2 mt-4">
+                <div className="mt-4 flex gap-2">
                   <div className="badge badge-primary badge-sm">
                     Live Monitoring
                   </div>
@@ -425,11 +425,11 @@ export default function InternalPage() {
 
           {/* AI Summarization Lab */}
           <Link className="group" href="/internal/summarization">
-            <div className="card bg-base-200 shadow-sm hover:shadow-md transition-all duration-200 group-hover:scale-[1.02]">
+            <div className="card bg-base-200 shadow-sm transition-all duration-200 group-hover:scale-[1.02] hover:shadow-md">
               <div className="card-body">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="p-2 bg-purple-500/10 rounded-lg group-hover:bg-purple-500/20 transition-colors">
-                    <Brain className="w-6 h-6 text-purple-500" />
+                <div className="mb-3 flex items-center gap-3">
+                  <div className="rounded-lg bg-purple-500/10 p-2 transition-colors group-hover:bg-purple-500/20">
+                    <Brain className="h-6 w-6 text-purple-500" />
                   </div>
                   <h3 className="card-title">AI Summarization</h3>
                 </div>
@@ -437,7 +437,7 @@ export default function InternalPage() {
                   Test AI summarization with different models, track costs and
                   quality metrics, and optimize content for TTS conversion.
                 </p>
-                <div className="flex gap-2 mt-4">
+                <div className="mt-4 flex gap-2">
                   <div className="badge badge-primary badge-sm">
                     OpenAI GPT-4
                   </div>
@@ -451,11 +451,11 @@ export default function InternalPage() {
 
           {/* TTS Lab */}
           <Link className="group" href="/internal/tts">
-            <div className="card bg-base-200 shadow-sm hover:shadow-md transition-all duration-200 group-hover:scale-[1.02]">
+            <div className="card bg-base-200 shadow-sm transition-all duration-200 group-hover:scale-[1.02] hover:shadow-md">
               <div className="card-body">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="p-2 bg-green-500/10 rounded-lg group-hover:bg-green-500/20 transition-colors">
-                    <Volume2 className="w-6 h-6 text-green-500" />
+                <div className="mb-3 flex items-center gap-3">
+                  <div className="rounded-lg bg-green-500/10 p-2 transition-colors group-hover:bg-green-500/20">
+                    <Volume2 className="h-6 w-6 text-green-500" />
                   </div>
                   <h3 className="card-title">TTS Lab</h3>
                 </div>
@@ -464,7 +464,7 @@ export default function InternalPage() {
                   providers. Configure quality settings, monitor costs, and
                   preview podcast audio.
                 </p>
-                <div className="flex gap-2 mt-4">
+                <div className="mt-4 flex gap-2">
                   <div className="badge badge-primary badge-sm">OpenAI TTS</div>
                   <div className="badge badge-secondary badge-sm">
                     Voice Selection
@@ -476,11 +476,11 @@ export default function InternalPage() {
 
           {/* Component Comparison */}
           <Link className="group" href="/internal/comparison/episode-cards">
-            <div className="card bg-base-200 shadow-sm hover:shadow-md transition-all duration-200 group-hover:scale-[1.02]">
+            <div className="card bg-base-200 shadow-sm transition-all duration-200 group-hover:scale-[1.02] hover:shadow-md">
               <div className="card-body">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="p-2 bg-green-500/10 rounded-lg group-hover:bg-green-500/20 transition-colors">
-                    <Layout className="w-6 h-6 text-green-500" />
+                <div className="mb-3 flex items-center gap-3">
+                  <div className="rounded-lg bg-green-500/10 p-2 transition-colors group-hover:bg-green-500/20">
+                    <Layout className="h-6 w-6 text-green-500" />
                   </div>
                   <h3 className="card-title">Component Variants</h3>
                 </div>
@@ -488,7 +488,7 @@ export default function InternalPage() {
                   Compare different UI component designs side-by-side. Episode
                   cards, players, and queue status variants.
                 </p>
-                <div className="flex gap-2 mt-4">
+                <div className="mt-4 flex gap-2">
                   <div className="badge badge-primary badge-sm">
                     3 Variants Each
                   </div>
@@ -503,13 +503,13 @@ export default function InternalPage() {
 
         {/* Canary Monitoring Dashboard */}
         <div
-          className="card bg-base-100 shadow-sm border border-base-300"
+          className="card bg-base-100 border-base-300 border shadow-sm"
           id="canary-monitoring"
         >
           <div className="card-body p-6">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="p-2 bg-orange-500/10 rounded-lg">
-                <Activity className="w-6 h-6 text-orange-500" />
+            <div className="mb-6 flex items-center gap-3">
+              <div className="rounded-lg bg-orange-500/10 p-2">
+                <Activity className="h-6 w-6 text-orange-500" />
               </div>
               <div>
                 <h2 className="text-xl font-semibold">

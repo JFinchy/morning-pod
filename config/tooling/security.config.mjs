@@ -1,5 +1,5 @@
 /**
- * Security configuration (CommonJS for Next.js compatibility)
+ * Security configuration
  */
 
 const securityConfig = {
@@ -85,7 +85,4 @@ function getCSP() {
   return cspRules.join("; ");
 }
 
-module.exports = {
-  getCSP,
-  securityConfig,
-};
+export { getCSP, securityConfig };

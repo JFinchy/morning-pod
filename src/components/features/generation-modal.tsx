@@ -309,7 +309,7 @@ export function GenerationModal({
         )}
       </DialogTrigger>
 
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold">
             Generate New Episode
@@ -403,15 +403,15 @@ export function GenerationModal({
 
           {/* Progress Display */}
           {progress && (
-            <div className="space-y-4 p-4 bg-base-200 rounded-lg">
+            <div className="bg-base-200 space-y-4 rounded-lg p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   {progress.stage === "error" ? (
-                    <AlertCircle className="w-5 h-5 text-error" />
+                    <AlertCircle className="text-error h-5 w-5" />
                   ) : progress.stage === "complete" ? (
-                    <CheckCircle className="w-5 h-5 text-success" />
+                    <CheckCircle className="text-success h-5 w-5" />
                   ) : (
-                    <Loader2 className="w-5 h-5 animate-spin" />
+                    <Loader2 className="h-5 w-5 animate-spin" />
                   )}
                   <span
                     className={`font-medium ${getStageInfo(progress.stage).color}`}
@@ -429,10 +429,10 @@ export function GenerationModal({
               <div className="text-sm">
                 <p>{progress.message}</p>
                 {progress.details && (
-                  <p className="text-gray-500 mt-1">{progress.details}</p>
+                  <p className="mt-1 text-gray-500">{progress.details}</p>
                 )}
                 {progress.cost && (
-                  <p className="text-gray-500 mt-1">
+                  <p className="mt-1 text-gray-500">
                     Cost so far: ${progress.cost.toFixed(3)}
                   </p>
                 )}
@@ -442,9 +442,9 @@ export function GenerationModal({
 
           {/* Generated Episode Display */}
           {generatedEpisode && (
-            <div className="space-y-4 p-4 bg-success/10 border border-success/20 rounded-lg">
-              <div className="flex items-center gap-2 text-success">
-                <CheckCircle className="w-5 h-5" />
+            <div className="bg-success/10 border-success/20 space-y-4 rounded-lg border p-4">
+              <div className="text-success flex items-center gap-2">
+                <CheckCircle className="h-5 w-5" />
                 <span className="font-medium">
                   Episode Generated Successfully!
                 </span>
@@ -452,10 +452,10 @@ export function GenerationModal({
 
               <div className="space-y-3">
                 <div>
-                  <h3 className="font-bold text-lg">
+                  <h3 className="text-lg font-bold">
                     {generatedEpisode.title}
                   </h3>
-                  <p className="text-sm text-gray-600 mt-1">
+                  <p className="mt-1 text-sm text-gray-600">
                     {generatedEpisode.summary.slice(0, 150)}...
                   </p>
                 </div>
@@ -469,15 +469,15 @@ export function GenerationModal({
 
                 <div className="flex gap-2">
                   <Button className="btn btn-primary btn-sm" size="sm">
-                    <Play className="w-4 h-4 mr-1" />
+                    <Play className="mr-1 h-4 w-4" />
                     Play
                   </Button>
                   <Button className="btn btn-outline btn-sm" size="sm">
-                    <Download className="w-4 h-4 mr-1" />
+                    <Download className="mr-1 h-4 w-4" />
                     Download
                   </Button>
                   <Button className="btn btn-outline btn-sm" size="sm">
-                    <Share className="w-4 h-4 mr-1" />
+                    <Share className="mr-1 h-4 w-4" />
                     Share
                   </Button>
                 </div>
@@ -503,7 +503,7 @@ export function GenerationModal({
               >
                 {isGenerating ? (
                   <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Generating...
                   </>
                 ) : (
