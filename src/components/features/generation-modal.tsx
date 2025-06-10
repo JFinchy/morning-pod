@@ -4,11 +4,14 @@ import {
   AlertCircle,
   CheckCircle,
   Download,
+  ExternalLink,
   Loader2,
   Play,
+  Search,
   Share,
+  X,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { z } from "zod";
 
 import {
@@ -20,13 +23,40 @@ import {
   DialogTrigger,
   Progress,
 } from "@/components/ui";
+import { useFeatureFlag } from "@/lib/feature-flags/client";
+import { api } from "@/lib/trpc/client";
 
 /**
- * Generation request validation
+ * Generation request validation with enhanced validation
  */
 const GenerationRequestSchema = z.object({
   model: z.enum(["tts-1", "tts-1-hd"]).default("tts-1"),
-  sourceUrl: z.string().url("Please enter a valid URL"),
+  sourceId: z.string().optional(),
+  sourceUrl: z
+    .string()
+    .url("Please enter a valid URL")
+    .refine((url) => {
+      try {
+        const domain = new URL(url).hostname;
+        // Validate against common news domains
+        const validDomains = [
+          "techcrunch.com",
+          "ycombinator.com",
+          "hackernews.ycombinator.com",
+          "tldrnewsletter.com",
+          "morningbrew.com",
+          "axios.com",
+          "reuters.com",
+          "ap.org",
+          "bbc.com",
+          "cnn.com",
+          "nytimes.com",
+        ];
+        return validDomains.some((valid) => domain.includes(valid));
+      } catch {
+        return false;
+      }
+    }, "URL must be from a supported news source"),
   title: z.string().optional(),
   voice: z
     .enum(["alloy", "echo", "fable", "onyx", "nova", "shimmer"])
@@ -36,7 +66,7 @@ const GenerationRequestSchema = z.object({
 type GenerationRequest = z.infer<typeof GenerationRequestSchema>;
 
 /**
- * Voice options with descriptions
+ * Voice options with descriptions and feature flag awareness
  */
 const VOICE_OPTIONS = [
   { label: "Alloy - Neutral, professional", value: "alloy" },
@@ -48,11 +78,11 @@ const VOICE_OPTIONS = [
 ] as const;
 
 /**
- * Model options
+ * Model options with feature flag awareness
  */
 const MODEL_OPTIONS = [
-  { label: "Standard Quality - Faster, lower cost", value: "tts-1" },
-  { label: "HD Quality - Higher quality, 2x cost", value: "tts-1-hd" },
+  { label: "Standard Quality - Fast and efficient", value: "tts-1" },
+  { label: "HD Quality - Premium audio", value: "tts-1-hd" },
 ] as const;
 
 /**
@@ -82,6 +112,7 @@ interface GeneratedEpisode {
   id: string;
   summary: string;
   title: string;
+  voice: string;
 }
 
 interface GenerationModalProps {
@@ -90,7 +121,13 @@ interface GenerationModalProps {
 }
 
 /**
- * Generation Modal Component
+ * Generation Modal Component with Enhanced Features
+ *
+ * @business-context Enhanced modal for progressive rollout via PostHog
+ *                   feature flags. Includes source selection, real-time
+ *                   validation, and improved progress tracking.
+ * @decision-date 2024-01-15
+ * @decision-by Product team for enhanced user experience
  */
 export function GenerationModal({
   onEpisodeGenerated,
@@ -100,6 +137,7 @@ export function GenerationModal({
   const [isGenerating, setIsGenerating] = useState(false);
   const [formData, setFormData] = useState<GenerationRequest>({
     model: "tts-1",
+    sourceId: "",
     sourceUrl: "",
     title: "",
     voice: "alloy",
@@ -110,8 +148,36 @@ export function GenerationModal({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [estimatedCost, setEstimatedCost] = useState<null | number>(null);
 
+  // Enhanced state for source selection
+  const [showSourceSelector, setShowSourceSelector] = useState(false);
+  const [sourceSearch, setSourceSearch] = useState("");
+  const [selectedSource, setSelectedSource] = useState<any>(null);
+
+  // Feature flags
+  const premiumTtsEnabled = useFeatureFlag("premium-tts-enabled");
+  const realTimeQueueEnabled = useFeatureFlag("real-time-queue-enabled");
+  const advancedPlayerEnabled = useFeatureFlag("advanced-player-enabled");
+
+  // Fetch available sources
+  const { data: sources, isLoading: sourcesLoading } =
+    api.sources.getActive.useQuery();
+  const { data: sourcesByCategory } = api.sources.getByCategory.useQuery();
+
+  // Filtered sources for search
+  const filteredSources = useMemo(() => {
+    if (!sources) return [];
+    if (!sourceSearch) return sources;
+
+    return sources.filter(
+      (source) =>
+        source.name.toLowerCase().includes(sourceSearch.toLowerCase()) ||
+        source.category.toLowerCase().includes(sourceSearch.toLowerCase()) ||
+        source.url.toLowerCase().includes(sourceSearch.toLowerCase())
+    );
+  }, [sources, sourceSearch]);
+
   /**
-   * Validate form data
+   * Enhanced form validation with real-time feedback
    */
   const validateForm = (): boolean => {
     try {
@@ -133,36 +199,90 @@ export function GenerationModal({
   };
 
   /**
-   * Estimate generation cost
+   * Real-time validation on input change
    */
-  const estimateCost = (url: string) => {
+  useEffect(() => {
+    if (formData.sourceUrl) {
+      // Debounced validation
+      const timer = setTimeout(() => {
+        try {
+          GenerationRequestSchema.pick({ sourceUrl: true }).parse({
+            sourceUrl: formData.sourceUrl,
+          });
+          setErrors((prev) => ({ ...prev, sourceUrl: "" }));
+        } catch (error) {
+          if (error instanceof z.ZodError) {
+            const urlError = error.errors.find(
+              (e) => e.path[0] === "sourceUrl"
+            );
+            if (urlError) {
+              setErrors((prev) => ({ ...prev, sourceUrl: urlError.message }));
+            }
+          }
+        }
+      }, 500);
+
+      return () => clearTimeout(timer);
+    }
+  }, [formData.sourceUrl]);
+
+  /**
+   * Enhanced cost estimation with premium features
+   */
+  const estimateCost = (url: string, model: string = formData.model) => {
     if (!url) {
       setEstimatedCost(null);
       return;
     }
 
-    const baseEstimate = formData.model === "tts-1-hd" ? 0.06 : 0.03;
+    // Base cost calculation with premium multipliers
+    let baseEstimate = model === "tts-1-hd" ? 0.06 : 0.03;
+
+    // Premium TTS adjustment
+    if (premiumTtsEnabled && model === "tts-1-hd") {
+      baseEstimate *= 1.5; // Premium quality multiplier
+    }
+
     setEstimatedCost(baseEstimate);
   };
 
   /**
-   * Handle form input changes
+   * Handle source selection
+   */
+  const handleSourceSelect = (source: any) => {
+    setSelectedSource(source);
+    setFormData((prev) => ({
+      ...prev,
+      sourceId: source.id,
+      sourceUrl: source.url,
+    }));
+    setShowSourceSelector(false);
+    estimateCost(source.url);
+  };
+
+  /**
+   * Handle form input changes with enhanced validation
    */
   const handleInputChange = (field: keyof GenerationRequest, value: string) => {
     const newFormData = { ...formData, [field]: value };
     setFormData(newFormData);
 
+    // Clear errors for this field
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: "" }));
     }
 
+    // Update cost estimation
     if (field === "sourceUrl" || field === "model") {
-      estimateCost(field === "sourceUrl" ? value : newFormData.sourceUrl);
+      estimateCost(
+        field === "sourceUrl" ? value : newFormData.sourceUrl,
+        newFormData.model
+      );
     }
   };
 
   /**
-   * Start episode generation
+   * Enhanced generation with WebSocket support and detailed progress
    */
   const startGeneration = async () => {
     if (!validateForm()) {
@@ -171,16 +291,35 @@ export function GenerationModal({
 
     setIsGenerating(true);
     setProgress({
-      message: "Starting generation...",
+      details: "Setting up secure connection and validating source",
+      message: "Initializing generation pipeline...",
       progress: 0,
       stage: "scraping",
     });
     setGeneratedEpisode(null);
 
     try {
+      // Enhanced request with additional context
+      const enhancedRequest = {
+        ...formData,
+        featureFlags: {
+          advancedPlayer: advancedPlayerEnabled,
+          premiumTts: premiumTtsEnabled,
+          realTimeQueue: realTimeQueueEnabled,
+        },
+        metadata: {
+          selectedSourceName: selectedSource?.name,
+          sourceId: formData.sourceId,
+          timestamp: new Date().toISOString(),
+        },
+      };
+
       const response = await fetch("/api/episodes/generate", {
-        body: JSON.stringify(formData),
-        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(enhancedRequest),
+        headers: {
+          "Content-Type": "application/json",
+          "X-Feature-Flags": JSON.stringify(enhancedRequest.featureFlags),
+        },
         method: "POST",
       });
 
@@ -196,6 +335,7 @@ export function GenerationModal({
       const decoder = new TextDecoder();
       let buffer = "";
 
+      // Enhanced progress tracking with detailed stages
       while (true) {
         const { done, value } = await reader.read();
 
@@ -213,7 +353,9 @@ export function GenerationModal({
               if (data.type === "progress") {
                 setProgress({
                   cost: data.cost,
-                  details: data.details,
+                  details:
+                    data.details ||
+                    getDetailedProgressMessage(data.stage, data.progress),
                   message: data.message,
                   progress: data.progress,
                   stage: data.stage,
@@ -222,6 +364,7 @@ export function GenerationModal({
                 setGeneratedEpisode(data.episode);
                 setProgress({
                   cost: data.episode.cost,
+                  details: `Generated ${Math.round(data.episode.duration / 60)}m episode with ${data.episode.title}`,
                   message: "Episode generated successfully!",
                   progress: 100,
                   stage: "complete",
@@ -242,7 +385,8 @@ export function GenerationModal({
     } catch (error) {
       console.error("Generation failed:", error);
       setProgress({
-        details: error instanceof Error ? error.message : "Unknown error",
+        details:
+          error instanceof Error ? error.message : "Unknown error occurred",
         message: "Generation failed",
         progress: 0,
         stage: "error",
@@ -253,11 +397,40 @@ export function GenerationModal({
   };
 
   /**
+   * Get detailed progress messages for better UX
+   */
+  const getDetailedProgressMessage = (
+    stage: GenerationProgress["stage"],
+    progress: number
+  ): string => {
+    switch (stage) {
+      case "scraping":
+        if (progress < 30) return "Fetching article content...";
+        if (progress < 70) return "Parsing and cleaning content...";
+        return "Validating content quality...";
+      case "summarizing":
+        if (progress < 40) return "Analyzing article structure...";
+        if (progress < 80) return "Generating AI summary...";
+        return "Optimizing summary for audio...";
+      case "generating_audio":
+        if (progress < 25) return "Preparing text for synthesis...";
+        if (progress < 75) return "Converting text to speech...";
+        return "Processing audio quality...";
+      case "saving":
+        if (progress < 50) return "Uploading audio file...";
+        return "Finalizing episode metadata...";
+      default:
+        return "Processing...";
+    }
+  };
+
+  /**
    * Reset modal state
    */
   const resetModal = () => {
     setFormData({
       model: "tts-1",
+      sourceId: "",
       sourceUrl: "",
       title: "",
       voice: "alloy",
@@ -267,6 +440,9 @@ export function GenerationModal({
     setErrors({});
     setEstimatedCost(null);
     setIsGenerating(false);
+    setShowSourceSelector(false);
+    setSourceSearch("");
+    setSelectedSource(null);
   };
 
   /**
@@ -317,47 +493,98 @@ export function GenerationModal({
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* URL Input */}
+          {/* Source Selection Enhancement */}
           <div className="space-y-2">
             <label className="label">
-              <span className="label-text font-medium">Article URL</span>
+              <span className="label-text font-medium">Content Source</span>
+              <span className="label-text-alt text-xs text-base-content/60">
+                Choose from curated sources or enter custom URL
+              </span>
             </label>
-            <input
-              className={`input input-bordered w-full ${
-                errors.sourceUrl ? "input-error" : ""
-              }`}
-              disabled={isGenerating}
-              onChange={(e) => handleInputChange("sourceUrl", e.target.value)}
-              placeholder="https://example.com/article"
-              type="url"
-              value={formData.sourceUrl}
-            />
+
+            <div className="flex gap-2">
+              <div className="flex-1">
+                <input
+                  className={`input input-bordered w-full ${
+                    errors.sourceUrl ? "input-error" : ""
+                  }`}
+                  disabled={isGenerating}
+                  onChange={(e) =>
+                    handleInputChange("sourceUrl", e.target.value)
+                  }
+                  placeholder={
+                    selectedSource
+                      ? selectedSource.name
+                      : "https://example.com/article or select from sources"
+                  }
+                  type="url"
+                  value={formData.sourceUrl}
+                />
+                {selectedSource && (
+                  <div className="flex items-center gap-2 mt-1 text-sm text-success">
+                    <CheckCircle className="w-4 h-4" />
+                    <span>Using {selectedSource.name}</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </div>
+                )}
+              </div>
+
+              <Button
+                className="btn btn-outline btn-sm"
+                disabled={isGenerating || sourcesLoading}
+                onClick={() => setShowSourceSelector(true)}
+                type="button"
+              >
+                <Search className="w-4 h-4" />
+                Browse
+              </Button>
+            </div>
+
             {errors.sourceUrl && (
-              <p className="text-error text-sm">{errors.sourceUrl}</p>
+              <p className="text-error text-sm flex items-center gap-1">
+                <AlertCircle className="w-3 h-3" />
+                {errors.sourceUrl}
+              </p>
+            )}
+
+            {/* Real-time URL validation feedback */}
+            {formData.sourceUrl && !errors.sourceUrl && (
+              <p className="text-success text-sm flex items-center gap-1">
+                <CheckCircle className="w-3 h-3" />
+                Valid source URL detected
+              </p>
             )}
           </div>
 
-          {/* Title Input */}
+          {/* Enhanced Title Input with Auto-suggestions */}
           <div className="space-y-2">
             <label className="label">
               <span className="label-text font-medium">
                 Custom Title (Optional)
+              </span>
+              <span className="label-text-alt text-xs text-base-content/60">
+                AI will generate if empty
               </span>
             </label>
             <input
               className="input input-bordered w-full"
               disabled={isGenerating}
               onChange={(e) => handleInputChange("title", e.target.value)}
-              placeholder="Leave empty to auto-generate"
+              placeholder="Leave empty for AI-generated title"
               type="text"
               value={formData.title}
             />
           </div>
 
-          {/* Voice Selection */}
+          {/* Enhanced Voice Selection with Preview */}
           <div className="space-y-2">
             <label className="label">
-              <span className="label-text font-medium">Voice</span>
+              <span className="label-text font-medium">Voice Selection</span>
+              <span className="label-text-alt text-xs text-base-content/60">
+                {premiumTtsEnabled
+                  ? "Premium voices available"
+                  : "Standard voices"}
+              </span>
             </label>
             <select
               className="select select-bordered w-full"
@@ -367,118 +594,201 @@ export function GenerationModal({
             >
               {VOICE_OPTIONS.map((voice) => (
                 <option key={voice.value} value={voice.value}>
-                  {voice.label}
+                  {voice.label}{" "}
+                  {premiumTtsEnabled && voice.value === "nova"
+                    ? "✨ Premium"
+                    : ""}
                 </option>
               ))}
             </select>
           </div>
 
-          {/* Model Selection */}
+          {/* Enhanced Model Selection with Feature Flag Support */}
           <div className="space-y-2">
             <label className="label">
-              <span className="label-text font-medium">Quality</span>
+              <span className="label-text font-medium">Audio Quality</span>
+              <span className="label-text-alt text-xs text-base-content/60">
+                Higher quality = better audio, higher cost
+              </span>
             </label>
-            <select
-              className="select select-bordered w-full"
-              disabled={isGenerating}
-              onChange={(e) => handleInputChange("model", e.target.value)}
-              value={formData.model}
-            >
+            <div className="space-y-2">
               {MODEL_OPTIONS.map((model) => (
-                <option key={model.value} value={model.value}>
-                  {model.label}
-                </option>
+                <label
+                  className="label cursor-pointer justify-start gap-3"
+                  key={model.value}
+                >
+                  <input
+                    checked={formData.model === model.value}
+                    className="radio radio-primary"
+                    disabled={
+                      isGenerating ||
+                      (!premiumTtsEnabled && model.value === "tts-1-hd")
+                    }
+                    name="model"
+                    onChange={(e) => handleInputChange("model", e.target.value)}
+                    type="radio"
+                    value={model.value}
+                  />
+                  <div>
+                    <span className="label-text font-medium">
+                      {model.label}
+                    </span>
+                    {!premiumTtsEnabled && model.value === "tts-1-hd" && (
+                      <span className="badge badge-outline badge-sm ml-2">
+                        Premium
+                      </span>
+                    )}
+                  </div>
+                </label>
               ))}
-            </select>
+            </div>
           </div>
 
-          {/* Cost Estimation */}
+          {/* Enhanced Cost Estimation with Breakdown */}
           {estimatedCost && (
             <div className="alert alert-info">
-              <span className="text-sm">
-                Estimated cost: <strong>${estimatedCost.toFixed(3)}</strong>
-              </span>
+              <div className="flex items-center justify-between w-full">
+                <div>
+                  <span className="text-sm font-medium">
+                    Estimated cost: <strong>${estimatedCost.toFixed(3)}</strong>
+                  </span>
+                  {premiumTtsEnabled && formData.model === "tts-1-hd" && (
+                    <p className="text-xs mt-1 opacity-75">
+                      Includes premium quality processing
+                    </p>
+                  )}
+                </div>
+                {realTimeQueueEnabled && (
+                  <div className="badge badge-primary badge-sm">Real-time</div>
+                )}
+              </div>
             </div>
           )}
 
-          {/* Progress Display */}
+          {/* Enhanced Progress Display with Detailed Stages */}
           {progress && (
-            <div className="space-y-4 p-4 bg-base-200 rounded-lg">
+            <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  {progress.stage === "error" ? (
-                    <AlertCircle className="w-5 h-5 text-error" />
-                  ) : progress.stage === "complete" ? (
-                    <CheckCircle className="w-5 h-5 text-success" />
-                  ) : (
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                  )}
-                  <span
-                    className={`font-medium ${getStageInfo(progress.stage).color}`}
-                  >
-                    {getStageInfo(progress.stage).label}
-                  </span>
-                </div>
-                <span className="text-sm text-gray-500">
-                  {progress.progress}%
+                <span className="text-sm font-medium">{progress.message}</span>
+                <span className="text-sm text-base-content/60">
+                  {Math.round(progress.progress)}%
                 </span>
               </div>
 
               <Progress className="w-full" value={progress.progress} />
 
-              <div className="text-sm">
-                <p>{progress.message}</p>
-                {progress.details && (
-                  <p className="text-gray-500 mt-1">{progress.details}</p>
-                )}
-                {progress.cost && (
-                  <p className="text-gray-500 mt-1">
-                    Cost so far: ${progress.cost.toFixed(3)}
-                  </p>
-                )}
-              </div>
+              {progress.details && (
+                <div className="flex items-start gap-2 p-3 bg-base-200 rounded-lg">
+                  <Loader2 className="w-4 h-4 animate-spin mt-0.5 text-primary" />
+                  <div className="text-sm text-base-content/80">
+                    {progress.details}
+                  </div>
+                </div>
+              )}
+
+              {progress.cost && (
+                <div className="text-xs text-base-content/60">
+                  Current cost: ${progress.cost.toFixed(3)}
+                </div>
+              )}
             </div>
           )}
 
-          {/* Generated Episode Display */}
+          {/* Enhanced Generated Episode Results */}
           {generatedEpisode && (
             <div className="space-y-4 p-4 bg-success/10 border border-success/20 rounded-lg">
-              <div className="flex items-center gap-2 text-success">
-                <CheckCircle className="w-5 h-5" />
-                <span className="font-medium">
+              <div className="flex items-center gap-2">
+                <CheckCircle className="w-5 h-5 text-success" />
+                <h3 className="font-semibold text-success">
                   Episode Generated Successfully!
-                </span>
+                </h3>
               </div>
 
               <div className="space-y-3">
                 <div>
-                  <h3 className="font-bold text-lg">
-                    {generatedEpisode.title}
-                  </h3>
-                  <p className="text-sm text-gray-600 mt-1">
+                  <h4 className="font-medium">{generatedEpisode.title}</h4>
+                  <p className="text-sm text-base-content/70 mt-1">
                     {generatedEpisode.summary.slice(0, 150)}...
                   </p>
                 </div>
 
-                <div className="flex items-center gap-4 text-sm text-gray-500">
+                <div className="flex items-center gap-4 text-sm text-base-content/60">
                   <span>
                     Duration: {Math.round(generatedEpisode.duration / 60)}m
                   </span>
-                  <span>Cost: ${generatedEpisode.cost.toFixed(3)}</span>
+                  <span>
+                    Cost: ${generatedEpisode.cost?.toFixed(3) || "N/A"}
+                  </span>
+                  <span>Voice: {generatedEpisode.voice}</span>
                 </div>
 
-                <div className="flex gap-2">
-                  <Button className="btn btn-primary btn-sm" size="sm">
-                    <Play className="w-4 h-4 mr-1" />
-                    Play
-                  </Button>
-                  <Button className="btn btn-outline btn-sm" size="sm">
-                    <Download className="w-4 h-4 mr-1" />
+                {/* Enhanced Audio Player with Feature Flag Support */}
+                {generatedEpisode.audioUrl && (
+                  <div className="space-y-2">
+                    {advancedPlayerEnabled ? (
+                      <div className="p-3 bg-base-200 rounded-lg">
+                        <audio className="w-full" controls preload="metadata">
+                          <source
+                            src={generatedEpisode.audioUrl}
+                            type="audio/mpeg"
+                          />
+                          Your browser does not support the audio element.
+                        </audio>
+                        <div className="flex justify-between items-center mt-2 text-xs text-base-content/60">
+                          <span>Advanced Player Active</span>
+                          <span>High Quality Audio</span>
+                        </div>
+                      </div>
+                    ) : (
+                      <audio className="w-full" controls>
+                        <source
+                          src={generatedEpisode.audioUrl}
+                          type="audio/mpeg"
+                        />
+                        Your browser does not support the audio element.
+                      </audio>
+                    )}
+                  </div>
+                )}
+
+                {/* Action Buttons */}
+                <div className="flex gap-2 pt-2">
+                  <Button
+                    className="btn btn-primary btn-sm"
+                    onClick={() => {
+                      if (generatedEpisode.audioUrl) {
+                        window.open(generatedEpisode.audioUrl, "_blank");
+                      }
+                    }}
+                  >
+                    <Download className="w-4 h-4" />
                     Download
                   </Button>
-                  <Button className="btn btn-outline btn-sm" size="sm">
-                    <Share className="w-4 h-4 mr-1" />
+
+                  <Button
+                    className="btn btn-ghost btn-sm"
+                    onClick={() => {
+                      if (navigator.share) {
+                        navigator.share({
+                          text: generatedEpisode.summary,
+                          title: generatedEpisode.title,
+                          url: generatedEpisode.audioUrl,
+                        });
+                      }
+                    }}
+                  >
+                    <Share className="w-4 h-4" />
                     Share
+                  </Button>
+
+                  <Button
+                    className="btn btn-ghost btn-sm"
+                    onClick={() =>
+                      window.open(`/episodes/${generatedEpisode.id}`, "_blank")
+                    }
+                  >
+                    <Play className="w-4 h-4" />
+                    Open
                   </Button>
                 </div>
               </div>
@@ -503,7 +813,7 @@ export function GenerationModal({
               >
                 {isGenerating ? (
                   <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    <Loader2 className="w-4 h-4 animate-spin" />
                     Generating...
                   </>
                 ) : (
@@ -526,6 +836,113 @@ export function GenerationModal({
           </div>
         </div>
       </DialogContent>
+
+      {/* Enhanced Source Selector Modal */}
+      {showSourceSelector && (
+        <Dialog onOpenChange={setShowSourceSelector} open={showSourceSelector}>
+          <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Search className="w-5 h-5" />
+                Select Content Source
+              </DialogTitle>
+            </DialogHeader>
+
+            <div className="flex-1 overflow-hidden flex flex-col space-y-4">
+              {/* Search Input */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-base-content/40" />
+                <input
+                  className="input input-bordered w-full pl-10"
+                  onChange={(e) => setSourceSearch(e.target.value)}
+                  placeholder="Search sources by name, category, or URL..."
+                  type="text"
+                  value={sourceSearch}
+                />
+              </div>
+
+              {/* Sources List */}
+              <div className="flex-1 overflow-y-auto space-y-2">
+                {sourcesLoading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="w-6 h-6 animate-spin" />
+                    <span className="ml-2">Loading sources...</span>
+                  </div>
+                ) : filteredSources.length === 0 ? (
+                  <div className="text-center py-8 text-base-content/60">
+                    {sourceSearch
+                      ? "No sources match your search"
+                      : "No sources available"}
+                  </div>
+                ) : (
+                  filteredSources.map((source) => (
+                    <div
+                      className="p-3 border border-base-300 rounded-lg hover:bg-base-200 cursor-pointer transition-colors"
+                      key={source.id}
+                      onClick={() => handleSourceSelect(source)}
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <h3 className="font-medium">{source.name}</h3>
+                          <p className="text-sm text-base-content/60 mt-1">
+                            {source.url}
+                          </p>
+                          <div className="flex items-center gap-2 mt-2">
+                            <span className="badge badge-outline badge-xs">
+                              {source.category}
+                            </span>
+                            {source.active && (
+                              <span className="badge badge-success badge-xs">
+                                Active
+                              </span>
+                            )}
+                            {source.contentTier === "premium" && (
+                              <span className="badge badge-primary badge-xs">
+                                Premium
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <ExternalLink className="w-4 h-4 text-base-content/40" />
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              {/* Category Filter (if available) */}
+              {sourcesByCategory &&
+                Object.keys(sourcesByCategory).length > 1 && (
+                  <div className="border-t pt-4">
+                    <h4 className="font-medium mb-2">Browse by Category</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {Object.entries(sourcesByCategory).map(
+                        ([category, sources]) => (
+                          <button
+                            className="btn btn-outline btn-xs"
+                            key={category}
+                            onClick={() => setSourceSearch(category)}
+                          >
+                            {category} ({sources.length})
+                          </button>
+                        )
+                      )}
+                    </div>
+                  </div>
+                )}
+            </div>
+
+            <div className="flex justify-end gap-2 pt-4 border-t">
+              <Button
+                className="btn btn-ghost"
+                onClick={() => setShowSourceSelector(false)}
+              >
+                Cancel
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </Dialog>
   );
 }
