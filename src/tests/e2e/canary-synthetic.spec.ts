@@ -409,8 +409,10 @@ test.describe("Feature Flag Integration", () => {
     const body = page;
 
     // Verify basic app functionality is available
-    await expect(body).toHaveText("body");
-    expect(body!.length).toBeGreaterThan(0);
+    const bodyLocator = page.locator("body");
+    await expect(bodyLocator).toContainText("");
+    const bodyContent = await bodyLocator.textContent();
+    expect(bodyContent?.length || 0).toBeGreaterThan(0);
 
     // Test that we can detect different UI variants
     // that would be controlled by feature flags

@@ -54,7 +54,7 @@ class ProcessKiller {
         .split("\n")
         .filter((line) => line.length > 0)
         .map((line) => {
-          const parts = line.trim().split(/\s+/u);
+          const parts = line.trim().split(/\s+/);
           return {
             command: parts.slice(10).join(" "),
             pid: parts[1],
@@ -134,13 +134,13 @@ class ProcessKiller {
     ];
 
     try {
-      const selected = await p.multiselect({
+      const selected = (await p.multiselect({
         message: "Select processes to kill:",
         options,
         required: false,
-      });
+      })) as string[];
 
-      if (!selected || selected.length === 0) {
+      if (!selected || !Array.isArray(selected) || selected.length === 0) {
         p.outro("👋 No processes selected");
         return;
       }
@@ -149,7 +149,7 @@ class ProcessKiller {
       const selectedProcesses = killAll
         ? processes
         : selected
-            .map((index) => processes[Number.parseInt(index)])
+            .map((index: string) => processes[Number.parseInt(index)])
             .filter(Boolean);
 
       if (selectedProcesses.length === 0) {
@@ -157,10 +157,10 @@ class ProcessKiller {
         return;
       }
 
-      const forceKill = await p.confirm({
+      const forceKill = (await p.confirm({
         initialValue: false,
         message: `Kill ${selectedProcesses.length} process(es) with force (SIGKILL)?`,
-      });
+      })) as boolean;
 
       this.killSelectedProcesses(selectedProcesses, forceKill);
       p.outro("✅ Process killing completed");

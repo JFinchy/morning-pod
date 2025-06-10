@@ -1,8 +1,8 @@
 import { count } from "drizzle-orm";
 
-import { db } from "./src/lib/db";
-import { scrapedContent } from "./src/lib/db/schema";
-import { ScraperManager } from "./src/lib/services/scraping/scraper-manager";
+import { db } from "../../src/lib/db";
+import { scrapedContent } from "../../src/lib/db/schema";
+import { ScraperManager } from "../../src/lib/services/scraping/scraper-manager";
 
 async function testScrapersWithDatabase() {
   console.log("🚀 Testing Morning Pod Scrapers with Database Persistence...");

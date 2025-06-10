@@ -52,15 +52,11 @@ export default function Home() {
   // Helper functions for cleaner conditional logic
   const getQueueItemsValue = () => {
     if (!queueStats) return 0;
-    if ("total" in queueStats) return queueStats.total;
     return queueStats.totalInQueue;
   };
 
   const getQueueItemsChange = () => {
     if (!queueStats) return null;
-    if ("active" in queueStats) {
-      return queueStats.active ? `${queueStats.active} processing` : null;
-    }
     return queueStats.currentlyProcessing
       ? `${queueStats.currentlyProcessing} processing`
       : null;
@@ -68,13 +64,7 @@ export default function Home() {
 
   const getSuccessRateValue = () => {
     if (!queueStats) return "0%";
-    if ("successRate" in queueStats) {
-      return `${Math.round((queueStats.successRate || 0) * 100)}%`;
-    }
-    if (queueStats.total > 0) {
-      return `${Math.round((queueStats.completed / queueStats.total) * 100)}%`;
-    }
-    return "0%";
+    return `${Math.round((queueStats.successRate || 0) * 100)}%`;
   };
 
   const quickStats = [
@@ -136,7 +126,9 @@ export default function Home() {
         {/* Quick Stats - Server Component */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {quickStats.map((stat) => {
-            const Icon = stat.icon;
+            const Icon = stat.icon as React.ComponentType<{
+              className?: string;
+            }>;
             return (
               <div
                 className="card bg-base-100 shadow-sm border border-base-300"
@@ -247,12 +239,7 @@ export default function Home() {
                     Generation Queue
                   </h3>
                   <p className="text-sm text-base-content/60">
-                    {queueStats
-                      ? ("active" in queueStats
-                          ? queueStats.active
-                          : queueStats.currentlyProcessing) || 0
-                      : 0}{" "}
-                    processing
+                    {queueStats?.currentlyProcessing || 0} processing
                   </p>
                 </div>
               </div>

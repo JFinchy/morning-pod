@@ -275,7 +275,7 @@ export default function QueueManagementPage() {
                     className={`flex items-start gap-3 p-3 rounded-lg ${
                       log.level === "warning"
                         ? "bg-warning/10 border border-warning/20"
-                        : log.level === "error"
+                        : log.level === ("error" as any)
                           ? "bg-error/10 border border-error/20"
                           : "bg-base-200/50"
                     }`}

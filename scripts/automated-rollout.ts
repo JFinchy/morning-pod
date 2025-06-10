@@ -85,9 +85,10 @@ async function main() {
     console.log("\n✅ Automated rollout completed successfully!");
 
     // Send success notification
+    const lastStep = strategy.steps.at(-1);
     await sendRolloutNotification({
       config,
-      finalPercentage: strategy.steps.at(-1).percentage,
+      finalPercentage: lastStep?.percentage || 100,
       status: "success",
     });
   } catch (error) {
@@ -253,7 +254,7 @@ async function getFeatureFlagsForBranch(
 }
 
 async function updateFeatureFlagRollout(
-  integration: VercelPostHogCanaryTesting,
+  _integration: VercelPostHogCanaryTesting,
   flagKey: string,
   percentage: number
 ): Promise<void> {
@@ -270,9 +271,9 @@ async function updateFeatureFlagRollout(
 }
 
 async function monitorRolloutHealth(
-  integration: VercelPostHogCanaryTesting,
+  _integration: VercelPostHogCanaryTesting,
   step: RolloutStep,
-  featureFlags: Array<{ description: string; flagKey: string }>
+  _featureFlags: Array<{ description: string; flagKey: string }>
 ): Promise<void> {
   const monitoringIntervalMs = 30000; // 30 seconds
   const totalChecks = Math.ceil(
