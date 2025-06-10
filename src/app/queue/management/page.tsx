@@ -272,18 +272,17 @@ export default function QueueManagementPage() {
               <div className="space-y-2 p-4">
                 {processorLogs.logs.map((log) => (
                   <div
-                    className={`flex items-start gap-3 rounded-lg p-3 ${(() => {
-                      const level = log.level as string;
-                      if (level === "warning")
-                        return "bg-warning/10 border-warning/20 border";
-                      if (level === "error")
-                        return "bg-error/10 border-error/20 border";
-                      return "bg-base-200/50";
-                    })()}`}
+                    className={`flex items-start gap-3 rounded-lg p-3 ${
+                      log.level === "warning"
+                        ? "bg-warning/10 border-warning/20 border"
+                        : log.level === ("error" as any)
+                          ? "bg-error/10 border-error/20 border"
+                          : "bg-base-200/50"
+                    }`}
                     key={log.id}
                   >
                     <div className="mt-0.5 flex-shrink-0">
-                      {(log.level as string) === "warning" ? (
+                      {log.level === "warning" ? (
                         <AlertCircle className="text-warning h-4 w-4" />
                       ) : (
                         <CheckCircle className="text-success h-4 w-4" />

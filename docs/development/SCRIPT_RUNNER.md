@@ -40,7 +40,7 @@ graph TD
 
 ```bash
 # Main interactive menu - choose category then command
-bun run script
+bun run interactive
 
 # Category interactive menu - choose command within category
 bun run test
@@ -49,16 +49,20 @@ bun run quality
 bun run db
 bun run deps
 bun run release
+bun run branches
 ```
 
 ### Direct Execution
 
 ```bash
-# Run specific commands directly
-bun run test unit
-bun run dev build
-bun run quality lint
-bun run db migrate
+# Run specific commands directly through interactive script
+bun run interactive quality lint
+bun run interactive db migrate
+
+# Or use standard commands
+bun run dev                     # Standard Next.js dev server
+bun run test                    # Standard Vitest tests
+bun run lint                    # Standard ESLint
 ```
 
 ### Flag Shortcuts
@@ -189,6 +193,34 @@ bun run release             # Interactive menu
 bun run release --changeset # Create changeset
 bun run release --release   # Full release
 ```
+
+### 🌿 Branch Management (`bun run branches`)
+
+| Flag         | Command    | Description                                 |
+| ------------ | ---------- | ------------------------------------------- |
+| `--checkout` | `checkout` | Switch to recent branch interactively       |
+| `--analysis` | `analysis` | Show branch analysis and statistics         |
+| `--stale`    | `stale`    | Archive stale branches (>30 days)           |
+| `--orphaned` | `orphaned` | Archive local-only branches                 |
+| `--merged`   | `merged`   | Archive merged branches deleted from remote |
+| `--preview`  | `preview`  | Preview stale branches (dry run)            |
+
+**Examples:**
+
+```bash
+bun run branches                # Interactive menu
+bun run branches --checkout     # Quick branch switching
+bun run branches --analysis     # Branch statistics
+bun run branches --stale        # Archive old branches
+bun run branches --preview      # Safe preview first
+```
+
+**What "Archive" Means:**
+
+- Creates Git tag `archive/branch-name` preserving ALL history
+- Deletes local branch to reduce clutter
+- **NO CODE IS LOST** - everything safely preserved
+- Easy restoration: `git checkout -b <name> archive/<name>`
 
 ### 🛠️ Utilities (`bun run utils` or `bun kill`)
 

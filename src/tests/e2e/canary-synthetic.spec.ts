@@ -8,7 +8,7 @@
  * @decision-by Development team for automated canary validation
  */
 
-import { expect, test } from "@playwright/test";
+import { BrowserContext, expect, Page, test } from "@playwright/test";
 
 import {
   createSyntheticUserTesting,
@@ -18,6 +18,7 @@ import {
 import {
   type AutomationConfig,
   createCanaryAutomation,
+  runCanaryValidation,
 } from "@/tests/synthetic/canary-automation";
 
 /**
@@ -247,7 +248,7 @@ test.describe("Canary Automation Integration", () => {
     await automation.cleanup();
   });
 
-  test("should execute synthetic user automation", async ({ page: _page }) => {
+  test("should execute synthetic user automation", async ({ page }) => {
     // Create synthetic user testing instance
     const syntheticTesting = createSyntheticUserTesting(
       "http://localhost:3000"
@@ -405,10 +406,13 @@ test.describe("Feature Flag Integration", () => {
 
     // Look for feature-flag controlled elements
     // (In a real implementation, these would be controlled by PostHog or similar)
-    const body = page.locator("body");
+    const body = page;
 
     // Verify basic app functionality is available
-    await expect(body).toHaveText(/.*/);
+    const bodyLocator = page.locator("body");
+    await expect(bodyLocator).toContainText("");
+    const bodyContent = await bodyLocator.textContent();
+    expect(bodyContent?.length || 0).toBeGreaterThan(0);
 
     // Test that we can detect different UI variants
     // that would be controlled by feature flags

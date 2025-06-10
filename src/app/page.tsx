@@ -5,7 +5,7 @@ import {
   Globe,
   Headphones,
   Play,
-  Plus as _Plus,
+  Plus,
   Zap,
 } from "lucide-react";
 import Link from "next/link";
@@ -30,7 +30,7 @@ import { HomeClientWrapper } from "./home-client-wrapper";
 // Simple fallback function when DB is not available
 function getServerDataWithFallback() {
   // Temporarily use mock data to avoid server-side rendering issues
-  // Using mock data for development - expected behavior
+  console.warn("Using mock data for development");
   return {
     episodes: mockEpisodes.slice(0, 3),
     queueStats: mockGenerationStats,
@@ -52,15 +52,11 @@ export default function Home() {
   // Helper functions for cleaner conditional logic
   const getQueueItemsValue = () => {
     if (!queueStats) return 0;
-    if ("total" in queueStats) return queueStats.total;
     return queueStats.totalInQueue;
   };
 
   const getQueueItemsChange = () => {
     if (!queueStats) return null;
-    if ("active" in queueStats) {
-      return queueStats.active ? `${queueStats.active} processing` : null;
-    }
     return queueStats.currentlyProcessing
       ? `${queueStats.currentlyProcessing} processing`
       : null;
@@ -68,16 +64,7 @@ export default function Home() {
 
   const getSuccessRateValue = () => {
     if (!queueStats) return "0%";
-    if ("successRate" in queueStats) {
-      return `${Math.round((queueStats.successRate || 0) * 100)}%`;
-    }
-    if ("total" in queueStats && "completed" in queueStats) {
-      const stats = queueStats as { completed: number; total: number };
-      if (stats.total > 0) {
-        return `${Math.round((stats.completed / stats.total) * 100)}%`;
-      }
-    }
-    return "0%";
+    return `${Math.round((queueStats.successRate || 0) * 100)}%`;
   };
 
   const quickStats = [
@@ -139,7 +126,9 @@ export default function Home() {
         {/* Quick Stats - Server Component */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {quickStats.map((stat) => {
-            const Icon = stat.icon;
+            const Icon = stat.icon as React.ComponentType<{
+              className?: string;
+            }>;
             return (
               <div
                 className="card bg-base-100 border-base-300 border shadow-sm"
@@ -152,7 +141,7 @@ export default function Home() {
                         {stat.label}
                       </p>
                       <p className="text-base-content text-2xl font-bold">
-                        {String(stat.value)}
+                        {stat.value}
                       </p>
                       {stat.change && (
                         <p className="text-base-content/70 text-xs">
@@ -250,13 +239,7 @@ export default function Home() {
                     Generation Queue
                   </h3>
                   <p className="text-base-content/60 text-sm">
-                    {(() => {
-                      if (!queueStats) return 0;
-                      if ("active" in queueStats)
-                        return Number(queueStats.active) || 0;
-                      return Number(queueStats.currentlyProcessing) || 0;
-                    })()}{" "}
-                    processing
+                    {queueStats?.currentlyProcessing || 0} processing
                   </p>
                 </div>
               </div>

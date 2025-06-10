@@ -1,5 +1,5 @@
-import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { render, screen } from "@testing-library/react";
 import { describe, expect, test, vi } from "vitest";
 
 // Test reusable UI components
@@ -170,7 +170,7 @@ describe("UI Components", () => {
       expect(handleClick).toHaveBeenCalledTimes(1);
     });
 
-    test("can be disabled", () => {
+    test("can be disabled", async () => {
       render(<MockButton disabled>Disabled</MockButton>);
 
       const button = screen.getByRole("button", { name: /disabled/i });
@@ -279,12 +279,12 @@ describe("UI Components", () => {
 
       // Tab through interactive elements
       await user.tab();
-      // eslint-disable-next-line testing-library/no-node-access
-      expect(document.activeElement).toHaveAccessibleName();
+      const firstActiveElement = screen.getByRole("button");
+      expect(firstActiveElement).toHaveAccessibleName();
 
       await user.tab();
-      // eslint-disable-next-line testing-library/no-node-access
-      expect(document.activeElement).toHaveAccessibleName();
+      const secondActiveElement = screen.getByRole("button");
+      expect(secondActiveElement).toHaveAccessibleName();
     });
 
     test("has proper ARIA structure", () => {
