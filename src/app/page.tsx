@@ -1,71 +1,50 @@
 import {
-  Play,
-  Plus,
+  ArrowRight,
+  CheckCircle,
   Clock,
-  Zap,
   Globe,
   Headphones,
-  CheckCircle,
-  ArrowRight,
+  Play,
+  Plus,
+  Zap,
 } from "lucide-react";
 import Link from "next/link";
 
-import { EpisodeCard } from "@/components/features";
+import {
+  EpisodeCard,
+  GenerateButton,
+  GenerateEpisodeButton,
+} from "@/components/features";
 import { ApiTest } from "@/components/features/api-test";
 import { MainLayout } from "@/components/layouts";
 import { Button } from "@/components/ui";
 import { type Episode } from "@/lib/mock-data";
 import {
   mockEpisodes,
-  mockSources,
   mockGenerationStats,
+  mockSources,
 } from "@/lib/mock-data";
 
 import { HomeClientWrapper } from "./home-client-wrapper";
 
 // Simple fallback function when DB is not available
-async function getServerDataWithFallback() {
-  try {
-    // Try to import the server caller only when needed
-    const { getServerApi } = await import("@/lib/trpc/server-api");
-    const serverTrpc = await getServerApi();
-
-    const [recentEpisodesData, activeSources, queueStats] = await Promise.all([
-      serverTrpc.episodes.getAll({ limit: 3 }),
-      serverTrpc.sources.getActive(),
-      serverTrpc.queue.getStats(),
-    ]);
-
-    return {
-      episodes: recentEpisodesData?.episodes || [],
-      sources: (activeSources || []).filter((s) => s && s.name),
-      queueStats: queueStats || {
-        total: 0,
-        pending: 0,
-        active: 0,
-        completed: 0,
-        failed: 0,
-        totalCost: "0.00",
-      },
-    };
-  } catch (error) {
-    console.warn("Database connection failed, using mock data:", error);
-    // Return mock data when database is not available
-    return {
-      episodes: mockEpisodes.slice(0, 3),
-      sources: mockSources.filter((s) => s.active),
-      queueStats: mockGenerationStats,
-    };
-  }
+function getServerDataWithFallback() {
+  // Temporarily use mock data to avoid server-side rendering issues
+  console.warn("Using mock data for development");
+  return {
+    episodes: mockEpisodes.slice(0, 3),
+    queueStats: mockGenerationStats,
+    sources: mockSources.filter((s) => s.active),
+  };
 }
 
-export default async function Home() {
+export default function Home() {
   // Fetch initial data on the server with fallback to mock data
   const {
     episodes: rawEpisodes,
-    sources: activeSources,
     queueStats,
-  } = await getServerDataWithFallback();
+    sources: activeSources,
+  } = getServerDataWithFallback();
 
   // Convert to UI format (episodes are already in correct format if from mock data)
   const episodes = rawEpisodes as Episode[];
@@ -73,15 +52,11 @@ export default async function Home() {
   // Helper functions for cleaner conditional logic
   const getQueueItemsValue = () => {
     if (!queueStats) return 0;
-    if ("total" in queueStats) return queueStats.total;
     return queueStats.totalInQueue;
   };
 
   const getQueueItemsChange = () => {
     if (!queueStats) return null;
-    if ("active" in queueStats) {
-      return queueStats.active ? `${queueStats.active} processing` : null;
-    }
     return queueStats.currentlyProcessing
       ? `${queueStats.currentlyProcessing} processing`
       : null;
@@ -89,47 +64,41 @@ export default async function Home() {
 
   const getSuccessRateValue = () => {
     if (!queueStats) return "0%";
-    if ("successRate" in queueStats) {
-      return `${Math.round((queueStats.successRate || 0) * 100)}%`;
-    }
-    if (queueStats.total > 0) {
-      return `${Math.round((queueStats.completed / queueStats.total) * 100)}%`;
-    }
-    return "0%";
+    return `${Math.round((queueStats.successRate || 0) * 100)}%`;
   };
 
   const quickStats = [
     {
+      change: "+2",
+      color: "text-primary",
+      icon: Headphones,
       label: "Episodes Today",
       value: episodes.filter((ep) => {
         const today = new Date();
         const epDate = new Date(ep.createdAt);
         return epDate.toDateString() === today.toDateString();
       }).length,
-      icon: Headphones,
-      color: "text-primary",
-      change: "+2",
     },
     {
+      change: null,
+      color: "text-success",
+      icon: Globe,
       label: "Active Sources",
       value: activeSources?.length || 0,
-      icon: Globe,
-      color: "text-success",
-      change: null,
     },
     {
+      change: getQueueItemsChange(),
+      color: "text-warning",
+      icon: Clock,
       label: "Queue Items",
       value: getQueueItemsValue(),
-      icon: Clock,
-      color: "text-warning",
-      change: getQueueItemsChange(),
     },
     {
+      change: "Last 7 days",
+      color: "text-info",
+      icon: CheckCircle,
       label: "Success Rate",
       value: getSuccessRateValue(),
-      icon: CheckCircle,
-      color: "text-info",
-      change: "Last 7 days",
     },
   ];
 
@@ -146,25 +115,24 @@ export default async function Home() {
             informed with personalized audio content delivered daily.
           </p>
           <div className="flex flex-wrap justify-center gap-3">
-            <Button variant="primary" size="lg" className="gap-2">
+            <Button className="gap-2" size="lg" variant="primary">
               <Play className="w-5 h-5" />
               Play Latest Episode
             </Button>
-            <Button btnStyle="outline" size="lg" className="gap-2">
-              <Plus className="w-5 h-5" />
-              Generate New Episode
-            </Button>
+            <GenerateEpisodeButton />
           </div>
         </div>
 
         {/* Quick Stats - Server Component */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {quickStats.map((stat) => {
-            const Icon = stat.icon;
+            const Icon = stat.icon as React.ComponentType<{
+              className?: string;
+            }>;
             return (
               <div
-                key={stat.label}
                 className="card bg-base-100 shadow-sm border border-base-300"
+                key={stat.label}
               >
                 <div className="card-body p-6">
                   <div className="flex items-center justify-between">
@@ -199,7 +167,7 @@ export default async function Home() {
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-semibold">Recent Episodes</h2>
               <Link href="/episodes">
-                <Button btnStyle="ghost" size="sm" className="gap-2">
+                <Button btnStyle="ghost" className="gap-2" size="sm">
                   View All
                   <ArrowRight className="w-4 h-4" />
                 </Button>
@@ -209,7 +177,7 @@ export default async function Home() {
             {episodes.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {episodes.map((episode) => (
-                  <EpisodeCard key={episode.id} episode={episode} />
+                  <EpisodeCard episode={episode} key={episode.id} />
                 ))}
               </div>
             ) : (
@@ -221,7 +189,7 @@ export default async function Home() {
                 <p className="text-base-content/60 mb-4">
                   Generate your first episode from one of your news sources
                 </p>
-                <Button variant="primary">Generate Episode</Button>
+                <GenerateButton />
               </div>
             )}
           </div>
@@ -271,12 +239,7 @@ export default async function Home() {
                     Generation Queue
                   </h3>
                   <p className="text-sm text-base-content/60">
-                    {queueStats
-                      ? ("active" in queueStats
-                          ? queueStats.active
-                          : queueStats.currentlyProcessing) || 0
-                      : 0}{" "}
-                    processing
+                    {queueStats?.currentlyProcessing || 0} processing
                   </p>
                 </div>
               </div>

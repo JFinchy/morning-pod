@@ -4,25 +4,12 @@
  */
 
 export const securityConfig = {
-  // Rate limiting settings
-  rateLimit: {
-    // General API rate limit
-    api: {
-      maxRequests: process.env.NODE_ENV === "production" ? 100 : 1000,
-      windowMs: 15 * 60 * 1000, // 15 minutes
-    },
-
-    // Stricter limits for sensitive operations
-    strict: {
-      maxRequests: process.env.NODE_ENV === "production" ? 10 : 100,
-      windowMs: 60 * 1000, // 1 minute
-    },
-
-    // Generation endpoint (costly operations)
-    generation: {
-      maxRequests: process.env.NODE_ENV === "production" ? 5 : 50,
-      windowMs: 60 * 1000, // 1 minute
-    },
+  // Allowed HTTP methods per endpoint type
+  allowedMethods: {
+    all: ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD"],
+    delete: ["DELETE"],
+    read: ["GET", "HEAD"],
+    write: ["POST", "PUT", "PATCH"],
   },
 
   // Content Security Policy
@@ -52,36 +39,49 @@ export const securityConfig = {
     ],
   },
 
-  // Input sanitization settings
-  sanitization: {
-    maxStringLength: 1000,
-    allowedTags: [] as string[], // No HTML tags allowed
-    stripHtml: true,
-  },
-
   // CSRF settings
   csrf: {
-    tokenLength: 32,
     cookieName: "csrf-token",
     headerName: "X-CSRF-Token",
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "strict" as const,
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    sameSite: "strict" as const,
+    secure: process.env.NODE_ENV === "production",
+    tokenLength: 32,
+  },
+
+  // Rate limiting settings
+  rateLimit: {
+    // General API rate limit
+    api: {
+      maxRequests: process.env.NODE_ENV === "production" ? 100 : 1000,
+      windowMs: 15 * 60 * 1000, // 15 minutes
+    },
+
+    // Generation endpoint (costly operations)
+    generation: {
+      maxRequests: process.env.NODE_ENV === "production" ? 5 : 50,
+      windowMs: 60 * 1000, // 1 minute
+    },
+
+    // Stricter limits for sensitive operations
+    strict: {
+      maxRequests: process.env.NODE_ENV === "production" ? 10 : 100,
+      windowMs: 60 * 1000, // 1 minute
+    },
   },
 
   // Request size limits
   requestLimits: {
-    json: 1024 * 1024, // 1MB for JSON
     form: 512 * 1024, // 512KB for forms
+    json: 1024 * 1024, // 1MB for JSON
     upload: 10 * 1024 * 1024, // 10MB for uploads (future)
   },
 
-  // Allowed HTTP methods per endpoint type
-  allowedMethods: {
-    read: ["GET", "HEAD"],
-    write: ["POST", "PUT", "PATCH"],
-    delete: ["DELETE"],
-    all: ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD"],
+  // Input sanitization settings
+  sanitization: {
+    allowedTags: [] as string[], // No HTML tags allowed
+    maxStringLength: 1000,
+    stripHtml: true,
   },
 };
 

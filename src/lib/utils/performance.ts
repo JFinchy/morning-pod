@@ -2,28 +2,182 @@
 
 interface PerformanceMetric {
   name: string;
-  value: number;
-  unit: string;
   timestamp: number;
+  unit: string;
   url?: string;
+  value: number;
 }
 
 interface UserInteraction {
   action: string;
-  target: string;
-  timestamp: number;
   duration?: number;
   metadata?: Record<string, unknown>;
+  target: string;
+  timestamp: number;
 }
 
 class PerformanceMonitor {
-  private metrics: PerformanceMetric[] = [];
   private interactions: UserInteraction[] = [];
   private isEnabled: boolean;
+  private metrics: PerformanceMetric[] = [];
 
   constructor() {
     this.isEnabled = typeof window !== "undefined" && "performance" in window;
     this.initializeWebVitals();
+  }
+
+  // Performance debugging in development
+  debugPerformance() {
+    if (process.env.NODE_ENV !== "development") return;
+
+    console.group("🚀 Performance Summary");
+    console.table(this.getPerformanceSummary());
+    console.log("Recent metrics:", this.metrics.slice(-10));
+    console.log("Recent interactions:", this.interactions.slice(-10));
+    console.groupEnd();
+  }
+
+  // Get performance summary
+  getPerformanceSummary() {
+    const vitals = {
+      CLS: this.getLatestMetric("CLS"),
+      FCP: this.getLatestMetric("FCP"),
+      FID: this.getLatestMetric("FID"),
+      LCP: this.getLatestMetric("LCP"),
+      TTI: this.getLatestMetric("TTI"),
+    };
+
+    const tRPCMetrics = this.metrics.filter((m) => m.name.startsWith("tRPC."));
+    const averageTRPCTime =
+      tRPCMetrics.length > 0
+        ? tRPCMetrics.reduce((sum, m) => sum + m.value, 0) / tRPCMetrics.length
+        : 0;
+
+    return {
+      tRPCPerformance: {
+        averageQueryTime: Math.round(averageTRPCTime),
+        totalQueries: tRPCMetrics.length,
+      },
+      userInteractions: this.interactions.length,
+      vitals,
+    };
+  }
+
+  // Record custom metrics
+  recordMetric(name: string, value: number, unit: string, url?: string) {
+    const metric: PerformanceMetric = {
+      name,
+      timestamp: Date.now(),
+      unit,
+      url:
+        url ||
+        (typeof window !== "undefined" ? window.location.pathname : undefined),
+      value,
+    };
+
+    this.metrics.push(metric);
+
+    // Log in development
+    if (process.env.NODE_ENV === "development") {
+      console.log(`📊 ${name}: ${value}${unit}`, metric);
+    }
+
+    // In production, you might send to analytics service
+    if (process.env.NODE_ENV === "production") {
+      this.sendMetricToAnalytics(metric);
+    }
+  }
+
+  // Bundle size tracking
+  trackBundleSize() {
+    if (!this.isEnabled) return;
+
+    // Track resource loading times
+    const resources = performance.getEntriesByType(
+      "resource"
+    ) as PerformanceResourceTiming[];
+
+    let totalJSSize = 0;
+    let totalCSSSize = 0;
+
+    for (const resource of resources) {
+      if (resource.name.endsWith(".js")) {
+        totalJSSize += resource.transferSize || 0;
+        this.recordMetric("resource.js", resource.duration, "ms");
+      } else if (resource.name.endsWith(".css")) {
+        totalCSSSize += resource.transferSize || 0;
+        this.recordMetric("resource.css", resource.duration, "ms");
+      }
+    }
+
+    if (totalJSSize > 0) {
+      this.recordMetric("bundle.js_size", totalJSSize / 1024, "KB");
+    }
+    if (totalCSSSize > 0) {
+      this.recordMetric("bundle.css_size", totalCSSSize / 1024, "KB");
+    }
+  }
+
+  // Track episode interactions
+  trackEpisodeInteraction(
+    action: "download" | "pause" | "play" | "skip",
+    episodeId: string
+  ) {
+    this.trackUserInteraction("episode_interaction", episodeId, { action });
+  }
+
+  // Track generation events
+  trackGenerationEvent(
+    action: "complete" | "error" | "start",
+    episodeId?: string
+  ) {
+    this.trackUserInteraction("episode_generation", episodeId || "unknown", {
+      action,
+    });
+  }
+
+  // Track page navigation
+  trackPageView(path: string) {
+    this.recordMetric("page_view", performance.now(), "ms", path);
+    this.trackUserInteraction("page_view", path);
+  }
+
+  // Track tRPC query performance
+  trackTRPCQuery(
+    procedure: string,
+    duration: number,
+    status: "error" | "success"
+  ) {
+    this.recordMetric(`tRPC.${procedure}`, duration, "ms");
+    this.trackUserInteraction("tRPC_query", procedure, { duration, status });
+  }
+
+  // Track user interactions
+  trackUserInteraction(
+    action: string,
+    target: string,
+    metadata?: Record<string, unknown>
+  ) {
+    const interaction: UserInteraction = {
+      action,
+      metadata,
+      target,
+      timestamp: Date.now(),
+    };
+
+    this.interactions.push(interaction);
+
+    if (process.env.NODE_ENV === "development") {
+      console.log(`👤 User interaction: ${action} on ${target}`, interaction);
+    }
+  }
+
+  private getLatestMetric(name: string) {
+    const metric = this.metrics
+      .filter((m) => m.name === name)
+      .sort((a, b) => b.timestamp - a.timestamp)[0];
+
+    return metric ? Math.round(metric.value) : null;
   }
 
   // Core Web Vitals tracking
@@ -52,8 +206,8 @@ class PerformanceMonitor {
     // Track Cumulative Layout Shift (CLS)
     this.observePerformanceEntry("layout-shift", (entry) => {
       const clsEntry = entry as PerformanceEntry & {
-        value: number;
         hadRecentInput: boolean;
+        value: number;
       };
       if (!clsEntry.hadRecentInput) {
         this.recordMetric("CLS", clsEntry.value, "score");
@@ -74,10 +228,15 @@ class PerformanceMonitor {
       const observer = new PerformanceObserver((list) => {
         list.getEntries().forEach(callback);
       });
-      observer.observe({ type, buffered: true });
+      observer.observe({ buffered: true, type });
     } catch (error) {
       console.warn(`Failed to observe ${type}:`, error);
     }
+  }
+
+  private sendMetricToAnalytics(metric: PerformanceMetric) {
+    // Placeholder for analytics service integration
+    // Example: analytics.track('performance_metric', metric);
   }
 
   private trackTimeToInteractive() {
@@ -97,165 +256,6 @@ class PerformanceMonitor {
     } else {
       checkInteractive();
     }
-  }
-
-  // Record custom metrics
-  recordMetric(name: string, value: number, unit: string, url?: string) {
-    const metric: PerformanceMetric = {
-      name,
-      value,
-      unit,
-      timestamp: Date.now(),
-      url:
-        url ||
-        (typeof window !== "undefined" ? window.location.pathname : undefined),
-    };
-
-    this.metrics.push(metric);
-
-    // Log in development
-    if (process.env.NODE_ENV === "development") {
-      console.log(`📊 ${name}: ${value}${unit}`, metric);
-    }
-
-    // In production, you might send to analytics service
-    if (process.env.NODE_ENV === "production") {
-      this.sendMetricToAnalytics(metric);
-    }
-  }
-
-  // Track user interactions
-  trackUserInteraction(
-    action: string,
-    target: string,
-    metadata?: Record<string, unknown>
-  ) {
-    const interaction: UserInteraction = {
-      action,
-      target,
-      timestamp: Date.now(),
-      metadata,
-    };
-
-    this.interactions.push(interaction);
-
-    if (process.env.NODE_ENV === "development") {
-      console.log(`👤 User interaction: ${action} on ${target}`, interaction);
-    }
-  }
-
-  // Track tRPC query performance
-  trackTRPCQuery(
-    procedure: string,
-    duration: number,
-    status: "success" | "error"
-  ) {
-    this.recordMetric(`tRPC.${procedure}`, duration, "ms");
-    this.trackUserInteraction("tRPC_query", procedure, { status, duration });
-  }
-
-  // Track page navigation
-  trackPageView(path: string) {
-    this.recordMetric("page_view", performance.now(), "ms", path);
-    this.trackUserInteraction("page_view", path);
-  }
-
-  // Track episode interactions
-  trackEpisodeInteraction(
-    action: "play" | "pause" | "skip" | "download",
-    episodeId: string
-  ) {
-    this.trackUserInteraction("episode_interaction", episodeId, { action });
-  }
-
-  // Track generation events
-  trackGenerationEvent(
-    action: "start" | "complete" | "error",
-    episodeId?: string
-  ) {
-    this.trackUserInteraction("episode_generation", episodeId || "unknown", {
-      action,
-    });
-  }
-
-  // Get performance summary
-  getPerformanceSummary() {
-    const vitals = {
-      FCP: this.getLatestMetric("FCP"),
-      LCP: this.getLatestMetric("LCP"),
-      FID: this.getLatestMetric("FID"),
-      CLS: this.getLatestMetric("CLS"),
-      TTI: this.getLatestMetric("TTI"),
-    };
-
-    const tRPCMetrics = this.metrics.filter((m) => m.name.startsWith("tRPC."));
-    const averageTRPCTime =
-      tRPCMetrics.length > 0
-        ? tRPCMetrics.reduce((sum, m) => sum + m.value, 0) / tRPCMetrics.length
-        : 0;
-
-    return {
-      vitals,
-      tRPCPerformance: {
-        averageQueryTime: Math.round(averageTRPCTime),
-        totalQueries: tRPCMetrics.length,
-      },
-      userInteractions: this.interactions.length,
-    };
-  }
-
-  private getLatestMetric(name: string) {
-    const metric = this.metrics
-      .filter((m) => m.name === name)
-      .sort((a, b) => b.timestamp - a.timestamp)[0];
-
-    return metric ? Math.round(metric.value) : null;
-  }
-
-  private sendMetricToAnalytics(metric: PerformanceMetric) {
-    // Placeholder for analytics service integration
-    // Example: analytics.track('performance_metric', metric);
-  }
-
-  // Bundle size tracking
-  trackBundleSize() {
-    if (!this.isEnabled) return;
-
-    // Track resource loading times
-    const resources = performance.getEntriesByType(
-      "resource"
-    ) as PerformanceResourceTiming[];
-
-    let totalJSSize = 0;
-    let totalCSSSize = 0;
-
-    resources.forEach((resource) => {
-      if (resource.name.endsWith(".js")) {
-        totalJSSize += resource.transferSize || 0;
-        this.recordMetric("resource.js", resource.duration, "ms");
-      } else if (resource.name.endsWith(".css")) {
-        totalCSSSize += resource.transferSize || 0;
-        this.recordMetric("resource.css", resource.duration, "ms");
-      }
-    });
-
-    if (totalJSSize > 0) {
-      this.recordMetric("bundle.js_size", totalJSSize / 1024, "KB");
-    }
-    if (totalCSSSize > 0) {
-      this.recordMetric("bundle.css_size", totalCSSSize / 1024, "KB");
-    }
-  }
-
-  // Performance debugging in development
-  debugPerformance() {
-    if (process.env.NODE_ENV !== "development") return;
-
-    console.group("🚀 Performance Summary");
-    console.table(this.getPerformanceSummary());
-    console.log("Recent metrics:", this.metrics.slice(-10));
-    console.log("Recent interactions:", this.interactions.slice(-10));
-    console.groupEnd();
   }
 }
 
@@ -277,14 +277,14 @@ export function usePerformanceTracking() {
   };
 
   return {
-    trackInteraction,
-    trackMetric,
+    getPerformanceSummary:
+      performanceMonitor.getPerformanceSummary.bind(performanceMonitor),
     trackEpisodeInteraction:
       performanceMonitor.trackEpisodeInteraction.bind(performanceMonitor),
     trackGenerationEvent:
       performanceMonitor.trackGenerationEvent.bind(performanceMonitor),
-    getPerformanceSummary:
-      performanceMonitor.getPerformanceSummary.bind(performanceMonitor),
+    trackInteraction,
+    trackMetric,
   };
 }
 

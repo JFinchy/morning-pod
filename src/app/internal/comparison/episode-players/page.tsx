@@ -46,14 +46,14 @@ export default function EpisodePlayerShowcase() {
             V1: Traditional
           </h3>
           <EpisodePlayerV1
+            currentTime={currentTime}
+            duration={300}
             episode={selectedEpisode}
             isPlaying={isPlaying}
             onPlayPause={handlePlayPause}
-            currentTime={currentTime}
-            duration={300}
             onSeek={handleSeek}
-            volume={volume}
             onVolumeChange={handleVolumeChange}
+            volume={volume}
           />
         </div>
 
@@ -62,14 +62,14 @@ export default function EpisodePlayerShowcase() {
             V2: Spotify-Style
           </h3>
           <EpisodePlayerV2
+            currentTime={currentTime}
+            duration={300}
             episode={selectedEpisode}
             isPlaying={isPlaying}
             onPlayPause={handlePlayPause}
-            currentTime={currentTime}
-            duration={300}
             onSeek={handleSeek}
-            volume={volume}
             onVolumeChange={handleVolumeChange}
+            volume={volume}
           />
         </div>
 
@@ -78,14 +78,14 @@ export default function EpisodePlayerShowcase() {
             V3: Minimalist
           </h3>
           <EpisodePlayerV3
+            currentTime={currentTime}
+            duration={300}
             episode={selectedEpisode}
             isPlaying={isPlaying}
             onPlayPause={handlePlayPause}
-            currentTime={currentTime}
-            duration={300}
             onSeek={handleSeek}
-            volume={volume}
             onVolumeChange={handleVolumeChange}
+            volume={volume}
           />
         </div>
       </div>

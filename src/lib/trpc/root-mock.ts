@@ -8,8 +8,8 @@ import { createTRPCRouter } from "./server-mock";
  */
 export const appMockRouter = createTRPCRouter({
   episodes: episodesMockRouter,
-  sources: sourcesMockRouter,
   queue: queueMockRouter,
+  sources: sourcesMockRouter,
 });
 
 // Export type definition of API

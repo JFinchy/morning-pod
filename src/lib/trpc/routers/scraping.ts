@@ -7,43 +7,29 @@ import { createTRPCRouter, publicProcedure } from "../server";
 const scraperManager = new ScraperManager();
 
 export const scrapingRouter = createTRPCRouter({
-  // Scrape all enabled sources
-  scrapeAll: publicProcedure.mutation(async () => {
+  // Get available scrapers
+  getAvailableScrapers: publicProcedure.query(async () => {
     try {
-      const result = await scraperManager.scrapeAll();
-      return result;
+      const scrapers = scraperManager.getAvailableScrapers();
+      return {
+        scrapers,
+        success: true,
+        totalScrapers: scrapers.length,
+      };
     } catch (error) {
       throw new Error(
-        `Failed to scrape content: ${error instanceof Error ? error.message : "Unknown error"}`
+        `Failed to get available scrapers: ${error instanceof Error ? error.message : "Unknown error"}`
       );
     }
   }),
-
-  // Scrape a specific source
-  scrapeSource: publicProcedure
-    .input(
-      z.object({
-        source: z.string(),
-      })
-    )
-    .mutation(async ({ input }) => {
-      try {
-        const result = await scraperManager.scrapeSource(input.source);
-        return result;
-      } catch (error) {
-        throw new Error(
-          `Failed to scrape ${input.source}: ${error instanceof Error ? error.message : "Unknown error"}`
-        );
-      }
-    }),
 
   // Get cached content
   getCachedContent: publicProcedure.query(async () => {
     try {
       const content = scraperManager.getCachedContent();
       return {
-        success: true,
         content,
+        success: true,
         totalItems: content.length,
       };
     } catch (error) {
@@ -64,10 +50,10 @@ export const scrapingRouter = createTRPCRouter({
       try {
         const content = scraperManager.getContentBySource(input.source);
         return {
-          success: true,
           content,
-          totalItems: content.length,
           source: input.source,
+          success: true,
+          totalItems: content.length,
         };
       } catch (error) {
         throw new Error(
@@ -81,9 +67,9 @@ export const scrapingRouter = createTRPCRouter({
     try {
       const metrics = scraperManager.getAggregatedMetrics();
       return {
-        success: true,
         metrics,
         sources: scraperManager.getAvailableScrapers(),
+        success: true,
       };
     } catch (error) {
       throw new Error(
@@ -92,39 +78,51 @@ export const scrapingRouter = createTRPCRouter({
     }
   }),
 
-  // Get available scrapers
-  getAvailableScrapers: publicProcedure.query(async () => {
+  // Scrape all enabled sources
+  scrapeAll: publicProcedure.mutation(async () => {
     try {
-      const scrapers = scraperManager.getAvailableScrapers();
-      return {
-        success: true,
-        scrapers,
-        totalScrapers: scrapers.length,
-      };
+      return await scraperManager.scrapeAll();
     } catch (error) {
       throw new Error(
-        `Failed to get available scrapers: ${error instanceof Error ? error.message : "Unknown error"}`
+        `Failed to scrape content: ${error instanceof Error ? error.message : "Unknown error"}`
       );
     }
   }),
+
+  // Scrape a specific source
+  scrapeSource: publicProcedure
+    .input(
+      z.object({
+        source: z.string(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      try {
+        return await scraperManager.scrapeSource(input.source);
+      } catch (error) {
+        throw new Error(
+          `Failed to scrape ${input.source}: ${error instanceof Error ? error.message : "Unknown error"}`
+        );
+      }
+    }),
 
   // Update scraper configuration
   updateConfig: publicProcedure
     .input(
       z.object({
+        contentRetentionDays: z.number().min(1).max(30).optional(),
+        deduplicationEnabled: z.boolean().optional(),
         enabledSources: z.array(z.string()).optional(),
         maxConcurrentScrapers: z.number().min(1).max(10).optional(),
-        deduplicationEnabled: z.boolean().optional(),
-        contentRetentionDays: z.number().min(1).max(30).optional(),
       })
     )
     .mutation(async ({ input }) => {
       try {
         scraperManager.updateConfig(input);
         return {
-          success: true,
-          message: "Scraper configuration updated successfully",
           availableScrapers: scraperManager.getAvailableScrapers(),
+          message: "Scraper configuration updated successfully",
+          success: true,
         };
       } catch (error) {
         throw new Error(

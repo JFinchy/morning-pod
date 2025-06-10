@@ -42,27 +42,14 @@ graph TD
 # Main interactive menu - choose category then command
 bun run interactive
 
-# Interactive development options (build, preview, clean)
-bun run go
-
-# Category interactive menus
-bun run quality                 # Interactive quality menu
-bun run db                      # Interactive database menu
-bun run deps                    # Interactive dependencies menu
-bun run release                 # Interactive release menu
-```
-
-### Standard Development Commands
-
-```bash
-# Standard commands developers expect
-bun run dev                     # Next.js dev server
-bun run build                   # Next.js build
-bun run start                   # Next.js start
-bun run test                    # Vitest unit tests
-bun run lint                    # ESLint
-bun run type-check              # TypeScript checking
-bun run changeset               # Changeset CLI
+# Category interactive menu - choose command within category
+bun run test
+bun run dev
+bun run quality
+bun run db
+bun run deps
+bun run release
+bun run branches
 ```
 
 ### Direct Execution
@@ -206,6 +193,62 @@ bun run release             # Interactive menu
 bun run release --changeset # Create changeset
 bun run release --release   # Full release
 ```
+
+### 🌿 Branch Management (`bun run branches`)
+
+| Flag         | Command    | Description                                 |
+| ------------ | ---------- | ------------------------------------------- |
+| `--checkout` | `checkout` | Switch to recent branch interactively       |
+| `--analysis` | `analysis` | Show branch analysis and statistics         |
+| `--stale`    | `stale`    | Archive stale branches (>30 days)           |
+| `--orphaned` | `orphaned` | Archive local-only branches                 |
+| `--merged`   | `merged`   | Archive merged branches deleted from remote |
+| `--preview`  | `preview`  | Preview stale branches (dry run)            |
+
+**Examples:**
+
+```bash
+bun run branches                # Interactive menu
+bun run branches --checkout     # Quick branch switching
+bun run branches --analysis     # Branch statistics
+bun run branches --stale        # Archive old branches
+bun run branches --preview      # Safe preview first
+```
+
+**What "Archive" Means:**
+
+- Creates Git tag `archive/branch-name` preserving ALL history
+- Deletes local branch to reduce clutter
+- **NO CODE IS LOST** - everything safely preserved
+- Easy restoration: `git checkout -b <name> archive/<name>`
+
+### 🛠️ Utilities (`bun run utils` or `bun kill`)
+
+| Flag      | Command      | Description                               |
+| --------- | ------------ | ----------------------------------------- |
+| `--force` | `kill:force` | Force kill all test/lint/VSCode processes |
+| `--list`  | `kill:list`  | List running processes without killing    |
+
+**Examples:**
+
+```bash
+bun kill                    # Interactive process selection (default)
+bun kill --force            # Force kill all processes immediately
+bun kill --list             # Just show what's running
+
+# Alternative syntax
+bun run utils               # Interactive menu
+bun run utils kill          # Interactive process killer
+```
+
+The interactive kill process tool targets:
+
+- Vitest processes
+- Playwright processes
+- ESLint processes
+- TypeScript language server
+- VSCode helper processes
+- Related node/bun processes
 
 ## Interactive Experience
 

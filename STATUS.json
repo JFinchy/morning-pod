@@ -1,0 +1,99 @@
+{
+  "lastUpdated": "2024-01-25T10:30:00Z",
+  "projectPhase": "MVP Audio Generation",
+  "components": {
+    "scraping": {
+      "status": "complete",
+      "description": "Web scraping system with database persistence",
+      "features": [
+        "TLDR Tech scraper",
+        "Hacker News scraper",
+        "Morning Brew scraper",
+        "Database persistence",
+        "Content deduplication"
+      ],
+      "lastWorkedOn": "2024-01-24",
+      "workingBranches": []
+    },
+    "database": {
+      "status": "complete",
+      "description": "Schema and persistence layer",
+      "features": [
+        "Neon PostgreSQL connection",
+        "Drizzle ORM schemas",
+        "scraped_content table",
+        "tRPC routers",
+        "CRUD operations"
+      ],
+      "lastWorkedOn": "2024-01-24",
+      "workingBranches": []
+    },
+    "ui": {
+      "status": "complete",
+      "description": "Component library and layouts",
+      "features": [
+        "DaisyUI theme system",
+        "Component variants",
+        "Responsive layouts",
+        "Feature flag UI"
+      ],
+      "lastWorkedOn": "2024-01-22",
+      "workingBranches": []
+    },
+    "ai-services": {
+      "status": "in-progress",
+      "description": "AI summarization and TTS services",
+      "features": [
+        "OpenAI integration",
+        "Content summarization",
+        "Text-to-speech",
+        "Cost tracking"
+      ],
+      "lastWorkedOn": "2024-01-25",
+      "workingBranches": ["feat/ai-services"],
+      "blockers": [],
+      "nextSteps": [
+        "Rebuild summarization service",
+        "Implement TTS service",
+        "Create generation API endpoint"
+      ]
+    },
+    "generation-pipeline": {
+      "status": "not-started",
+      "description": "End-to-end episode generation",
+      "features": [
+        "On-demand generation",
+        "Progress tracking",
+        "Error handling",
+        "Audio storage"
+      ],
+      "dependsOn": ["ai-services", "scraping", "database"],
+      "nextSteps": [
+        "Create generation endpoint",
+        "Add UI trigger button",
+        "Implement progress feedback"
+      ]
+    },
+    "testing": {
+      "status": "complete",
+      "description": "Testing infrastructure",
+      "features": [
+        "Vitest unit tests",
+        "Playwright E2E tests",
+        "PostHog analytics",
+        "Feature flags"
+      ],
+      "lastWorkedOn": "2024-01-22",
+      "workingBranches": []
+    }
+  },
+  "workflowNotes": {
+    "parallelDevelopment": "Use component-based status to avoid conflicts",
+    "branchStrategy": "Feature branches per component area",
+    "statusUpdates": "Update component status when starting/completing work",
+    "contextForAI": "Check component status + current branch for full context"
+  },
+  "repo": "https://github.com/JFinchy/tldr-podcast-generator",
+  "user": "JFinchy",
+  "branch": "main"
+}

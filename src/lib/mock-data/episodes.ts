@@ -1,147 +1,147 @@
 export interface Episode {
-  id: string;
-  sourceId: string;
-  title: string;
-  summary: string;
+  audioSize: null | number;
+  audioUrl: null | string;
   contentHash: string;
-  audioUrl: string | null;
-  audioSize: number | null;
+  createdAt: Date;
   duration: number; // in seconds
-  playCount: number;
   generationCost: string;
-  ttsService: "openai" | "google";
-  status: "pending" | "generating" | "ready" | "failed";
+  id: string;
+  isPlaying?: boolean;
+  playCount: number;
+  progress?: number; // 0-100 percentage
   source?: {
+    category: string;
     name: string;
     url: string;
-    category: string;
   };
-  createdAt: Date;
+  sourceId: string;
+  status: "failed" | "generating" | "pending" | "ready";
+  summary: string;
+  title: string;
+  ttsService: "google" | "openai";
   updatedAt: Date;
-  isPlaying?: boolean;
-  progress?: number; // 0-100 percentage
 }
 
 export const mockEpisodes: Episode[] = [
   {
-    id: "ep-1",
-    sourceId: "tldr",
-    title: "TLDR Tech News - January 4th, 2024",
-    summary:
-      "Today's tech highlights: OpenAI announces new features for ChatGPT, Apple releases iOS 17.3 with security updates, Microsoft's AI integration reaches new milestones, and startup funding trends for Q1 2024.",
-    contentHash: "abc123",
-    audioUrl: "/demo-audio.mp3",
     audioSize: 2547683,
+    audioUrl: "/demo-audio.mp3",
+    contentHash: "abc123",
+    createdAt: new Date("2024-01-04T09:00:00Z"),
     duration: 185, // 3:05
-    playCount: 42,
     generationCost: "0.15",
-    ttsService: "openai",
-    status: "ready",
+    id: "ep-1",
+    isPlaying: false,
+    playCount: 42,
+    progress: 0,
     source: {
+      category: "Tech News",
       name: "TLDR Newsletter",
       url: "https://tldr.tech",
-      category: "Tech News",
     },
-    createdAt: new Date("2024-01-04T09:00:00Z"),
+    sourceId: "tldr",
+    status: "ready",
+    summary:
+      "Today's tech highlights: OpenAI announces new features for ChatGPT, Apple releases iOS 17.3 with security updates, Microsoft's AI integration reaches new milestones, and startup funding trends for Q1 2024.",
+    title: "TLDR Tech News - January 4th, 2024",
+    ttsService: "openai",
     updatedAt: new Date("2024-01-04T09:15:00Z"),
-    isPlaying: false,
-    progress: 0,
   },
   {
-    id: "ep-2",
-    sourceId: "hacker-news",
-    title: "Hacker News Daily - Top Stories",
-    summary:
-      "The latest from the tech community: New JavaScript framework debates, breakthrough in quantum computing research, and a viral discussion about remote work productivity.",
-    contentHash: "def456",
-    audioUrl: "/demo-audio-2.mp3",
     audioSize: 1892456,
+    audioUrl: "/demo-audio-2.mp3",
+    contentHash: "def456",
+    createdAt: new Date("2024-01-03T18:30:00Z"),
     duration: 142, // 2:22
-    playCount: 28,
     generationCost: "0.12",
-    ttsService: "openai",
-    status: "ready",
+    id: "ep-2",
+    isPlaying: true,
+    playCount: 28,
+    progress: 67,
     source: {
+      category: "Developer News",
       name: "Hacker News",
       url: "https://news.ycombinator.com",
-      category: "Developer News",
     },
-    createdAt: new Date("2024-01-03T18:30:00Z"),
+    sourceId: "hacker-news",
+    status: "ready",
+    summary:
+      "The latest from the tech community: New JavaScript framework debates, breakthrough in quantum computing research, and a viral discussion about remote work productivity.",
+    title: "Hacker News Daily - Top Stories",
+    ttsService: "openai",
     updatedAt: new Date("2024-01-03T18:45:00Z"),
-    isPlaying: true,
-    progress: 67,
   },
   {
-    id: "ep-3",
-    sourceId: "morning-brew",
-    title: "Morning Brew Business Brief",
-    summary:
-      "Market updates and business insights: Tesla's Q4 earnings surprise investors, new fintech regulations in Europe, and the rise of AI-powered trading algorithms.",
-    contentHash: "ghi789",
-    audioUrl: null,
     audioSize: null,
+    audioUrl: null,
+    contentHash: "ghi789",
+    createdAt: new Date("2024-01-04T06:00:00Z"),
     duration: 0,
-    playCount: 0,
     generationCost: "0",
-    ttsService: "openai",
-    status: "generating",
+    id: "ep-3",
+    isPlaying: false,
+    playCount: 0,
+    progress: 0,
     source: {
+      category: "Business News",
       name: "Morning Brew",
       url: "https://morningbrew.com",
-      category: "Business News",
     },
-    createdAt: new Date("2024-01-04T06:00:00Z"),
+    sourceId: "morning-brew",
+    status: "generating",
+    summary:
+      "Market updates and business insights: Tesla's Q4 earnings surprise investors, new fintech regulations in Europe, and the rise of AI-powered trading algorithms.",
+    title: "Morning Brew Business Brief",
+    ttsService: "openai",
     updatedAt: new Date("2024-01-04T08:30:00Z"),
-    isPlaying: false,
-    progress: 0,
   },
   {
-    id: "ep-4",
-    sourceId: "ai-digest",
-    title: "AI Research Weekly Digest",
-    summary:
-      "Latest developments in artificial intelligence: GPT-5 rumors and speculation, breakthrough in computer vision, and ethical AI guidelines from major tech companies.",
-    contentHash: "jkl012",
-    audioUrl: "/demo-audio-3.mp3",
     audioSize: 3124789,
+    audioUrl: "/demo-audio-3.mp3",
+    contentHash: "jkl012",
+    createdAt: new Date("2024-01-02T12:00:00Z"),
     duration: 234, // 3:54
-    playCount: 156,
     generationCost: "0.18",
-    ttsService: "google",
-    status: "ready",
+    id: "ep-4",
+    isPlaying: false,
+    playCount: 156,
+    progress: 0,
     source: {
+      category: "AI & ML",
       name: "AI Research Digest",
       url: "https://airesearch.com",
-      category: "AI & ML",
     },
-    createdAt: new Date("2024-01-02T12:00:00Z"),
+    sourceId: "ai-digest",
+    status: "ready",
+    summary:
+      "Latest developments in artificial intelligence: GPT-5 rumors and speculation, breakthrough in computer vision, and ethical AI guidelines from major tech companies.",
+    title: "AI Research Weekly Digest",
+    ttsService: "google",
     updatedAt: new Date("2024-01-02T12:20:00Z"),
-    isPlaying: false,
-    progress: 0,
   },
   {
-    id: "ep-5",
-    sourceId: "product-hunt",
-    title: "Product Hunt Daily - Top Launches",
-    summary:
-      "Today's featured products: Revolutionary no-code platform, AI-powered design tool, and a minimalist note-taking app that's taking the productivity world by storm.",
-    contentHash: "mno345",
-    audioUrl: null,
     audioSize: null,
+    audioUrl: null,
+    contentHash: "mno345",
+    createdAt: new Date("2024-01-01T15:00:00Z"),
     duration: 0,
-    playCount: 0,
     generationCost: "0",
-    ttsService: "openai",
-    status: "failed",
+    id: "ep-5",
+    isPlaying: false,
+    playCount: 0,
+    progress: 0,
     source: {
+      category: "Product News",
       name: "Product Hunt",
       url: "https://producthunt.com",
-      category: "Product News",
     },
-    createdAt: new Date("2024-01-01T15:00:00Z"),
+    sourceId: "product-hunt",
+    status: "failed",
+    summary:
+      "Today's featured products: Revolutionary no-code platform, AI-powered design tool, and a minimalist note-taking app that's taking the productivity world by storm.",
+    title: "Product Hunt Daily - Top Launches",
+    ttsService: "openai",
     updatedAt: new Date("2024-01-01T15:10:00Z"),
-    isPlaying: false,
-    progress: 0,
   },
 ];
 

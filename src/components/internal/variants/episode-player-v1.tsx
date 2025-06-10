@@ -1,30 +1,30 @@
 "use client";
 
-import { Play, Pause, Volume2, SkipBack, SkipForward } from "lucide-react";
-import { useState, useRef } from "react";
+import { Pause, Play, SkipBack, SkipForward, Volume2 } from "lucide-react";
+import { useRef, useState } from "react";
 
-import { Episode } from "@/lib/mock-data/episodes";
+import { type Episode } from "@/lib/mock-data/episodes";
 
 interface EpisodePlayerV1Props {
+  currentTime?: number;
+  duration?: number;
   episode: Episode;
   isPlaying?: boolean;
   onPlayPause?: () => void;
-  currentTime?: number;
-  duration?: number;
   onSeek?: (time: number) => void;
-  volume?: number;
   onVolumeChange?: (volume: number) => void;
+  volume?: number;
 }
 
 export function EpisodePlayerV1({
+  currentTime = 0,
+  duration = 300, // 5 minutes default
   episode,
   isPlaying = false,
   onPlayPause,
-  currentTime = 0,
-  duration = 300, // 5 minutes default
   onSeek,
-  volume = 0.8,
   onVolumeChange,
+  volume = 0.8,
 }: EpisodePlayerV1Props) {
   const progressBarRef = useRef<HTMLDivElement>(null);
   const volumeBarRef = useRef<HTMLDivElement>(null);
@@ -92,7 +92,7 @@ export function EpisodePlayerV1({
       <div className="bg-primary/10 px-6 py-4 border-b border-primary/20">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-primary/20 rounded-lg flex items-center justify-center">
-            <div className="w-5 h-5 bg-primary rounded-sm"></div>
+            <div className="w-5 h-5 bg-primary rounded-sm" />
           </div>
           <div>
             <h3 className="font-semibold text-lg text-base-content">
@@ -136,9 +136,9 @@ export function EpisodePlayerV1({
             </span>
 
             <div
-              ref={progressBarRef}
               className="flex-1 h-2 bg-base-300 rounded-full cursor-pointer relative"
               onClick={handleProgressClick}
+              ref={progressBarRef}
             >
               <div
                 className="h-full bg-primary rounded-full transition-all duration-150"
@@ -160,9 +160,9 @@ export function EpisodePlayerV1({
         <div className="flex items-center gap-3">
           <Volume2 className="w-4 h-4 text-base-content/60" />
           <div
-            ref={volumeBarRef}
             className="w-20 h-1 bg-base-300 rounded-full cursor-pointer relative"
             onClick={handleVolumeClick}
+            ref={volumeBarRef}
           >
             <div
               className="h-full bg-primary/70 rounded-full"

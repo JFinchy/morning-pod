@@ -6,22 +6,22 @@ import { Button } from "@/components/ui";
 import {
   useEventTracking,
   useFeatureFlagAnalytics,
-  usePodcastAnalytics,
   usePlayerAnalytics,
+  usePodcastAnalytics,
   useUserIdentification,
 } from "@/lib/feature-flags/analytics-hooks";
 
 export default function AnalyticsPage() {
   const [testUserId] = useState(() => `test-user-${Date.now()}`);
   const [eventCount, setEventCount] = useState(0);
-  const [lastEvent, setLastEvent] = useState<string | null>(null);
+  const [lastEvent, setLastEvent] = useState<null | string>(null);
 
   // Analytics hooks
   const { identify, reset } = useUserIdentification();
   const {
     track,
-    trackPageView,
     trackInteraction,
+    trackPageView,
     // TODO: Implement error tracking functionality
     // trackError: _trackError,
     // TODO: Implement performance tracking functionality
@@ -36,11 +36,11 @@ export default function AnalyticsPage() {
     // trackExperimentConversion: _trackExperimentConversion,
   } = useFeatureFlagAnalytics();
   const {
-    trackGenerationStarted,
-    trackGenerationCompleted,
+    trackAudioGenerated,
     trackContentScraped,
     trackContentSummarized,
-    trackAudioGenerated,
+    trackGenerationCompleted,
+    trackGenerationStarted,
   } = usePodcastAnalytics();
   const {
     // TODO: Implement episode played tracking functionality
@@ -56,14 +56,14 @@ export default function AnalyticsPage() {
   // Test functions
   const testUserIdentification = () => {
     identify({
-      userId: testUserId,
       email: "test@example.com",
       name: "Test User",
-      subscriptionTier: "premium",
-      signupDate: new Date().toISOString(),
-      totalEpisodesGenerated: 5,
       preferredSources: ["tldr", "hacker-news"],
       preferredVoices: ["alloy", "nova"],
+      signupDate: new Date().toISOString(),
+      subscriptionTier: "premium",
+      totalEpisodesGenerated: 5,
+      userId: testUserId,
     });
     setLastEvent("User Identified");
     setEventCount((prev) => prev + 1);
@@ -71,9 +71,9 @@ export default function AnalyticsPage() {
 
   const testBasicEvents = () => {
     track("user-signed-in", {
-      userId: testUserId,
       email: "test@example.com",
       method: "email",
+      userId: testUserId,
     });
 
     trackPageView("/internal/analytics", {
@@ -171,18 +171,18 @@ export default function AnalyticsPage() {
               <span className="label-text">Test User ID</span>
             </label>
             <input
-              type="text"
               className="input input-bordered"
-              value={testUserId}
               readOnly
+              type="text"
+              value={testUserId}
             />
           </div>
 
           <div className="card-actions justify-end">
-            <Button onClick={testUserIdentification} className="btn-primary">
+            <Button className="btn-primary" onClick={testUserIdentification}>
               Identify User
             </Button>
-            <Button onClick={resetAnalytics} className="btn-outline">
+            <Button className="btn-outline" onClick={resetAnalytics}>
               Reset Session
             </Button>
           </div>
@@ -199,8 +199,8 @@ export default function AnalyticsPage() {
             </p>
             <div className="card-actions">
               <Button
-                onClick={testBasicEvents}
                 className="btn-secondary btn-sm"
+                onClick={testBasicEvents}
               >
                 Test Basic Events
               </Button>
@@ -215,7 +215,7 @@ export default function AnalyticsPage() {
               Complete podcast generation workflow analytics
             </p>
             <div className="card-actions">
-              <Button onClick={testPodcastEvents} className="btn-accent btn-sm">
+              <Button className="btn-accent btn-sm" onClick={testPodcastEvents}>
                 Test Podcast Flow
               </Button>
             </div>

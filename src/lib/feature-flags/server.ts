@@ -1,6 +1,6 @@
 import { PostHog } from "posthog-node";
 
-import type { FeatureFlagKey, FeatureFlagValue } from "./config";
+import { type FeatureFlagKey, type FeatureFlagValue } from "./config";
 import {
   DEFAULT_FLAG_VALUES,
   getEnvironmentFlagOverrides,
@@ -8,9 +8,9 @@ import {
 } from "./config";
 
 // Server-side PostHog client (singleton)
-let posthogClient: PostHog | null = null;
+let posthogClient: null | PostHog = null;
 
-export function getPostHogClient(): PostHog | null {
+export function getPostHogClient(): null | PostHog {
   if (!SERVER_POSTHOG_CONFIG.enabled || !SERVER_POSTHOG_CONFIG.projectApiKey) {
     return null;
   }

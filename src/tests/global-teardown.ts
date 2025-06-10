@@ -1,7 +1,6 @@
+import { type FullConfig } from "@playwright/test";
 import { writeFile } from "fs/promises";
 import { join } from "path";
-
-import { FullConfig } from "@playwright/test";
 
 async function globalTeardown(config: FullConfig) {
   console.log("🧹 Starting Morning Pod E2E Test Cleanup");
@@ -16,15 +15,15 @@ async function globalTeardown(config: FullConfig) {
   // Generate coverage summary
   try {
     const coverageSummary = {
-      timestamp: new Date().toISOString(),
-      projects: config.projects.length,
-      message: "Coverage data collected during E2E tests",
       instructions: [
         "1. Coverage is collected automatically during E2E tests",
         "2. View detailed coverage in playwright-report",
         "3. JS/CSS coverage data is embedded in test results",
         "4. Use bun test:coverage for combined coverage report",
       ],
+      message: "Coverage data collected during E2E tests",
+      projects: config.projects.length,
+      timestamp: new Date().toISOString(),
     };
 
     await writeFile(

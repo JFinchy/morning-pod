@@ -1,31 +1,31 @@
 "use client";
 
 import {
+  ArrowDown,
+  CheckCircle,
   Clock,
-  Globe,
   FileText,
+  Globe,
   Mic,
   Upload,
-  CheckCircle,
   XCircle,
-  ArrowDown,
   Zap,
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import {
-  QueueItem,
-  GenerationStats,
+  formatTimeRemaining,
+  type GenerationStats,
   getStatusColor,
   getStatusLabel,
-  formatTimeRemaining,
+  type QueueItem,
 } from "@/lib/mock-data";
 
 interface QueueStatusV3Props {
-  queueItems: QueueItem[];
-  stats: GenerationStats;
-  showDetails?: boolean;
   maxVisible?: number;
+  queueItems: QueueItem[];
+  showDetails?: boolean;
+  stats: GenerationStats;
 }
 
 const TimelineConnector = ({
@@ -51,13 +51,13 @@ const TimelineConnector = ({
 
 const StatusIcon = ({ status }: { status: QueueItem["status"] }) => {
   const iconMap = {
+    completed: CheckCircle,
+    failed: XCircle,
+    "generating-audio": Mic,
     pending: Clock,
     scraping: Globe,
     summarizing: FileText,
-    "generating-audio": Mic,
     uploading: Upload,
-    completed: CheckCircle,
-    failed: XCircle,
   };
 
   const IconComponent = iconMap[status];
@@ -97,18 +97,18 @@ const MiniProgressBar = ({
 };
 
 export function QueueStatusV3({
-  queueItems,
-  stats,
-  showDetails = true,
   maxVisible = 6,
+  queueItems,
+  showDetails = true,
+  stats,
 }: QueueStatusV3Props) {
-  const [highlightedItem, setHighlightedItem] = useState<string | null>(null);
+  const [highlightedItem, setHighlightedItem] = useState<null | string>(null);
 
   const visibleItems = queueItems.slice(0, maxVisible);
   const remainingCount = Math.max(0, queueItems.length - maxVisible);
 
   const processingItems = queueItems.filter((item) =>
-    ["scraping", "summarizing", "generating-audio", "uploading"].includes(
+    ["generating-audio", "scraping", "summarizing", "uploading"].includes(
       item.status
     )
   );
@@ -145,9 +145,9 @@ export function QueueStatusV3({
             <div className="relative">
               {visibleItems.map((item, index) => {
                 const isActive = [
+                  "generating-audio",
                   "scraping",
                   "summarizing",
-                  "generating-audio",
                   "uploading",
                 ].includes(item.status);
                 const isLast =
@@ -155,10 +155,10 @@ export function QueueStatusV3({
 
                 return (
                   <div
-                    key={item.id}
                     className={`relative transition-all duration-200 ${
                       highlightedItem === item.id ? "scale-105" : ""
                     }`}
+                    key={item.id}
                     onMouseEnter={() => setHighlightedItem(item.id)}
                     onMouseLeave={() => setHighlightedItem(null)}
                   >

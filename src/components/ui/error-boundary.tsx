@@ -4,8 +4,8 @@ import { AlertTriangle, RefreshCw } from "lucide-react";
 import React from "react";
 
 interface ErrorBoundaryState {
-  hasError: boolean;
   error?: Error;
+  hasError: boolean;
 }
 
 interface ErrorBoundaryProps {
@@ -24,7 +24,7 @@ class ErrorBoundary extends React.Component<
   }
 
   static getDerivedStateFromError(error: Error): ErrorBoundaryState {
-    return { hasError: true, error };
+    return { error, hasError: true };
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
@@ -38,10 +38,6 @@ class ErrorBoundary extends React.Component<
       // Example: logErrorToService(error, errorInfo);
     }
   }
-
-  resetError = () => {
-    this.setState({ hasError: false, error: undefined });
-  };
 
   render() {
     if (this.state.hasError) {
@@ -64,6 +60,10 @@ class ErrorBoundary extends React.Component<
 
     return this.props.children;
   }
+
+  resetError = () => {
+    this.setState({ error: undefined, hasError: false });
+  };
 }
 
 // Default fallback component
@@ -87,7 +87,7 @@ function DefaultErrorFallback({
         {error?.message || "An unexpected error occurred. Please try again."}
       </p>
 
-      <button onClick={resetError} className="btn btn-primary btn-sm gap-2">
+      <button className="btn btn-primary btn-sm gap-2" onClick={resetError}>
         <RefreshCw className="w-4 h-4" />
         Try Again
       </button>

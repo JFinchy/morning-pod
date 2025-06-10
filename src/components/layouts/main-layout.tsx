@@ -1,23 +1,22 @@
 "use client";
 
 import {
+  ChevronDown,
+  Clock,
   Home,
+  Menu,
+  Plus,
   Podcast,
   Radio,
   Settings,
-  Clock,
-  Menu,
-  X,
-  Plus,
   Shield,
-  ChevronDown,
+  X,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 
 import { FeatureFlagAdmin } from "../features/feature-flag-admin";
-import { GenerationModal } from "../features/generation-modal";
 import { ThemeSwitcherCompact } from "../ui/theme-switcher-compact";
 
 interface MainLayoutProps {
@@ -26,70 +25,74 @@ interface MainLayoutProps {
 
 const navigation = [
   {
-    name: "Home",
+    description: "Main dashboard",
     href: "/",
     icon: Home,
-    description: "Main dashboard",
+    name: "Home",
   },
   {
-    name: "Episodes",
+    description: "Browse all episodes",
     href: "/episodes",
     icon: Podcast,
-    description: "Browse all episodes",
+    name: "Episodes",
   },
   {
-    name: "Sources",
+    description: "Manage news sources",
     href: "/sources",
     icon: Radio,
-    description: "Manage news sources",
+    name: "Sources",
   },
   {
-    name: "Scraping",
+    description: "Content scraping",
     href: "/scraping",
     icon: Radio,
-    description: "Content scraping",
+    name: "Scraping",
   },
   {
-    name: "Queue",
+    description: "Generation queue",
     href: "/queue",
     icon: Clock,
-    description: "Generation queue",
+    name: "Queue",
   },
   {
-    name: "Settings",
+    description: "App preferences",
     href: "/settings",
     icon: Settings,
-    description: "App preferences",
+    name: "Settings",
   },
 ];
 
 const internalLinks = [
   {
-    name: "Component Hub",
-    href: "/internal",
     description: "Development overview",
+    href: "/internal",
+    name: "Component Hub",
   },
   {
-    name: "Episode Cards",
-    href: "/internal/comparison/episode-cards",
+    description: "Processor management",
+    href: "/queue/processor",
+    name: "Queue Processor",
+  },
+  {
     description: "Episode card variants",
+    href: "/internal/comparison/episode-cards",
+    name: "Episode Cards",
   },
   {
-    name: "Episode Players",
-    href: "/internal/comparison/episode-players",
     description: "Player variants",
+    href: "/internal/comparison/episode-players",
+    name: "Episode Players",
   },
   {
-    name: "Queue Status",
-    href: "/internal/comparison/queue-status",
     description: "Queue status variants",
+    href: "/internal/comparison/queue-status",
+    name: "Queue Status",
   },
 ];
 
 export function MainLayout({ children }: MainLayoutProps) {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [generationModalOpen, setGenerationModalOpen] = useState(false);
   const [featureFlagDropdownOpen, setFeatureFlagDropdownOpen] = useState(false);
 
   const isActiveRoute = (href: string) => {
@@ -140,9 +143,9 @@ export function MainLayout({ children }: MainLayoutProps) {
               </div>
             </div>
             <button
+              aria-label="Close navigation menu"
               className="lg:hidden btn btn-ghost btn-sm btn-circle"
               onClick={() => setMobileMenuOpen(false)}
-              aria-label="Close navigation menu"
             >
               <X className="w-4 h-4" />
             </button>
@@ -157,13 +160,13 @@ export function MainLayout({ children }: MainLayoutProps) {
 
                 return (
                   <Link
-                    key={item.name}
-                    href={item.href}
                     className={`group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 hover:scale-[1.02] ${
                       isActive
                         ? "bg-primary text-primary-content shadow-lg"
                         : "text-base-content hover:bg-base-300 hover:shadow-md"
                     }`}
+                    href={item.href}
+                    key={item.name}
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     <Icon
@@ -200,13 +203,13 @@ export function MainLayout({ children }: MainLayoutProps) {
               <div className="space-y-1">
                 {internalLinks.map((item) => (
                   <Link
-                    key={item.name}
-                    href={item.href}
                     className={`group flex items-center px-3 py-2 text-sm rounded-lg transition-colors ${
                       isActiveRoute(item.href)
                         ? "bg-warning/20 text-warning-content"
                         : "text-base-content/70 hover:bg-base-300"
                     }`}
+                    href={item.href}
+                    key={item.name}
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     <div className="w-2 h-2 rounded-full bg-warning mr-3 flex-shrink-0" />
@@ -239,9 +242,9 @@ export function MainLayout({ children }: MainLayoutProps) {
         {/* Top bar */}
         <div className="sticky top-0 z-30 flex h-12 items-center justify-between bg-base-100/95 backdrop-blur-sm border-b border-base-300 px-4 lg:px-6">
           <button
+            aria-label="Open navigation menu"
             className="lg:hidden btn btn-ghost btn-sm btn-circle"
             onClick={() => setMobileMenuOpen(true)}
-            aria-label="Open navigation menu"
           >
             <Menu className="w-5 h-5" />
           </button>
@@ -259,11 +262,11 @@ export function MainLayout({ children }: MainLayoutProps) {
             {/* Feature Flags Dropdown */}
             <div className="relative">
               <button
+                aria-label="View feature flags"
                 className="btn btn-ghost btn-sm gap-2"
                 onClick={() =>
                   setFeatureFlagDropdownOpen(!featureFlagDropdownOpen)
                 }
-                aria-label="View feature flags"
               >
                 <Shield className="w-4 h-4" />
                 <span className="hidden sm:inline">Flags</span>
@@ -276,27 +279,12 @@ export function MainLayout({ children }: MainLayoutProps) {
                 </div>
               )}
             </div>
-
-            <button
-              className="btn btn-primary btn-sm gap-2"
-              onClick={() => setGenerationModalOpen(true)}
-              aria-label="Generate new podcast episode"
-            >
-              <Plus className="w-4 h-4" />
-              <span className="hidden sm:inline">Generate Episode</span>
-            </button>
           </div>
         </div>
 
         {/* Page content */}
         <main className="p-4 lg:p-6">{children}</main>
       </div>
-
-      {/* Generation Modal */}
-      <GenerationModal
-        isOpen={generationModalOpen}
-        onClose={() => setGenerationModalOpen(false)}
-      />
     </div>
   );
 }

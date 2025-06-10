@@ -1,28 +1,29 @@
 "use client";
 
-import { useState } from "react";
-import { api } from "@/lib/trpc/client";
-import { Button } from "@/components/ui";
 import {
-  Play,
+  AlertCircle,
+  BarChart3,
+  CheckCircle,
+  Clock,
+  FileText,
   Pause,
+  Play,
   RefreshCw,
   Settings,
-  BarChart3,
-  FileText,
-  Clock,
-  CheckCircle,
   XCircle,
-  AlertCircle,
 } from "lucide-react";
+import { useState } from "react";
+
+import { Button } from "@/components/ui";
+import { api } from "@/lib/trpc/client";
 
 interface ScraperDebugInfo {
-  name: string;
-  status: "idle" | "running" | "error" | "success";
-  lastRun?: Date;
-  itemsScraped: number;
   errors: string[];
+  itemsScraped: number;
+  lastRun?: Date;
+  name: string;
   responseTime: number;
+  status: "error" | "idle" | "running" | "success";
 }
 
 export default function ScrapingInternalPage() {
@@ -58,28 +59,28 @@ export default function ScrapingInternalPage() {
   // Mock debug data for development
   const debugInfo: ScraperDebugInfo[] = [
     {
-      name: "TLDR",
-      status: "success",
-      lastRun: new Date(Date.now() - 1000 * 60 * 5), // 5 minutes ago
+      errors: [],
       itemsScraped: 12,
-      errors: [],
+      lastRun: new Date(Date.now() - 1000 * 60 * 5), // 5 minutes ago
+      name: "TLDR",
       responseTime: 850,
+      status: "success",
     },
     {
-      name: "Hacker News",
-      status: "running",
-      lastRun: new Date(Date.now() - 1000 * 30), // 30 seconds ago
-      itemsScraped: 8,
       errors: [],
+      itemsScraped: 8,
+      lastRun: new Date(Date.now() - 1000 * 30), // 30 seconds ago
+      name: "Hacker News",
       responseTime: 1200,
+      status: "running",
     },
     {
-      name: "Morning Brew",
-      status: "error",
-      lastRun: new Date(Date.now() - 1000 * 60 * 15), // 15 minutes ago
-      itemsScraped: 0,
       errors: ["Rate limit exceeded", "Invalid response format"],
+      itemsScraped: 0,
+      lastRun: new Date(Date.now() - 1000 * 60 * 15), // 15 minutes ago
+      name: "Morning Brew",
       responseTime: 5000,
+      status: "error",
     },
   ];
 
@@ -131,9 +132,9 @@ export default function ScrapingInternalPage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                   <Button
-                    onClick={() => scrapeAll.mutate()}
-                    disabled={scrapeAll.isPending}
                     className="btn-primary"
+                    disabled={scrapeAll.isPending}
+                    onClick={() => scrapeAll.mutate()}
                   >
                     {scrapeAll.isPending ? (
                       <RefreshCw className="w-4 h-4 animate-spin" />
@@ -144,11 +145,11 @@ export default function ScrapingInternalPage() {
                   </Button>
 
                   <Button
+                    btnStyle="outline"
                     onClick={() => {
                       refetchMetrics();
                       refetchContent();
                     }}
-                    btnStyle="outline"
                   >
                     <RefreshCw className="w-4 h-4" />
                     Refresh Data
@@ -158,10 +159,10 @@ export default function ScrapingInternalPage() {
                     <label className="label cursor-pointer">
                       <span className="label-text">Debug Mode</span>
                       <input
-                        type="checkbox"
-                        className="toggle toggle-primary"
                         checked={debugMode}
+                        className="toggle toggle-primary"
                         onChange={(e) => setDebugMode(e.target.checked)}
+                        type="checkbox"
                       />
                     </label>
                   </div>
@@ -170,10 +171,10 @@ export default function ScrapingInternalPage() {
                     <label className="label cursor-pointer">
                       <span className="label-text">Raw Data</span>
                       <input
-                        type="checkbox"
-                        className="toggle toggle-secondary"
                         checked={showRawData}
+                        className="toggle toggle-secondary"
                         onChange={(e) => setShowRawData(e.target.checked)}
+                        type="checkbox"
                       />
                     </label>
                   </div>
@@ -207,7 +208,7 @@ export default function ScrapingInternalPage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {debugInfo.map((scraper) => (
-                    <div key={scraper.name} className="card bg-base-200 border">
+                    <div className="card bg-base-200 border" key={scraper.name}>
                       <div className="card-body p-4">
                         <div className="flex items-center justify-between mb-3">
                           <h3 className="font-semibold">{scraper.name}</h3>
@@ -262,8 +263,8 @@ export default function ScrapingInternalPage() {
                               </div>
                               {scraper.errors.map((error) => (
                                 <div
-                                  key={error}
                                   className="text-error text-xs bg-error/10 p-2 rounded"
+                                  key={error}
                                 >
                                   {error}
                                 </div>
@@ -274,20 +275,20 @@ export default function ScrapingInternalPage() {
 
                         <div className="mt-3">
                           <Button
-                            size="sm"
                             btnStyle="outline"
-                            onClick={() =>
-                              scrapeSource.mutate({
-                                source: scraper.name
-                                  .toLowerCase()
-                                  .replace(/\s+/g, ""),
-                              })
-                            }
+                            className="w-full"
                             disabled={
                               scrapeSource.isPending ||
                               scraper.status === "running"
                             }
-                            className="w-full"
+                            onClick={() =>
+                              scrapeSource.mutate({
+                                source: scraper.name
+                                  .toLowerCase()
+                                  .replace(/\s+/gu, ""),
+                              })
+                            }
+                            size="sm"
                           >
                             {scraper.status === "running" ? (
                               <Pause className="w-3 h-3" />
@@ -361,8 +362,8 @@ export default function ScrapingInternalPage() {
 
               <div className="space-y-3">
                 {debugInfo.map((scraper) => (
-                  <div key={scraper.name} className="flex items-center gap-3">
-                    <div className="w-3 h-3 rounded-full bg-primary"></div>
+                  <div className="flex items-center gap-3" key={scraper.name}>
+                    <div className="w-3 h-3 rounded-full bg-primary" />
                     <div className="flex-1">
                       <div className="flex justify-between items-center">
                         <span className="text-sm font-medium">
@@ -388,7 +389,7 @@ export default function ScrapingInternalPage() {
                           style={{
                             width: `${Math.min(100, (scraper.responseTime / 5000) * 100)}%`,
                           }}
-                        ></div>
+                        />
                       </div>
                     </div>
                   </div>
@@ -417,7 +418,7 @@ export default function ScrapingInternalPage() {
                         style={{
                           width: `${Math.max(5, (scraper.itemsScraped / Math.max(...debugInfo.map((s) => s.itemsScraped))) * 100)}%`,
                         }}
-                      ></div>
+                      />
                     </div>
                   </div>
                 ))}

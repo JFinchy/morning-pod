@@ -1,18 +1,18 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { type PostHog } from "posthog-js";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import {
   AnalyticsService,
   createAnalyticsService,
   getCommonEventProperties,
 } from "@/lib/feature-flags/analytics";
-import type { PostHog } from "posthog-js";
 
 // Mock PostHog
 const mockPostHog = {
-  identify: vi.fn(),
   capture: vi.fn(),
-  setPersonProperties: vi.fn(),
+  identify: vi.fn(),
   reset: vi.fn(),
+  setPersonProperties: vi.fn(),
 } as unknown as PostHog;
 
 describe("AnalyticsService", () => {
@@ -24,12 +24,12 @@ describe("AnalyticsService", () => {
   });
 
   describe("identify", () => {
-    it("should identify user with PostHog", () => {
+    test("should identify user with PostHog", () => {
       const userProperties = {
-        userId: "test-user-123",
         email: "test@example.com",
         name: "Test User",
         subscriptionTier: "premium" as const,
+        userId: "test-user-123",
       };
 
       analyticsService.identify(userProperties);
@@ -46,13 +46,13 @@ describe("AnalyticsService", () => {
       });
     });
 
-    it("should handle missing PostHog gracefully", () => {
+    test("should handle missing PostHog gracefully", () => {
       const serviceWithoutPostHog = new AnalyticsService(null);
       const consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
       serviceWithoutPostHog.identify({
-        userId: "test-user",
         email: "test@example.com",
+        userId: "test-user",
       });
 
       expect(consoleSpy).toHaveBeenCalledWith(
@@ -63,11 +63,11 @@ describe("AnalyticsService", () => {
   });
 
   describe("track", () => {
-    it("should track events with enriched properties", () => {
+    test("should track events with enriched properties", () => {
       const eventProperties = {
         episodeId: "ep-123",
-        sourceId: "tldr",
         position: 30,
+        sourceId: "tldr",
       };
 
       analyticsService.track("episode-played", eventProperties);
@@ -76,20 +76,20 @@ describe("AnalyticsService", () => {
         "episode-played",
         expect.objectContaining({
           episodeId: "ep-123",
-          sourceId: "tldr",
           position: 30,
+          sourceId: "tldr",
           timestamp: expect.any(String),
         })
       );
     });
 
-    it("should track podcast generation events", () => {
+    test("should track podcast generation events", () => {
       const eventProperties = {
-        sourceId: "tldr",
-        sourceName: "TLDR Newsletter",
-        duration: 32.5,
         audioLength: 45,
         cost: 0.8,
+        duration: 32.5,
+        sourceId: "tldr",
+        sourceName: "TLDR Newsletter",
       };
 
       analyticsService.track("podcast-generation-completed", eventProperties);
@@ -100,7 +100,7 @@ describe("AnalyticsService", () => {
       );
     });
 
-    it("should track feature flag events", () => {
+    test("should track feature flag events", () => {
       analyticsService.trackFeatureFlag(
         "ai-summarization-enabled",
         true,
@@ -117,7 +117,7 @@ describe("AnalyticsService", () => {
       );
     });
 
-    it("should handle missing PostHog gracefully", () => {
+    test("should handle missing PostHog gracefully", () => {
       const serviceWithoutPostHog = new AnalyticsService(null);
       const consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
@@ -134,10 +134,10 @@ describe("AnalyticsService", () => {
   });
 
   describe("setUserProperties", () => {
-    it("should set user properties", () => {
+    test("should set user properties", () => {
       const properties = {
-        totalEpisodesGenerated: 10,
         preferredSources: ["tldr", "hacker-news"],
+        totalEpisodesGenerated: 10,
       };
 
       analyticsService.setUserProperties(properties);
@@ -147,27 +147,27 @@ describe("AnalyticsService", () => {
   });
 
   describe("reset", () => {
-    it("should reset PostHog session", () => {
+    test("should reset PostHog session", () => {
       analyticsService.reset();
 
-      expect(mockPostHog.reset).toHaveBeenCalled();
+      expect(mockPostHog.reset).toHaveBeenCalledWith();
     });
   });
 
   describe("convenience methods", () => {
-    it("should track page views", () => {
+    test("should track page views", () => {
       analyticsService.trackPageView("/episodes", { extra: "data" });
 
       expect(mockPostHog.capture).toHaveBeenCalledWith(
         "page-viewed",
         expect.objectContaining({
-          page: "/episodes",
           extra: "data",
+          page: "/episodes",
         })
       );
     });
 
-    it("should track interactions", () => {
+    test("should track interactions", () => {
       analyticsService.trackInteraction(
         "episode-card",
         "play-button-clicked",
@@ -177,14 +177,14 @@ describe("AnalyticsService", () => {
       expect(mockPostHog.capture).toHaveBeenCalledWith(
         "component-interacted",
         expect.objectContaining({
-          component: "episode-card",
           action: "play-button-clicked",
+          component: "episode-card",
           variant: "visual-heavy",
         })
       );
     });
 
-    it("should track errors", () => {
+    test("should track errors", () => {
       const error = new Error("Test error");
       analyticsService.trackError(error, {
         component: "episode-player",
@@ -194,14 +194,14 @@ describe("AnalyticsService", () => {
       expect(mockPostHog.capture).toHaveBeenCalledWith(
         "error-occurred",
         expect.objectContaining({
-          error: "Test error",
           component: "episode-player",
+          error: "Test error",
           page: "/episodes",
         })
       );
     });
 
-    it("should track performance metrics", () => {
+    test("should track performance metrics", () => {
       analyticsService.trackPerformance("page-load-time", 1250, {
         page: "/episodes",
       });
@@ -210,13 +210,13 @@ describe("AnalyticsService", () => {
         "performance-metric",
         expect.objectContaining({
           metric: "page-load-time",
-          value: 1250,
           page: "/episodes",
+          value: 1250,
         })
       );
     });
 
-    it("should track experiments", () => {
+    test("should track experiments", () => {
       analyticsService.trackExperimentView("episode-card-test", "variant-a");
       analyticsService.trackExperimentConversion(
         "episode-card-test",
@@ -235,9 +235,9 @@ describe("AnalyticsService", () => {
       expect(mockPostHog.capture).toHaveBeenCalledWith(
         "experiment-converted",
         expect.objectContaining({
+          conversionType: "click",
           experimentKey: "episode-card-test",
           variant: "variant-a",
-          conversionType: "click",
         })
       );
     });
@@ -245,12 +245,12 @@ describe("AnalyticsService", () => {
 });
 
 describe("createAnalyticsService", () => {
-  it("should create analytics service with PostHog instance", () => {
+  test("should create analytics service with PostHog instance", () => {
     const service = createAnalyticsService(mockPostHog);
     expect(service).toBeInstanceOf(AnalyticsService);
   });
 
-  it("should create analytics service with null PostHog", () => {
+  test("should create analytics service with null PostHog", () => {
     const service = createAnalyticsService(null);
     expect(service).toBeInstanceOf(AnalyticsService);
   });
@@ -268,45 +268,45 @@ describe("getCommonEventProperties", () => {
     });
 
     Object.defineProperty(document, "referrer", {
-      value: "https://google.com",
       configurable: true,
+      value: "https://google.com",
     });
 
     Object.defineProperty(navigator, "userAgent", {
-      value: "Mozilla/5.0 Test Browser",
       configurable: true,
+      value: "Mozilla/5.0 Test Browser",
     });
 
     Object.defineProperty(window, "innerWidth", {
-      value: 1920,
       configurable: true,
+      value: 1920,
     });
 
     Object.defineProperty(window, "innerHeight", {
-      value: 1080,
       configurable: true,
+      value: 1080,
     });
   });
 
-  it("should return common event properties in browser", () => {
+  test("should return common event properties in browser", () => {
     const properties = getCommonEventProperties();
 
     expect(properties).toEqual({
-      url: "https://example.com/test",
       pathname: "/test",
       referrer: "https://google.com",
-      userAgent: "Mozilla/5.0 Test Browser",
       timestamp: expect.any(String),
+      url: "https://example.com/test",
+      userAgent: "Mozilla/5.0 Test Browser",
       viewport: {
-        width: 1920,
         height: 1080,
+        width: 1920,
       },
     });
   });
 });
 
 describe("Event Type Safety", () => {
-  it("should enforce correct event properties", () => {
+  test("should enforce correct event properties", () => {
     // This test ensures TypeScript compilation will catch type errors
     // In a real test environment, TypeScript would prevent incorrect usage
 
@@ -315,8 +315,8 @@ describe("Event Type Safety", () => {
     // Valid event
     service.track("episode-played", {
       episodeId: "ep-123",
-      sourceId: "tldr",
       position: 30,
+      sourceId: "tldr",
     });
 
     // Invalid event (would cause TypeScript error in real usage)
@@ -327,58 +327,58 @@ describe("Event Type Safety", () => {
 });
 
 describe("Analytics Integration Patterns", () => {
-  it("should support complete podcast generation workflow tracking", () => {
+  test("should support complete podcast generation workflow tracking", () => {
     const service = new AnalyticsService(mockPostHog);
 
     // Simulate complete workflow
     service.track("podcast-generation-started", {
+      estimatedDuration: 30,
       sourceId: "tldr",
       sourceName: "TLDR Newsletter",
-      estimatedDuration: 30,
     });
 
     service.track("content-scraped", {
-      sourceId: "tldr",
-      sourceName: "TLDR Newsletter",
       articlesCount: 5,
       duration: 3.2,
+      sourceId: "tldr",
+      sourceName: "TLDR Newsletter",
     });
 
     service.track("content-summarized", {
-      sourceId: "tldr",
-      wordCount: 2500,
-      summaryLength: 250,
-      model: "gpt-4",
       cost: 0.12,
+      model: "gpt-4",
       qualityScore: 8.5,
+      sourceId: "tldr",
+      summaryLength: 250,
+      wordCount: 2500,
     });
 
     service.track("audio-generated", {
+      audioLength: 45,
+      cost: 0.68,
       sourceId: "tldr",
       textLength: 250,
-      audioLength: 45,
       voice: "alloy",
-      cost: 0.68,
     });
 
     service.track("podcast-generation-completed", {
-      sourceId: "tldr",
-      sourceName: "TLDR Newsletter",
-      duration: 32.5,
       audioLength: 45,
       cost: 0.8,
+      duration: 32.5,
+      sourceId: "tldr",
+      sourceName: "TLDR Newsletter",
     });
 
     expect(mockPostHog.capture).toHaveBeenCalledTimes(5);
   });
 
-  it("should support player engagement tracking", () => {
+  test("should support player engagement tracking", () => {
     const service = new AnalyticsService(mockPostHog);
 
     service.track("episode-played", {
       episodeId: "ep-123",
-      sourceId: "tldr",
       position: 0,
+      sourceId: "tldr",
     });
 
     service.track("episode-paused", {
@@ -388,10 +388,10 @@ describe("Analytics Integration Patterns", () => {
     });
 
     service.track("episode-completed", {
+      completionRate: 0.96,
       episodeId: "ep-123",
       totalDuration: 45,
       watchTime: 43.2,
-      completionRate: 0.96,
     });
 
     expect(mockPostHog.capture).toHaveBeenCalledTimes(3);
@@ -399,7 +399,7 @@ describe("Analytics Integration Patterns", () => {
 });
 
 describe("Analytics", () => {
-  it("should be tested", () => {
-    expect(true).toBe(true);
+  test("should be tested", () => {
+    expect(true).toBeTruthy();
   });
 });

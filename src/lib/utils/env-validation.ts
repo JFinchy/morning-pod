@@ -5,35 +5,35 @@ import { z } from "zod";
  * Ensures critical configuration is present and valid
  */
 const envSchema = z.object({
-  NODE_ENV: z
-    .enum(["development", "production", "test"])
-    .default("development"),
-
-  // Database (optional for development, required for production)
-  POSTGRES_URL: z.string().optional(),
-
-  // API Keys (optional for development with mock data)
-  OPENAI_API_KEY: z.string().optional(),
-
-  // NextAuth (when implemented)
-  NEXTAUTH_SECRET: z.string().min(32).optional(),
-  NEXTAUTH_URL: z.string().url().optional(),
+  CSRF_SECRET: z.string().optional(),
 
   // Feature flags
   FEATURE_FLAG_ENABLED: z.string().optional(),
 
+  // NextAuth (when implemented)
+  NEXTAUTH_SECRET: z.string().min(32).optional(),
+
+  NEXTAUTH_URL: z.string().url().optional(),
+  NODE_ENV: z
+    .enum(["development", "production", "test"])
+    .default("development"),
+
+  // API Keys (optional for development with mock data)
+  OPENAI_API_KEY: z.string().optional(),
+
+  // Database (optional for development, required for production)
+  POSTGRES_URL: z.string().optional(),
   // Security settings
   RATE_LIMIT_REDIS_URL: z.string().optional(),
-  CSRF_SECRET: z.string().optional(),
 });
 
 /**
  * Production-specific validation (stricter requirements)
  */
 const productionEnvSchema = envSchema.extend({
-  POSTGRES_URL: z.string().min(1, "Database URL required in production"),
   NEXTAUTH_SECRET: z.string().min(32, "Auth secret required in production"),
   NEXTAUTH_URL: z.string().url("Valid auth URL required in production"),
+  POSTGRES_URL: z.string().min(1, "Database URL required in production"),
 });
 
 /**
@@ -45,15 +45,14 @@ export function validateEnvironment() {
 
     if (env === "production") {
       return productionEnvSchema.parse(process.env);
-    } else {
-      return envSchema.parse(process.env);
     }
+    return envSchema.parse(process.env);
   } catch (error) {
     if (error instanceof z.ZodError) {
       console.error("❌ Environment validation failed:");
-      error.errors.forEach((err) => {
+      for (const err of error.errors) {
         console.error(`  - ${err.path.join(".")}: ${err.message}`);
-      });
+      }
 
       if (process.env.NODE_ENV === "production") {
         console.error(
@@ -114,12 +113,12 @@ export function checkEnvironmentHealth() {
 
   if (warnings.length > 0) {
     console.warn("⚠️  Environment warnings:");
-    warnings.forEach((warning) => console.warn(`  - ${warning}`));
+    for (const warning of warnings) console.warn(`  - ${warning}`);
   }
 
   return {
+    env,
     isHealthy: warnings.length === 0,
     warnings,
-    env,
   };
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { Shield, Zap, Database, Users, Settings } from "lucide-react";
+import { Database, Settings, Shield, Users, Zap } from "lucide-react";
 
 import { useAllFeatureFlags } from "@/lib/feature-flags/client";
 
@@ -9,107 +9,107 @@ export function FeatureFlagAdmin() {
 
   const flagCategories = [
     {
-      title: "Premium Features",
-      icon: Zap,
       description: "AI-powered and advanced features",
       flags: [
         {
+          description: "High-quality text-to-speech",
           key: "premium-tts-enabled",
           name: "Premium TTS",
-          description: "High-quality text-to-speech",
         },
         {
+          description: "AI content summarization",
           key: "ai-summarization-enabled",
           name: "AI Summarization",
-          description: "AI content summarization",
         },
         {
+          description: "OpenAI text-to-speech service",
           key: "openai-tts-enabled",
           name: "OpenAI TTS",
-          description: "OpenAI text-to-speech service",
         },
         {
+          description: "Google Cloud TTS service",
           key: "google-tts-enabled",
           name: "Google TTS",
-          description: "Google Cloud TTS service",
         },
       ],
+      icon: Zap,
+      title: "Premium Features",
     },
     {
-      title: "Content Sources",
-      icon: Database,
       description: "Available content sources",
       flags: [
         {
+          description: "Tech news digest",
           key: "tldr-source-enabled",
           name: "TLDR Newsletter",
-          description: "Tech news digest",
         },
         {
+          description: "Community tech news",
           key: "hacker-news-source-enabled",
           name: "Hacker News",
-          description: "Community tech news",
         },
         {
+          description: "Business news digest",
           key: "morning-brew-source-enabled",
           name: "Morning Brew",
-          description: "Business news digest",
         },
         {
+          description: "Tech industry news",
           key: "techcrunch-source-enabled",
           name: "TechCrunch",
-          description: "Tech industry news",
         },
       ],
+      icon: Database,
+      title: "Content Sources",
     },
     {
-      title: "User Access",
-      icon: Users,
       description: "User tier and access controls",
       flags: [
         {
+          description: "Access to premium content",
           key: "premium-content-enabled",
           name: "Premium Content",
-          description: "Access to premium content",
         },
         {
+          description: "Access to free content",
           key: "free-content-enabled",
           name: "Free Content",
-          description: "Access to free content",
         },
         {
+          description: "Increased generation limits",
           key: "high-daily-limits-enabled",
           name: "High Daily Limits",
-          description: "Increased generation limits",
         },
         {
+          description: "No generation limits",
           key: "unlimited-generation-enabled",
           name: "Unlimited Generation",
-          description: "No generation limits",
         },
       ],
+      icon: Users,
+      title: "User Access",
     },
     {
-      title: "UI Features",
-      icon: Settings,
       description: "User interface enhancements",
       flags: [
         {
+          description: "Enhanced audio player",
           key: "advanced-player-enabled",
           name: "Advanced Player",
-          description: "Enhanced audio player",
         },
         {
+          description: "Live queue updates",
           key: "real-time-queue-enabled",
           name: "Real-time Queue",
-          description: "Live queue updates",
         },
         {
+          description: "Enhanced episode cards",
           key: "visual-episode-cards-enabled",
           name: "Visual Episode Cards",
-          description: "Enhanced episode cards",
         },
       ],
+      icon: Settings,
+      title: "UI Features",
     },
   ];
 
@@ -139,7 +139,7 @@ export function FeatureFlagAdmin() {
           const CategoryIcon = category.icon;
 
           return (
-            <div key={category.title} className="space-y-2">
+            <div className="space-y-2" key={category.title}>
               <div className="flex items-center gap-2">
                 <CategoryIcon className="w-3 h-3 text-base-content/60" />
                 <span className="text-xs font-medium text-base-content/80">
@@ -153,8 +153,8 @@ export function FeatureFlagAdmin() {
 
                   return (
                     <div
-                      key={flag.key}
                       className="flex items-center justify-between p-2 bg-base-200/50 rounded"
+                      key={flag.key}
                       title={flag.description}
                     >
                       <span className="text-xs text-base-content/70 truncate">

@@ -1,41 +1,54 @@
 "use client";
 
-import {
-  Search,
-  Filter,
-  Grid,
-  List,
-  Play,
-  Clock,
-  CheckCircle,
-} from "lucide-react";
-import { useState } from "react";
+import { Filter, Grid, List, Play, Search, Volume2 } from "lucide-react";
+import { useEffect, useState } from "react";
 
-import { EpisodeCard } from "@/components/features";
+import { AudioPlayer, EpisodeCard } from "@/components/features";
 import { MainLayout } from "@/components/layouts";
 import { Button } from "@/components/ui";
 import ErrorBoundary from "@/components/ui/error-boundary";
 import { EpisodeListSkeleton } from "@/components/ui/loading-skeleton";
+import { type Episode } from "@/lib/db/schema";
 import { api, handleTRPCError } from "@/lib/trpc/client";
 import { sanitizeString } from "@/lib/utils/api-middleware";
 import { usePerformanceTracking } from "@/lib/utils/performance";
 
-export default function EpisodesPage() {
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
-  const { trackInteraction } = usePerformanceTracking();
+type ViewMode = "grid" | "list";
+type FilterStatus = "all" | "failed" | "generating" | "pending" | "ready";
 
+export default function EpisodesPage() {
+  const [episodes, setEpisodes] = useState<Episode[]>([]);
+  const [currentEpisode, setCurrentEpisode] = useState<Episode | null>(null);
+  const [viewMode, setViewMode] = useState<ViewMode>("grid");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<FilterStatus>("all");
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<null | string>(null);
+
+  // Performance tracking
+  const { trackInteraction, trackMetric } = usePerformanceTracking();
+
+  // Fetch episodes
   const {
     data: episodesData,
-    isLoading,
-    error,
+    error: episodesError,
+    isLoading: episodesLoading,
   } = api.episodes.getAll.useQuery({
-    limit: 20,
+    limit: 50,
   });
 
-  const episodes = episodesData?.episodes || [];
+  useEffect(() => {
+    if (episodesData) {
+      setEpisodes(episodesData.episodes);
+      setIsLoading(false);
+    }
+    if (episodesError) {
+      setError(handleTRPCError(episodesError));
+      setIsLoading(false);
+    }
+  }, [episodesData, episodesError]);
 
+  // Filter episodes based on search and status
   const filteredEpisodes = episodes.filter((episode) => {
     const matchesSearch =
       episode.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -45,228 +58,228 @@ export default function EpisodesPage() {
     return matchesSearch && matchesStatus;
   });
 
-  const statusCounts = episodes.reduce(
-    (acc, episode) => {
-      acc[episode.status] = (acc[episode.status] || 0) + 1;
-      return acc;
-    },
-    {} as Record<string, number>
-  );
+  const handlePlayEpisode = (episode: Episode) => {
+    setCurrentEpisode(episode);
+  };
 
-  const statusOptions = [
-    { value: "all", label: "All Episodes", count: episodes.length },
-    { value: "ready", label: "Ready", count: statusCounts.ready || 0 },
-    {
-      value: "generating",
-      label: "Generating",
-      count: statusCounts.generating || 0,
-    },
-    { value: "failed", label: "Failed", count: statusCounts.failed || 0 },
-  ];
+  const handlePauseEpisode = () => {
+    setCurrentEpisode(null);
+  };
 
-  // Handle errors
-  if (error) {
-    return (
-      <MainLayout>
-        <div className="flex flex-col items-center justify-center min-h-[400px] p-6">
-          <div className="text-center">
-            <h2 className="text-xl font-semibold text-base-content mb-2">
-              Failed to load episodes
-            </h2>
-            <p className="text-base-content/70 mb-4">
-              {handleTRPCError(error)}
-            </p>
-            <Button onClick={() => window.location.reload()} className="gap-2">
-              Try Again
-            </Button>
-          </div>
-        </div>
-      </MainLayout>
+  const handleEpisodeEnd = () => {
+    // Auto-play next episode
+    const currentIndex = filteredEpisodes.findIndex(
+      (ep) => ep.id === currentEpisode?.id
     );
-  }
+    if (currentIndex >= 0 && currentIndex < filteredEpisodes.length - 1) {
+      const nextEpisode = filteredEpisodes[currentIndex + 1];
+      if (nextEpisode.status === "ready" && nextEpisode.audioUrl) {
+        setCurrentEpisode(nextEpisode);
+      } else {
+        setCurrentEpisode(null);
+      }
+    } else {
+      setCurrentEpisode(null);
+    }
+  };
+
+  const statusCounts = {
+    all: episodes.length,
+    failed: episodes.filter((ep) => ep.status === "failed").length,
+    generating: episodes.filter((ep) => ep.status === "generating").length,
+    pending: episodes.filter((ep) => ep.status === "pending").length,
+    ready: episodes.filter((ep) => ep.status === "ready").length,
+  };
 
   return (
-    <MainLayout>
-      <ErrorBoundary>
-        <div className="space-y-6">
+    <ErrorBoundary>
+      <MainLayout>
+        <div className="min-h-screen bg-base-100">
           {/* Header */}
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-            <div>
-              <h1 className="text-2xl font-bold text-base-content">
-                All Episodes
-              </h1>
-              <p className="text-base-content/60">
-                {episodes.length} episodes • {statusCounts.ready || 0} ready to
-                play
-              </p>
-            </div>
+          <div className="bg-gradient-to-r from-primary/10 to-secondary/10 border-b border-primary/20">
+            <div className="container mx-auto px-6 py-8">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h1 className="text-3xl font-bold text-base-content flex items-center gap-3">
+                    <Play className="w-8 h-8 text-primary" />
+                    Episode Library
+                  </h1>
+                  <p className="text-base-content/70 mt-2">
+                    Browse and play your generated podcast episodes
+                  </p>
+                </div>
 
-            <div className="flex items-center gap-2">
-              <Button variant="primary" size="sm" className="gap-2">
-                <Play className="w-4 h-4" />
-                Play Latest
-              </Button>
+                <div className="flex items-center gap-2">
+                  <Button
+                    onClick={() => setViewMode("grid")}
+                    size="sm"
+                    variant={viewMode === "grid" ? "primary" : "secondary"}
+                  >
+                    <Grid className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    onClick={() => setViewMode("list")}
+                    size="sm"
+                    variant={viewMode === "list" ? "primary" : "secondary"}
+                  >
+                    <List className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+
+              {/* Stats */}
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                {Object.entries(statusCounts).map(([status, count]) => (
+                  <div
+                    className={`stats shadow cursor-pointer transition-colors ${
+                      statusFilter === status
+                        ? "bg-primary text-primary-content"
+                        : "bg-base-200"
+                    }`}
+                    key={status}
+                    onClick={() => setStatusFilter(status as FilterStatus)}
+                  >
+                    <div className="stat">
+                      <div className="stat-title text-xs opacity-70">
+                        {status.charAt(0).toUpperCase() + status.slice(1)}
+                      </div>
+                      <div className="stat-value text-lg">{count}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
 
-          {/* Filters and Search */}
-          <div className="card bg-base-100 shadow-sm border border-base-300">
-            <div className="card-body p-4">
-              <div className="flex flex-col lg:flex-row gap-4">
-                {/* Search */}
-                <div className="relative flex-1">
+          {/* Controls */}
+          <div className="container mx-auto px-6 py-6">
+            <div className="flex flex-col md:flex-row gap-4 mb-6">
+              {/* Search */}
+              <div className="flex-1">
+                <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-base-content/50" />
                   <input
-                    type="text"
-                    placeholder="Search episodes..."
                     className="input input-bordered w-full pl-10"
-                    value={searchQuery}
                     onChange={(e) =>
                       setSearchQuery(sanitizeString(e.target.value))
                     }
+                    placeholder="Search episodes..."
+                    type="text"
+                    value={searchQuery}
                   />
                 </div>
+              </div>
 
-                {/* Status Filter */}
-                <div className="flex items-center gap-2">
-                  <Filter className="w-4 h-4 text-base-content/50" />
-                  <div className="flex flex-wrap gap-1">
-                    {statusOptions.map((option) => (
-                      <button
-                        key={option.value}
-                        className={`btn btn-sm ${
-                          statusFilter === option.value
-                            ? "btn-primary"
-                            : "btn-ghost"
-                        }`}
-                        onClick={() => {
-                          setStatusFilter(option.value);
-                          trackInteraction("filter_episodes", option.value);
-                        }}
-                      >
-                        {option.label}
-                        <span className="badge badge-sm ml-1">
-                          {option.count}
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
+              {/* Filter */}
+              <div className="flex items-center gap-2">
+                <Filter className="w-4 h-4 text-base-content/50" />
+                <select
+                  className="select select-bordered"
+                  onChange={(e) =>
+                    setStatusFilter(e.target.value as FilterStatus)
+                  }
+                  value={statusFilter}
+                >
+                  <option value="all">All Episodes</option>
+                  <option value="ready">Ready to Play</option>
+                  <option value="generating">Generating</option>
+                  <option value="pending">Pending</option>
+                  <option value="failed">Failed</option>
+                </select>
+              </div>
+            </div>
 
-                {/* View Toggle */}
-                <div className="flex items-center">
-                  <div className="join">
-                    <button
-                      className={`join-item btn btn-sm ${
-                        viewMode === "grid" ? "btn-active" : "btn-ghost"
-                      }`}
-                      onClick={() => {
-                        setViewMode("grid");
-                        trackInteraction("change_view_mode", "grid");
-                      }}
-                    >
-                      <Grid className="w-4 h-4" />
-                    </button>
-                    <button
-                      className={`join-item btn btn-sm ${
-                        viewMode === "list" ? "btn-active" : "btn-ghost"
-                      }`}
-                      onClick={() => {
-                        setViewMode("list");
-                        trackInteraction("change_view_mode", "list");
-                      }}
-                    >
-                      <List className="w-4 h-4" />
-                    </button>
-                  </div>
+            {/* Loading State */}
+            {isLoading && <EpisodeListSkeleton count={6} />}
+
+            {/* Error State */}
+            {error && (
+              <div className="alert alert-error mb-6">
+                <div>
+                  <strong>Error loading episodes:</strong> {error}
                 </div>
               </div>
-            </div>
+            )}
+
+            {/* Empty State */}
+            {!isLoading && !error && filteredEpisodes.length === 0 && (
+              <div className="text-center py-12">
+                <Play className="w-16 h-16 text-base-content/30 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-base-content/70 mb-2">
+                  {searchQuery || statusFilter !== "all"
+                    ? "No episodes match your criteria"
+                    : "No episodes yet"}
+                </h3>
+                <p className="text-base-content/50 mb-4">
+                  {searchQuery || statusFilter !== "all"
+                    ? "Try adjusting your search or filter settings"
+                    : "Generate your first episode to get started"}
+                </p>
+                {!searchQuery && statusFilter === "all" && (
+                  <Button size="lg" variant="primary">
+                    Generate Episode
+                  </Button>
+                )}
+              </div>
+            )}
+
+            {/* Episodes Grid/List */}
+            {!isLoading && !error && filteredEpisodes.length > 0 && (
+              <div
+                className={
+                  viewMode === "grid"
+                    ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+                    : "space-y-4"
+                }
+              >
+                {filteredEpisodes.map((episode) => (
+                  <EpisodeCard
+                    className={viewMode === "list" ? "max-w-none" : ""}
+                    episode={episode}
+                    isCurrentlyPlaying={currentEpisode?.id === episode.id}
+                    key={episode.id}
+                    onPause={handlePauseEpisode}
+                    onPlay={handlePlayEpisode}
+                    variant={viewMode === "list" ? "compact" : "default"}
+                  />
+                ))}
+              </div>
+            )}
           </div>
 
-          {/* Episode Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="stat bg-base-100 rounded-lg shadow-sm border border-base-300">
-              <div className="stat-figure text-primary">
-                <CheckCircle className="w-8 h-8" />
+          {/* Global Audio Player - Fixed at bottom */}
+          {currentEpisode && (
+            <div className="fixed bottom-0 left-0 right-0 bg-base-100 border-t border-base-300 shadow-2xl z-50">
+              <div className="container mx-auto px-6 py-4">
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2 text-primary">
+                    <Volume2 className="w-5 h-5" />
+                    <span className="text-sm font-medium">Now Playing</span>
+                  </div>
+                  <div className="flex-1">
+                    <AudioPlayer
+                      autoPlay
+                      className="shadow-none bg-transparent"
+                      episode={currentEpisode}
+                      onEpisodeEnd={handleEpisodeEnd}
+                    />
+                  </div>
+                  <Button
+                    btnStyle="ghost"
+                    onClick={() => setCurrentEpisode(null)}
+                    size="sm"
+                  >
+                    ✕
+                  </Button>
+                </div>
               </div>
-              <div className="stat-title">Ready Episodes</div>
-              <div className="stat-value text-primary">
-                {statusCounts.ready || 0}
-              </div>
-              <div className="stat-desc">Available for playback</div>
-            </div>
-
-            <div className="stat bg-base-100 rounded-lg shadow-sm border border-base-300">
-              <div className="stat-figure text-warning">
-                <Clock className="w-8 h-8" />
-              </div>
-              <div className="stat-title">In Progress</div>
-              <div className="stat-value text-warning">
-                {statusCounts.generating || 0}
-              </div>
-              <div className="stat-desc">Currently generating</div>
-            </div>
-
-            <div className="stat bg-base-100 rounded-lg shadow-sm border border-base-300">
-              <div className="stat-figure text-info">
-                <Play className="w-8 h-8" />
-              </div>
-              <div className="stat-title">Total Plays</div>
-              <div className="stat-value text-info">
-                {episodes.reduce((sum, ep) => sum + ep.playCount, 0)}
-              </div>
-              <div className="stat-desc">Across all episodes</div>
-            </div>
-          </div>
-
-          {/* Episodes Grid/List */}
-          {isLoading && <EpisodeListSkeleton count={6} />}
-
-          {!isLoading && filteredEpisodes.length === 0 && (
-            <div className="text-center py-12">
-              <div className="text-base-content/50 mb-2">
-                <Search className="w-12 h-12 mx-auto mb-4" />
-              </div>
-              <h3 className="text-lg font-medium text-base-content mb-2">
-                No episodes found
-              </h3>
-              <p className="text-base-content/60">
-                {searchQuery || statusFilter !== "all"
-                  ? "Try adjusting your search or filters"
-                  : "No episodes have been generated yet"}
-              </p>
             </div>
           )}
 
-          {!isLoading && filteredEpisodes.length > 0 && (
-            <div
-              className={
-                viewMode === "grid"
-                  ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
-                  : "space-y-4"
-              }
-            >
-              {filteredEpisodes.map((episode) => (
-                <EpisodeCard
-                  key={episode.id}
-                  episode={episode}
-                  variant={viewMode === "list" ? "compact" : "default"}
-                />
-              ))}
-            </div>
-          )}
-
-          {/* Load More */}
-          {filteredEpisodes.length > 0 && (
-            <div className="text-center py-6">
-              <Button btnStyle="ghost" size="lg">
-                Load More Episodes
-              </Button>
-            </div>
-          )}
+          {/* Bottom padding to account for fixed player */}
+          {currentEpisode && <div className="h-32" />}
         </div>
-      </ErrorBoundary>
-    </MainLayout>
+      </MainLayout>
+    </ErrorBoundary>
   );
 }

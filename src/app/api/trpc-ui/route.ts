@@ -18,18 +18,18 @@ export async function GET() {
       renderTrpcPanel(
         appRouter as unknown as Parameters<typeof renderTrpcPanel>[0],
         {
-          url: "/api/trpc", // Default tRPC route
-          transformer: "superjson", // We're using superjson for data transformation
           meta: {
-            title: "Morning Pod tRPC API",
             description:
               "Auto-generated testing UI for Morning Pod tRPC endpoints. Test episodes, sources, queue management, and more.",
+            title: "Morning Pod tRPC API",
           },
+          transformer: "superjson", // We're using superjson for data transformation
+          url: "/api/trpc", // Default tRPC route
         }
       ),
       {
-        status: 200,
         headers: [["Content-Type", "text/html"] as [string, string]],
+        status: 200,
       }
     );
   } catch (error) {

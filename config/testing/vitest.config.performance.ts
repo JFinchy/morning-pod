@@ -1,32 +1,19 @@
 /// <reference types="vitest" />
-import path from "path";
-
 import react from "@vitejs/plugin-react";
+import path from "path";
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   plugins: [react()],
-  test: {
-    globals: true,
-    environment: "jsdom",
-    setupFiles: [path.resolve(__dirname, "../../src/tests/setup.ts")],
-    css: true,
-    // Mock out performance monitoring by default
-    mockReset: true,
-    clearMocks: true,
-    restoreMocks: true,
-    // Reduce resource usage for Mac M1X - performance optimized
-    pool: "threads",
-    poolOptions: {
-      threads: {
-        singleThread: true,
-        isolate: false,
-      },
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "../../src"),
     },
-    maxConcurrency: 1,
-    minWorkers: 1,
-    maxWorkers: 1,
-    fileParallelism: false,
+  },
+  test: {
+    clearMocks: true,
+    css: true,
+    environment: "jsdom",
     // Exclude Playwright test files
     exclude: [
       "**/node_modules/**",
@@ -37,10 +24,22 @@ export default defineConfig({
       "**/e2e/**",
       "**/performance/**",
     ],
-  },
-  resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "../../src"),
+    fileParallelism: false,
+    globals: true,
+    maxConcurrency: 1,
+    maxWorkers: 1,
+    minWorkers: 1,
+    // Mock out performance monitoring by default
+    mockReset: true,
+    // Reduce resource usage for Mac M1X - performance optimized
+    pool: "threads",
+    poolOptions: {
+      threads: {
+        isolate: false,
+        singleThread: true,
+      },
     },
+    restoreMocks: true,
+    setupFiles: [path.resolve(__dirname, "../../src/tests/setup.ts")],
   },
 });

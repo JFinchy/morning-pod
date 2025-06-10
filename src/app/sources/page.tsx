@@ -1,278 +1,284 @@
 "use client";
 
-import { Plus, Settings, Zap, Globe, Clock, TrendingUp } from "lucide-react";
-import { useState } from "react";
+import {
+  AlertCircle,
+  CheckCircle2,
+  Clock,
+  Eye,
+  EyeOff,
+  Globe,
+  Heart,
+  MoreVertical,
+  Settings,
+  TrendingUp,
+  Zap,
+} from "lucide-react";
+import { useEffect, useState } from "react";
 
 import { MainLayout } from "@/components/layouts";
 import { Button } from "@/components/ui";
+import { type Source } from "@/lib/db/schema";
 import { api } from "@/lib/trpc/client";
+import {
+  getHiddenSources,
+  hideSource,
+  isSourceHidden,
+  showSource,
+} from "@/lib/utils/local-storage";
+
+interface SourceWithStats extends Source {
+  episodeCount?: number;
+  lastEpisode?: string;
+  totalPlays?: number;
+}
 
 export default function SourcesPage() {
-  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [sources, setSources] = useState<SourceWithStats[]>([]);
+  const [hiddenSources, setHiddenSources] = useState<string[]>([]);
+  const [showHidden, setShowHidden] = useState(false);
 
-  const { data: sources, isLoading } = api.sources.getAll.useQuery({});
-  const { data: activeSources } = api.sources.getActive.useQuery();
+  // Fetch sources
+  const {
+    data: sourcesData,
+    error,
+    isLoading,
+  } = api.sources.getAll.useQuery({});
 
-  const categories = [
-    {
-      value: "all",
-      label: "All Sources",
-      count: sources?.sources?.length || 0,
-    },
-    {
-      value: "tech",
-      label: "Technology",
-      count: sources?.sources?.filter((s) => s.category === "tech").length || 0,
-    },
-    {
-      value: "business",
-      label: "Business",
-      count:
-        sources?.sources?.filter((s) => s.category === "business").length || 0,
-    },
-    {
-      value: "general",
-      label: "General News",
-      count:
-        sources?.sources?.filter((s) => s.category === "general").length || 0,
-    },
-  ];
+  useEffect(() => {
+    if (sourcesData?.sources) {
+      setSources(sourcesData.sources);
+    }
+  }, [sourcesData]);
 
-  const filteredSources =
-    sources?.sources?.filter(
-      (source) =>
-        selectedCategory === "all" || source.category === selectedCategory
-    ) || [];
+  useEffect(() => {
+    setHiddenSources(getHiddenSources());
+  }, []);
 
-  const getTierBadge = (tier: string) => {
-    switch (tier) {
-      case "free":
-        return "badge-ghost";
-      case "premium":
-        return "badge-warning";
-      case "enterprise":
-        return "badge-primary";
-      default:
-        return "badge-ghost";
+  const toggleSourceVisibility = (sourceId: string) => {
+    const isHidden = isSourceHidden(sourceId);
+
+    if (isHidden) {
+      showSource(sourceId);
+      setHiddenSources((prev) => prev.filter((id) => id !== sourceId));
+    } else {
+      hideSource(sourceId);
+      setHiddenSources((prev) => [...prev, sourceId]);
     }
   };
 
+  const visibleSources = sources.filter(
+    (source) => showHidden || !isSourceHidden(source.id)
+  );
+
+  const hiddenCount = sources.filter((source) =>
+    isSourceHidden(source.id)
+  ).length;
+
+  if (isLoading) {
+    return (
+      <MainLayout>
+        <div className="container mx-auto px-4 py-8">
+          <div className="flex items-center justify-center min-h-96">
+            <div className="loading loading-spinner loading-lg text-primary" />
+          </div>
+        </div>
+      </MainLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <MainLayout>
+        <div className="container mx-auto px-4 py-8">
+          <div className="alert alert-error">
+            <AlertCircle className="w-5 h-5" />
+            <span>Failed to load sources: {error.message}</span>
+          </div>
+        </div>
+      </MainLayout>
+    );
+  }
+
   return (
     <MainLayout>
-      <div className="space-y-6">
+      <div className="container mx-auto px-4 py-8">
         {/* Header */}
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-base-content">
-              News Sources
-            </h1>
-            <p className="text-base-content/60">
-              {activeSources?.length || 0} of {sources?.sources?.length || 0}{" "}
-              sources active
-            </p>
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h1 className="text-3xl font-bold text-base-content">Sources</h1>
+              <p className="text-base-content/70 mt-1">
+                Manage your podcast content sources and preferences
+              </p>
+            </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <Button btnStyle="outline" size="sm" className="gap-2">
-              <Settings className="w-4 h-4" />
-              Manage All
-            </Button>
-            <Button variant="primary" size="sm" className="gap-2">
-              <Plus className="w-4 h-4" />
-              Add Source
-            </Button>
-          </div>
-        </div>
+          {/* Stats & Controls */}
+          <div className="flex items-center justify-between">
+            <div className="stats shadow bg-base-200">
+              <div className="stat py-4 px-6">
+                <div className="stat-title text-xs">Total Sources</div>
+                <div className="stat-value text-lg">{sources.length}</div>
+              </div>
+              <div className="stat py-4 px-6">
+                <div className="stat-title text-xs">Active</div>
+                <div className="stat-value text-lg text-success">
+                  {sources.filter((s) => s.active).length}
+                </div>
+              </div>
+              <div className="stat py-4 px-6">
+                <div className="stat-title text-xs">Hidden</div>
+                <div className="stat-value text-lg text-warning">
+                  {hiddenCount}
+                </div>
+              </div>
+            </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="stat bg-base-100 rounded-lg shadow-sm border border-base-300">
-            <div className="stat-figure text-success">
-              <Zap className="w-6 h-6" />
-            </div>
-            <div className="stat-title">Active Sources</div>
-            <div className="stat-value text-success">
-              {activeSources?.length || 0}
-            </div>
-            <div className="stat-desc">Ready to generate</div>
-          </div>
-
-          <div className="stat bg-base-100 rounded-lg shadow-sm border border-base-300">
-            <div className="stat-figure text-primary">
-              <Globe className="w-6 h-6" />
-            </div>
-            <div className="stat-title">Total Sources</div>
-            <div className="stat-value text-primary">
-              {sources?.sources?.length || 0}
-            </div>
-            <div className="stat-desc">All configured</div>
-          </div>
-
-          <div className="stat bg-base-100 rounded-lg shadow-sm border border-base-300">
-            <div className="stat-figure text-warning">
-              <Clock className="w-6 h-6" />
-            </div>
-            <div className="stat-title">Daily Limit</div>
-            <div className="stat-value text-warning">
-              {sources?.sources?.reduce(
-                (sum, s) => sum + (s.dailyLimit || 0),
-                0
-              ) || 0}
-            </div>
-            <div className="stat-desc">Episodes per day</div>
-          </div>
-
-          <div className="stat bg-base-100 rounded-lg shadow-sm border border-base-300">
-            <div className="stat-figure text-info">
-              <TrendingUp className="w-6 h-6" />
-            </div>
-            <div className="stat-title">Premium</div>
-            <div className="stat-value text-info">
-              {sources?.sources?.filter((s) => s.contentTier === "premium")
-                .length || 0}
-            </div>
-            <div className="stat-desc">High-quality sources</div>
-          </div>
-        </div>
-
-        {/* Category Filter */}
-        <div className="card bg-base-100 shadow-sm border border-base-300">
-          <div className="card-body p-4">
-            <div className="flex flex-wrap gap-2">
-              {categories.map((category) => (
-                <button
-                  key={category.value}
-                  className={`btn btn-sm ${
-                    selectedCategory === category.value
-                      ? "btn-primary"
-                      : "btn-ghost"
-                  }`}
-                  onClick={() => setSelectedCategory(category.value)}
+            <div className="flex gap-2">
+              {hiddenCount > 0 && (
+                <Button
+                  className="gap-2"
+                  onClick={() => setShowHidden(!showHidden)}
+                  size="sm"
+                  variant={showHidden ? "primary" : "secondary"}
                 >
-                  {category.label}
-                  <span className="badge badge-sm ml-1">{category.count}</span>
-                </button>
-              ))}
+                  {showHidden ? (
+                    <Eye className="w-4 h-4" />
+                  ) : (
+                    <EyeOff className="w-4 h-4" />
+                  )}
+                  {showHidden
+                    ? `Hide ${hiddenCount} Hidden`
+                    : `Show ${hiddenCount} Hidden`}
+                </Button>
+              )}
             </div>
           </div>
         </div>
 
         {/* Sources Grid */}
-        {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {[...Array(6)].map((_, i) => (
-              <div
-                key={i}
-                className="card bg-base-100 shadow-sm border border-base-300"
-              >
-                <div className="card-body">
-                  <div className="animate-pulse space-y-3">
-                    <div className="h-4 bg-base-300 rounded w-3/4"></div>
-                    <div className="h-3 bg-base-300 rounded w-full"></div>
-                    <div className="h-3 bg-base-300 rounded w-2/3"></div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredSources.map((source) => (
-              <div
-                key={source.id}
-                className={`card bg-base-100 shadow-sm border hover:shadow-md transition-all duration-200 ${
-                  source.active ? "border-primary" : "border-base-300"
-                }`}
-              >
-                <div className="card-body p-6">
-                  {/* Header */}
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex-1">
-                      <h3 className="font-bold text-base-content">
-                        {source.name}
-                      </h3>
-                      <p className="text-sm text-base-content/60">
-                        {source.url}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div
-                        className={`badge ${getTierBadge(source.contentTier || "free")}`}
-                      >
-                        {source.contentTier || "free"}
-                      </div>
-                      <div
-                        className={`w-3 h-3 rounded-full ${
-                          source.active ? "bg-success" : "bg-base-300"
-                        }`}
-                      />
-                    </div>
-                  </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {visibleSources.map((source) => (
+            <SourceCard
+              isHidden={isSourceHidden(source.id)}
+              key={source.id}
+              onToggleVisibility={toggleSourceVisibility}
+              source={source}
+            />
+          ))}
+        </div>
 
-                  {/* Stats */}
-                  <div className="grid grid-cols-2 gap-4 mb-4">
-                    <div>
-                      <div className="text-sm text-base-content/60">
-                        Daily Limit
-                      </div>
-                      <div className="font-medium">
-                        {source.dailyLimit} episodes
-                      </div>
-                    </div>
-                    <div>
-                      <div className="text-sm text-base-content/60">
-                        TTS Service
-                      </div>
-                      <div className="font-medium capitalize">
-                        {source.ttsService}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex items-center justify-between">
-                    <Button
-                      size="sm"
-                      variant={source.active ? "success" : "neutral"}
-                      btnStyle={source.active ? "outline" : "dash"}
-                    >
-                      {source.active ? "Active" : "Inactive"}
-                    </Button>
-
-                    <div className="flex gap-1">
-                      <Button
-                        size="sm"
-                        btnStyle="ghost"
-                        className="w-8 h-8 p-0"
-                      >
-                        <Settings className="w-3 h-3" />
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
+        {visibleSources.length === 0 && (
+          <div className="text-center py-12">
+            <div className="text-6xl mb-4">📡</div>
+            <h3 className="text-xl font-semibold mb-2">
+              {showHidden ? "No sources to display" : "No visible sources"}
+            </h3>
+            <p className="text-base-content/60 mb-4">
+              {showHidden
+                ? "Check your source configuration."
+                : hiddenCount > 0
+                  ? `You have ${hiddenCount} hidden sources. Click "Show Hidden" to view them.`
+                  : "Sources will appear here once configured."}
+            </p>
           </div>
         )}
-
-        {/* Add Source Card */}
-        <div className="card bg-base-100 border-2 border-dashed border-base-300 hover:border-primary/50 transition-colors">
-          <div className="card-body items-center text-center p-8">
-            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-              <Plus className="w-6 h-6 text-primary" />
-            </div>
-            <h3 className="font-medium text-base-content mb-2">
-              Add New Source
-            </h3>
-            <p className="text-sm text-base-content/60 mb-4">
-              Connect a new RSS feed or news API to expand your content sources
-            </p>
-            <Button variant="primary" size="sm">
-              Get Started
-            </Button>
-          </div>
-        </div>
       </div>
     </MainLayout>
+  );
+}
+
+interface SourceCardProps {
+  isHidden: boolean;
+  onToggleVisibility: (sourceId: string) => void;
+  source: SourceWithStats;
+}
+
+function SourceCard({ isHidden, onToggleVisibility, source }: SourceCardProps) {
+  const getStatusIcon = () => {
+    if (!source.active) return <AlertCircle className="w-5 h-5 text-error" />;
+    return <CheckCircle2 className="w-5 h-5 text-success" />;
+  };
+
+  const getTierColor = (tier: string) => {
+    switch (tier) {
+      case "premium":
+        return "badge-warning";
+      case "pro":
+        return "badge-error";
+      default:
+        return "badge-info";
+    }
+  };
+
+  return (
+    <div
+      className={`card bg-gradient-to-br from-base-100 to-base-200 shadow-lg hover:shadow-xl transition-all duration-300 border-0 overflow-hidden ${
+        isHidden ? "opacity-50" : ""
+      }`}
+    >
+      <div className="card-body p-6">
+        {/* Header */}
+        <div className="flex items-start justify-between mb-4">
+          <div className="flex-1">
+            <div className="flex items-center gap-2 mb-2">
+              {getStatusIcon()}
+              <h3 className="card-title text-lg font-bold text-base-content">
+                {source.name}
+              </h3>
+            </div>
+            <div
+              className={`badge ${getTierColor(source.contentTier || "free")} badge-sm`}
+            >
+              {source.contentTier || "free"}
+            </div>
+          </div>
+
+          <Button
+            btnStyle="ghost"
+            className="w-8 h-8 p-0"
+            onClick={() => onToggleVisibility(source.id)}
+            size="sm"
+            title={isHidden ? "Show source" : "Hide source"}
+          >
+            {isHidden ? (
+              <EyeOff className="w-4 h-4 text-warning" />
+            ) : (
+              <Eye className="w-4 h-4 text-base-content/70" />
+            )}
+          </Button>
+        </div>
+
+        {/* Source Info */}
+        <div className="space-y-3 mb-4">
+          <div className="flex items-center gap-2 text-sm">
+            <Globe className="w-4 h-4 text-base-content/50" />
+            <span className="text-base-content/70 truncate">{source.url}</span>
+          </div>
+
+          <div className="flex items-center gap-2 text-sm">
+            <Zap className="w-4 h-4 text-base-content/50" />
+            <span className="text-base-content/70">
+              TTS: {source.ttsService || "openai"}
+            </span>
+          </div>
+
+          {source.dailyLimit && (
+            <div className="flex items-center gap-2 text-sm">
+              <Clock className="w-4 h-4 text-base-content/50" />
+              <span className="text-base-content/70">
+                Limit: {source.dailyLimit} episodes/day
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* Stats */}
+        <div className="flex items-center justify-between text-xs text-base-content/60">
+          <span className="capitalize">{source.category}</span>
+          <span>Added {new Date(source.createdAt).toLocaleDateString()}</span>
+        </div>
+      </div>
+    </div>
   );
 }

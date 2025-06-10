@@ -4,8 +4,8 @@ import { usePostHog } from "posthog-js/react";
 import { useCallback, useMemo } from "react";
 
 import {
-  createAnalyticsService,
   type AnalyticsService,
+  createAnalyticsService,
   type EventName,
   type EventProperties,
   type UserProperties,
@@ -46,8 +46,8 @@ export function useUserIdentification() {
 
   return {
     identify,
-    setUserProperties,
     reset,
+    setUserProperties,
   };
 }
 
@@ -85,7 +85,7 @@ export function useEventTracking() {
 
   const trackError = useCallback(
     (
-      error: string | Error,
+      error: Error | string,
       context?: {
         component?: string;
         page?: string;
@@ -102,8 +102,8 @@ export function useEventTracking() {
       metric: string,
       value: number,
       context?: {
-        page?: string;
         component?: string;
+        page?: string;
       }
     ) => {
       analytics.trackPerformance(metric, value, context);
@@ -113,9 +113,9 @@ export function useEventTracking() {
 
   return {
     track,
-    trackPageView,
-    trackInteraction,
     trackError,
+    trackInteraction,
+    trackPageView,
     trackPerformance,
   };
 }
@@ -129,9 +129,9 @@ export function usePodcastAnalytics() {
   const trackGenerationStarted = useCallback(
     (sourceId: string, sourceName: string, estimatedDuration?: number) => {
       track("podcast-generation-started", {
+        estimatedDuration,
         sourceId,
         sourceName,
-        estimatedDuration,
       });
     },
     [track]
@@ -146,11 +146,11 @@ export function usePodcastAnalytics() {
       cost?: number
     ) => {
       track("podcast-generation-completed", {
-        sourceId,
-        sourceName,
-        duration,
         audioLength,
         cost,
+        duration,
+        sourceId,
+        sourceName,
       });
     },
     [track]
@@ -164,10 +164,10 @@ export function usePodcastAnalytics() {
       duration?: number
     ) => {
       track("podcast-generation-failed", {
+        duration,
+        error,
         sourceId,
         sourceName,
-        error,
-        duration,
       });
     },
     [track]
@@ -181,10 +181,10 @@ export function usePodcastAnalytics() {
       duration: number
     ) => {
       track("content-scraped", {
-        sourceId,
-        sourceName,
         articlesCount,
         duration,
+        sourceId,
+        sourceName,
       });
     },
     [track]
@@ -200,12 +200,12 @@ export function usePodcastAnalytics() {
       qualityScore?: number
     ) => {
       track("content-summarized", {
-        sourceId,
-        wordCount,
-        summaryLength,
-        model,
         cost,
+        model,
         qualityScore,
+        sourceId,
+        summaryLength,
+        wordCount,
       });
     },
     [track]
@@ -220,23 +220,23 @@ export function usePodcastAnalytics() {
       cost?: number
     ) => {
       track("audio-generated", {
+        audioLength,
+        cost,
         sourceId,
         textLength,
-        audioLength,
         voice,
-        cost,
       });
     },
     [track]
   );
 
   return {
-    trackGenerationStarted,
-    trackGenerationCompleted,
-    trackGenerationFailed,
+    trackAudioGenerated,
     trackContentScraped,
     trackContentSummarized,
-    trackAudioGenerated,
+    trackGenerationCompleted,
+    trackGenerationFailed,
+    trackGenerationStarted,
   };
 }
 
@@ -250,8 +250,8 @@ export function usePlayerAnalytics() {
     (episodeId: string, sourceId: string, position?: number) => {
       track("episode-played", {
         episodeId,
-        sourceId,
         position,
+        sourceId,
       });
     },
     [track]
@@ -276,10 +276,10 @@ export function usePlayerAnalytics() {
       completionRate: number
     ) => {
       track("episode-completed", {
+        completionRate,
         episodeId,
         totalDuration,
         watchTime,
-        completionRate,
       });
     },
     [track]
@@ -296,10 +296,10 @@ export function usePlayerAnalytics() {
   );
 
   return {
-    trackEpisodePlayed,
-    trackEpisodePaused,
     trackEpisodeCompleted,
     trackEpisodeDownloaded,
+    trackEpisodePaused,
+    trackEpisodePlayed,
   };
 }
 
@@ -313,7 +313,7 @@ export function useFeatureFlagAnalytics() {
     (
       flagKey: string,
       flagValue: boolean | string,
-      source: "posthog" | "environment" | "default"
+      source: "default" | "environment" | "posthog"
     ) => {
       analytics.trackFeatureFlag(flagKey, flagValue, source);
     },
@@ -339,9 +339,9 @@ export function useFeatureFlagAnalytics() {
   );
 
   return {
-    trackFeatureFlag,
-    trackExperimentView,
     trackExperimentConversion,
+    trackExperimentView,
+    trackFeatureFlag,
   };
 }
 
@@ -364,7 +364,7 @@ export function useErrorTracking(component?: string) {
   const { trackError } = useEventTracking();
 
   const trackComponentError = useCallback(
-    (error: string | Error, page?: string) => {
+    (error: Error | string, page?: string) => {
       trackError(error, {
         component,
         page,

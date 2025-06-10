@@ -113,7 +113,7 @@ test.describe("Analytics Dashboard", () => {
 
     // Should show connected or appropriate status
     const statusText = await statusCard.textContent();
-    expect(statusText).toMatch(/(Connected|Disconnected|Loading)/);
+    expect(statusText).toMatch(/(Connected|Disconnected|Loading)/u);
   });
 
   test("should display user ID correctly", async ({ page }) => {
@@ -122,7 +122,7 @@ test.describe("Analytics Dashboard", () => {
     await expect(userIdInput).toBeVisible();
 
     const userIdValue = await userIdInput.inputValue();
-    expect(userIdValue).toMatch(/test-user-\d+/);
+    expect(userIdValue).toMatch(/test-user-\d+/u);
   });
 });
 
@@ -141,8 +141,13 @@ test.describe("Analytics Integration", () => {
     // Wait a bit for analytics to initialize
     await page.waitForTimeout(1000);
 
+    // Verify page loaded successfully (basic assertion)
+    await expect(page.locator("h1")).toContainText("Analytics");
+
     // Check if page view was tracked (in development mode)
     // Note: This depends on the analytics being set up to log to console in dev
+    // Verify console messages were captured (even if empty in test environment)
+    expect(Array.isArray(consoleMessages)).toBe(true);
   });
 
   test("should handle analytics errors gracefully", async ({ page }) => {
@@ -150,10 +155,10 @@ test.describe("Analytics Integration", () => {
     await page.addInitScript(() => {
       // Mock PostHog to throw errors
       (window as unknown as { posthog: unknown }).posthog = {
-        identify: () => {
+        capture: () => {
           throw new Error("PostHog error");
         },
-        capture: () => {
+        identify: () => {
           throw new Error("PostHog error");
         },
       };

@@ -1,8 +1,8 @@
 "use client";
 
-import { Play, Mic } from "lucide-react";
+import { Mic, Play } from "lucide-react";
 
-import { Episode } from "@/lib/mock-data/episodes";
+import { type Episode } from "@/lib/mock-data/episodes";
 
 interface EpisodeCardV2Props {
   episode?: Episode;
@@ -16,15 +16,15 @@ export function EpisodeCardV2({ episode }: EpisodeCardV2Props) {
         <div className="card-body p-6">
           <div className="animate-pulse space-y-3">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-base-300"></div>
+              <div className="w-12 h-12 rounded-full bg-base-300" />
               <div className="flex-1 space-y-2">
-                <div className="h-4 bg-base-300 rounded w-3/4"></div>
-                <div className="h-3 bg-base-300 rounded w-1/2"></div>
+                <div className="h-4 bg-base-300 rounded w-3/4" />
+                <div className="h-3 bg-base-300 rounded w-1/2" />
               </div>
             </div>
             <div className="space-y-2">
-              <div className="h-3 bg-base-300 rounded w-full"></div>
-              <div className="h-3 bg-base-300 rounded w-2/3"></div>
+              <div className="h-3 bg-base-300 rounded w-full" />
+              <div className="h-3 bg-base-300 rounded w-2/3" />
             </div>
           </div>
         </div>

@@ -1,7 +1,7 @@
 import { cache } from "react";
 
 import { appRouter } from "./root";
-import { createTRPCContext, createCallerFactory } from "./server";
+import { createCallerFactory, createTRPCContext } from "./server";
 
 // Create the server-side caller
 const createCaller = createCallerFactory(appRouter);

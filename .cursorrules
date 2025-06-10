@@ -31,6 +31,19 @@ This is a podcast generation app that automatically creates podcast episodes fro
 - **Pino** for structured logging
 - **Sentry** for error tracking (free tier)
 
+## Status Tracking System
+
+**For current development status, check:**
+- `STATUS.json` - Component-based status tracking (worktree-friendly)
+- `TASKS.md` - Overall task management and completed work
+- `git branch --show-current` - Current worktree branch context
+
+**Status files are designed to:**
+- Avoid worktree conflicts through component-based tracking
+- Provide quick context for AI agents
+- Support parallel development workflows
+- Maintain history without merge conflicts
+
 ## Current Codebase Structure
 
 **IMPORTANT: Always update this structure when creating/modifying files or folders**
@@ -876,10 +889,21 @@ bun run interactive --help        # Show usage help
 ### Common Usage Examples
 ```bash
 # Development workflow
-bun run dev                      # Standard Next.js dev server
-bun run go                       # Interactive dev options (build, preview, clean)
-bun run test                     # Standard unit tests
-bun run lint                     # Standard linting
+bun dev                          # Start dev server (direct)
+bun test                         # Run unit tests (direct)
+bun test:all                     # Run all tests (direct)
+bun lint                         # Run linting (direct)
+bun kill                         # Interactive process killer (direct)
+
+# Advanced script runner
+bun run script dev start         # Start dev server via script runner
+bun run script test unit         # Run unit tests via script runner
+bun run script test --all        # Run all tests via script runner
+
+# Process management
+bun kill                         # Interactive process selection
+bun kill --force                 # Force kill all processes
+bun kill --list                  # List running processes
 
 # Interactive workflow  
 bun run interactive deps check  # Check for updates
@@ -986,6 +1010,7 @@ bun run format      # Format code
 bun run type-check  # Check types
 
 # Utilities
+bun kill            # Interactive process killer
 bun run analyze     # Bundle analysis
 bun run clean       # Clean install
 ```

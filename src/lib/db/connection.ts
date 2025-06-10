@@ -33,8 +33,8 @@ const sql = neon(databaseUrl);
 
 // Create the database connection with Neon
 export const db = drizzle(sql, {
-  schema,
   logger: process.env.NODE_ENV === "development",
+  schema,
 });
 
 // Export the schema for use in other files
@@ -55,9 +55,9 @@ export const isDbConnected = async (): Promise<boolean> => {
 
 // Export database URL for debugging
 export const getDbInfo = () => ({
+  driver: "neon-http",
+  environment: process.env.NODE_ENV || "development",
   url: databaseUrl
     ? `${databaseUrl.split("@")[1] || "hidden"}`
     : "not configured",
-  driver: "neon-http",
-  environment: process.env.NODE_ENV || "development",
 });

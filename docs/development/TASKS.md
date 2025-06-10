@@ -19,6 +19,35 @@
 8. Merge to main
 9. Create new branch for next task
 
+## Quick Development Commands
+
+### Essential Commands (Post-Refactor)
+
+```bash
+# Development
+bun dev                  # Start development server
+bun build                # Production build
+bun test                 # Run unit tests
+bun test:all             # Run all tests (unit + E2E)
+bun lint                 # Run linting
+bun type-check           # TypeScript checking
+bun kill                 # Interactive process killer
+
+# Advanced Script Runner (when needed)
+bun run script           # Interactive command menu
+bun run script --help    # Show all available commands
+```
+
+### Process Management
+
+```bash
+bun kill                 # Interactive selection (default)
+bun kill --force         # Force kill all processes
+bun kill --list          # List processes without killing
+```
+
+**Note**: The script runner has been refactored to use standard commands directly in package.json while keeping the advanced interactive features available via `bun run script`.
+
 **⚠️ IMPORTANT:** Always update task status in TASKS.md before committing - this is critical for tracking progress!
 
 ## Task Tracking
@@ -156,6 +185,11 @@
 - ✅ Implement Morning Brew scraper
 - ✅ Add content deduplication logic
 - ✅ Add business logic documentation
+- ✅ **Database Persistence Integration** (NEW)
+  - ✅ Added `scraped_content` table to schema
+  - ✅ Created `scrapedContentRouter` for CRUD operations
+  - ✅ Modified ScraperManager to persist content
+  - ✅ Verified persistence functionality working
 
 ##### 🔄 Task 4.2: MVP Generation Pipeline - **CURRENT TASK**
 
@@ -183,6 +217,102 @@
   - [ ] Test error scenarios and user feedback
 
 **Note: This MVP approach generates episodes on-demand when user clicks "Generate" rather than using a complex background queue system. Perfect for initial validation.**
+
+### 🎯 CURRENT TASK: Phase 4.3 - Frontend Integration
+
+**Last Updated**: 2024-01-22  
+**Current Branch**: `feat/ui-integration-generation`  
+**Status**: READY TO START
+
+### Phase 4.3: Frontend Integration 🔄 IN PROGRESS
+
+**Objective**: Integrate generation pipeline with UI and enhance user experience
+
+#### 🔄 4.3.1: Generation Modal Enhancement (CURRENT)
+
+**Goal**: Create comprehensive episode generation interface with real-time feedback
+
+**Tasks**:
+
+- [x] Create basic generation modal component structure
+- [ ] Fix generation modal UI component imports and dialog system
+- [ ] Implement form validation with proper error states
+- [ ] Add voice selection dropdown with preview samples
+- [ ] Integrate Server-Sent Events for real-time progress tracking
+- [ ] Add cost estimation display before generation
+- [ ] Implement proper loading states and error handling
+- [ ] Add success celebration with episode preview
+
+**Current Status**: Basic modal created, needs UI component fixes and SSE integration
+
+#### 🔜 4.3.2: Episode Generation Flow
+
+**Goal**: Complete end-to-end generation experience
+
+**Tasks**:
+
+- [ ] Integrate generation modal with homepage and episodes page
+- [ ] Add generation trigger buttons throughout the app
+- [ ] Implement queue status monitoring and notifications
+- [ ] Add recently generated episodes section
+- [ ] Create generation history tracking
+- [ ] Add retry mechanism for failed generations
+
+#### 🔜 4.3.3: User Feedback & Polish
+
+**Goal**: Enhance user experience with feedback and polish
+
+**Tasks**:
+
+- [ ] Add toast notifications for generation events
+- [ ] Implement progress animations and micro-interactions
+- [ ] Add audio preview and playback controls
+- [ ] Create generation cost tracking dashboard
+- [ ] Add user preferences for voice and quality settings
+- [ ] Implement keyboard shortcuts for power users
+
+---
+
+## 📋 NEXT IMMEDIATE ACTIONS
+
+1. **Fix Generation Modal UI Components** (30 mins)
+
+   - Update Dialog imports to use available UI components
+   - Fix Select component usage for voice selection
+   - Ensure proper form validation UI
+
+2. **Implement SSE Progress Tracking** (45 mins)
+
+   - Connect modal to `/api/episodes/generate` endpoint
+   - Add real-time progress indicators
+   - Handle success/error states with proper UI feedback
+
+3. **Integration Testing** (30 mins)
+   - Test complete generation flow end-to-end
+   - Verify proper error handling and retry logic
+   - Confirm UI responsiveness across devices
+
+**Estimated Time to Phase 4.3 Completion**: 2-3 hours
+
+---
+
+## 🎯 UPCOMING PHASES
+
+### Phase 4.4: Production Optimization (Next Week)
+
+- Performance optimization and caching
+- Cost monitoring and rate limiting
+- Error tracking and monitoring setup
+- Security hardening
+
+### Phase 4.5: User Experience Polish (Following Week)
+
+- Advanced UI animations and transitions
+- Keyboard shortcuts and accessibility
+- User onboarding and help system
+- Advanced queue management features
+
+**🎉 MAJOR MILESTONE: Core generation pipeline working end-to-end!**
 
 ---
 
@@ -396,7 +526,98 @@
 - [ ] Implement rollback procedures
 - [ ] Launch preparation checklist
 
+### 📋 Phase 9: Cost Optimization & AI Services
+
+**Branch: `feat/cost-optimization`**
+
+##### Task 9.1: Smart Model Selection & Feature Flags
+
+- [ ] **Feature flag AI model selection**
+  - Add feature flags for GPT-4o vs GPT-4o-mini selection
+  - Default all content creation to GPT-4o-mini for cost efficiency
+  - Allow easy switching between models for testing quality differences
+- [ ] **Neon database caching for summaries**
+  - Cache summaries based on content hash in Neon database
+  - Add cache invalidation strategy (24-48 hours)
+  - Skip Redis complexity for POC (move to backlog)
+- [ ] **Basic cost tracking infrastructure**
+  - Track per-request costs across AI services
+  - Add simple budget monitoring (no complex ROI for POC)
+  - Store cost data in Neon database
+
+##### Task 9.2: Dual TTS Service Integration
+
+- [ ] **Keep OpenAI TTS as fallback option**
+  - Maintain existing OpenAI TTS service
+  - Feature flag TTS provider selection
+  - Default to Google TTS, allow fallback to OpenAI
+- [ ] **Google Cloud TTS integration**
+  - Set up Google Cloud credentials and service
+  - Implement fun, uplifting voice pair (boy + girl voices)
+  - Natural conversation flow with proper pauses and timing
+  - Use "Upfirst podcast" style as inspiration for tone
+- [ ] **Podcast vs Summary mode selection**
+  - Let user choose between conversational podcast and single-voice summary
+  - Default to podcast mode for better engagement
+  - Simple UI toggle (no complex voice selection for now)
+
+##### Task 9.3: Content Processing Options
+
+- [ ] **Feature flag content processing modes**
+  - Flag different summarization approaches for A/B testing
+  - Flag conversational vs summary generation methods
+  - Allow easy testing of different content processing approaches
+- [ ] **Basic content quality filtering**
+  - Simple length and readability checks before processing
+  - Filter obvious spam or low-quality content
+  - No complex scoring algorithms for POC
+
+##### Task 9.4: Cost Monitoring (POC-Focused)
+
+- [ ] **Simple cost tracking dashboard**
+  - Basic cost per episode tracking and display
+  - Budget alerts for daily/monthly spending limits
+  - Cost comparison between TTS providers
+- [ ] **Usage analytics for optimization**
+  - Track which features are used most by users
+  - Monitor podcast vs summary mode preferences
+  - Basic performance and usage metrics
+
+**Cost Reduction Targets (Realistic for POC):**
+
+- **75% reduction in summarization costs** (GPT-4 → GPT-4o-mini)
+- **90% reduction in TTS costs** (OpenAI TTS → Google Cloud TTS)
+- **50% reduction in duplicate processing** (basic content caching)
+- **Target: $5-25/month** for moderate POC usage
+
 ## Backlog (Unplanned/Future Items)
+
+### Cost Optimization Backlog
+
+- [ ] **Redis implementation for high-performance caching**
+  - Replace Neon caching with Redis for faster performance
+  - Implement advanced cache warming strategies
+  - Add distributed caching for multiple instances
+- [ ] **Advanced content deduplication algorithms**
+  - Implement fuzzy matching for near-duplicate articles
+  - Add content similarity scoring
+  - Smart batch processing for multiple articles
+- [ ] **Voice Selection UI and Customization**
+  - User interface for voice selection and pairing
+  - Custom voice personality options
+  - Voice preview functionality
+- [ ] **Advanced ROI and Analytics**
+  - Complex cost optimization algorithms
+  - ROI metrics and business intelligence dashboard
+  - Advanced A/B testing for content quality vs cost
+- [ ] **Multi-Provider AI Architecture**
+  - Anthropic Claude integration as backup
+  - Google AI/Gemini fallback options
+  - Automatic service failover and health monitoring
+- [ ] **Intelligent Processing Pipeline**
+  - Smart article selection based on engagement potential
+  - Source reliability scoring and reputation tracking
+  - Progressive quality degradation based on budget constraints
 
 ### Enhancement Ideas
 
@@ -449,4 +670,4 @@
 
 ---
 
-Last Updated: 2024-01-20 | Next Review: End of Phase 3
+Last Updated: 2024-01-22 | Next Review: End of Phase 3

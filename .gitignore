@@ -15,7 +15,7 @@
 
 # playwright
 /test-results/
-/playwright-report/
+**/playwright-report/
 /playwright/.cache/
 /test-results-*
 /playwright-test-results/
@@ -52,4 +52,5 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+google-credentials.json
 .env.local

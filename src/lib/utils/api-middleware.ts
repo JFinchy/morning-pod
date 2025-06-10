@@ -1,14 +1,14 @@
-import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
+import { type NextRequest, NextResponse } from "next/server";
+import { type z } from "zod";
 
 import { apiRateLimit } from "./rate-limit";
 
 export interface ApiMiddlewareOptions {
+  allowedMethods?: string[];
+  maxBodySize?: number; // in bytes
   rateLimit?: boolean;
   requireAuth?: boolean;
   validateInput?: z.ZodSchema;
-  maxBodySize?: number; // in bytes
-  allowedMethods?: string[];
 }
 
 /**
@@ -33,13 +33,13 @@ export function withApiMiddleware(
       ) {
         return NextResponse.json(
           { error: `Method ${req.method} not allowed` },
-          { status: 405, headers: { Allow: options.allowedMethods.join(", ") } }
+          { headers: { Allow: options.allowedMethods.join(", ") }, status: 405 }
         );
       }
 
       // Request size limiting
       if (options.maxBodySize && req.headers.get("content-length")) {
-        const contentLength = parseInt(
+        const contentLength = Number.parseInt(
           req.headers.get("content-length") || "0"
         );
         if (contentLength > options.maxBodySize) {
@@ -66,7 +66,6 @@ export function withApiMiddleware(
               ),
             },
             {
-              status: 429,
               headers: {
                 "Retry-After": Math.ceil(
                   (rateLimitResult.resetTime - Date.now()) / 1000
@@ -77,6 +76,7 @@ export function withApiMiddleware(
                   rateLimitResult.resetTime
                 ).toISOString(),
               },
+              status: 429,
             }
           );
         }
@@ -137,7 +137,7 @@ export function validateCSRFToken(req: NextRequest): boolean {
  */
 export function sanitizeString(input: string): string {
   return input
-    .replace(/[<>]/g, "") // Remove potential XSS characters
+    .replace(/[<>]/gu, "") // Remove potential XSS characters
     .trim()
     .slice(0, 1000); // Limit length
 }

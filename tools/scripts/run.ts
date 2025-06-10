@@ -23,8 +23,9 @@
  */
 
 import * as p from "@clack/prompts";
-import { search } from "@inquirer/prompts";
+
 import { execSync } from "child_process";
+import { search } from "@inquirer/prompts";
 
 // Handle Ctrl+C gracefully
 process.on("SIGINT", () => {
@@ -33,216 +34,213 @@ process.on("SIGINT", () => {
 });
 
 interface ScriptCommand {
-  name: string;
-  description: string;
-  command: string;
   category?: string;
+  command: string;
+  description: string;
+  name: string;
 }
 
 interface ScriptCategory {
-  name: string;
+  commands: ScriptCommand[];
   description: string;
   icon: string;
-  commands: ScriptCommand[];
+  name: string;
 }
 
 export class ScriptRunner {
   private categories: ScriptCategory[] = [
     {
-      name: "dev",
+      commands: [
+        {
+          command: "bun run next dev --turbo",
+          description: "Start development server with Turbopack",
+          name: "start",
+        },
+        {
+          command: "bun run next build",
+          description: "Build for production",
+          name: "build",
+        },
+        {
+          command: "bun run next start",
+          description: "Start production server",
+          name: "preview",
+        },
+        {
+          command: "rm -rf node_modules bun.lockb && bun install",
+          description: "Clean install dependencies",
+          name: "clean",
+        },
+      ],
       description: "Development Commands",
       icon: "🚀",
-      commands: [
-        {
-          name: "start",
-          description: "Start development server with Turbopack",
-          command: "bun run next dev --turbo",
-        },
-        {
-          name: "build",
-          description: "Build for production",
-          command: "bun run next build",
-        },
-        {
-          name: "preview",
-          description: "Start production server",
-          command: "bun run next start",
-        },
-        {
-          name: "clean",
-          description: "Clean install dependencies",
-          command: "rm -rf node_modules bun.lockb && bun install",
-        },
-      ],
+      name: "dev",
     },
     {
-      name: "test",
-      description: "Testing Commands",
-      icon: "🧪",
       commands: [
         {
-          name: "unit",
-          description: "Run unit tests with Vitest",
           command: "bun vitest --config config/testing/vitest.config.ts",
+          description: "Run unit tests with Vitest",
+          name: "unit",
         },
         {
-          name: "unit:watch",
-          description: "Run unit tests in watch mode",
           command:
             "bun vitest --config config/testing/vitest.config.ts --watch",
+          description: "Run unit tests in watch mode",
+          name: "unit:watch",
         },
         {
-          name: "unit:ui",
-          description: "Run unit tests with UI",
           command: "bun vitest --config config/testing/vitest.config.ts --ui",
+          description: "Run unit tests with UI",
+          name: "unit:ui",
         },
         {
-          name: "unit:coverage",
-          description: "Run unit tests with coverage",
           command:
             "bun vitest --config config/testing/vitest.config.ts --coverage",
+          description: "Run unit tests with coverage",
+          name: "unit:coverage",
         },
         {
-          name: "unit:perf",
-          description: "Run unit tests (performance optimized)",
           command:
             "bun vitest --config config/testing/vitest.config.performance.ts",
+          description: "Run unit tests (performance optimized)",
+          name: "unit:perf",
         },
         {
-          name: "e2e",
-          description: "Run E2E tests with Playwright",
           command:
             "playwright test --config config/testing/playwright.config.ts",
+          description: "Run E2E tests with Playwright",
+          name: "e2e",
         },
         {
-          name: "e2e:ui",
-          description: "Run E2E tests with UI",
           command:
             "playwright test --config config/testing/playwright.config.ts --ui",
+          description: "Run E2E tests with UI",
+          name: "e2e:ui",
         },
         {
-          name: "e2e:debug",
-          description: "Debug E2E tests",
           command:
             "playwright test --config config/testing/playwright.config.ts --debug",
+          description: "Debug E2E tests",
+          name: "e2e:debug",
         },
         {
-          name: "e2e:headed",
-          description: "Run E2E tests in headed mode",
           command:
             "playwright test --config config/testing/playwright.config.ts --headed",
+          description: "Run E2E tests in headed mode",
+          name: "e2e:headed",
         },
         {
-          name: "e2e:visual",
-          description: "Update visual regression snapshots",
           command:
             "playwright test --config config/testing/playwright.config.ts --update-snapshots",
+          description: "Update visual regression snapshots",
+          name: "e2e:visual",
         },
         {
-          name: "e2e:perf",
-          description: "Run E2E tests (performance optimized)",
           command:
             "playwright test --config config/testing/playwright.config.performance.ts",
+          description: "Run E2E tests (performance optimized)",
+          name: "e2e:perf",
         },
         {
-          name: "performance",
-          description: "Run performance tests",
           command:
             "playwright test --config config/testing/playwright.config.ts src/tests/performance",
+          description: "Run performance tests",
+          name: "performance",
         },
         {
-          name: "all",
-          description: "Run all tests (unit + E2E)",
           command:
             "bun vitest --config config/testing/vitest.config.ts && playwright test --config config/testing/playwright.config.ts",
+          description: "Run all tests (unit + E2E)",
+          name: "all",
         },
         {
-          name: "all:perf",
-          description: "Run all tests (performance optimized)",
           command:
             "bun vitest --config config/testing/vitest.config.performance.ts && playwright test --config config/testing/playwright.config.performance.ts",
+          description: "Run all tests (performance optimized)",
+          name: "all:perf",
         },
       ],
+      description: "Testing Commands",
+      icon: "🧪",
+      name: "test",
     },
     {
-      name: "db",
+      commands: [
+        {
+          command: "bun run drizzle-kit generate",
+          description: "Generate database migrations",
+          name: "generate",
+        },
+        {
+          command: "bun run drizzle-kit push",
+          description: "Push migrations to database",
+          name: "migrate",
+        },
+        {
+          command: "bun run tools/scripts/seed.ts",
+          description: "Seed database with test data",
+          name: "seed",
+        },
+        {
+          command: "bun run drizzle-kit studio",
+          description: "Open Drizzle Studio",
+          name: "studio",
+        },
+      ],
       description: "Database Commands",
       icon: "🗄️",
-      commands: [
-        {
-          name: "generate",
-          description: "Generate database migrations",
-          command: "bun run drizzle-kit generate",
-        },
-        {
-          name: "migrate",
-          description: "Push migrations to database",
-          command: "bun run drizzle-kit push",
-        },
-        {
-          name: "seed",
-          description: "Seed database with test data",
-          command: "bun run tools/scripts/seed.ts",
-        },
-        {
-          name: "studio",
-          description: "Open Drizzle Studio",
-          command: "bun run drizzle-kit studio",
-        },
-      ],
+      name: "db",
     },
     {
-      name: "deps",
-      description: "Dependency Management",
-      icon: "📦",
       commands: [
         {
-          name: "check",
-          description: "Check for available updates",
           command: "ncu --timeout 15000 --concurrency 2",
+          description: "Check for available updates",
+          name: "check",
         },
         {
-          name: "update:patch",
-          description: "Update patch versions (safest)",
           command:
             "ncu --target patch --timeout 15000 --concurrency 2 -u && bun install",
+          description: "Update patch versions (safest)",
+          name: "update:patch",
         },
         {
-          name: "update:minor",
-          description: "Update minor versions",
           command:
             "ncu --target minor --timeout 15000 --concurrency 2 -u && bun install",
+          description: "Update minor versions",
+          name: "update:minor",
         },
         {
-          name: "update:safe",
-          description: "Update with automatic testing",
           command:
-            "ncu --target minor --timeout 15000 --concurrency 2 -u && bun install && bun vitest --config config/testing/vitest.config.ts && tsc --noEmit",
+            "ncu --target minor --timeout 15000 --concurrency 2 -u && bun install && bun test && bun run type-check",
+          description: "Update with automatic testing",
+          name: "update:safe",
         },
         {
-          name: "update:major",
-          description: "Show major updates (manual review)",
           command: "ncu --target major --timeout 15000 --concurrency 2",
+          description: "Show major updates (manual review)",
+          name: "update:major",
         },
         {
-          name: "doctor",
-          description: "Automated safe updates with testing",
           command: "ncu --doctor --timeout 15000 --concurrency 2 -u",
+          description: "Automated safe updates with testing",
+          name: "doctor",
         },
         {
-          name: "outdated",
-          description: "Show outdated packages (Bun native)",
           command: "bun outdated",
+          description: "Show outdated packages (Bun native)",
+          name: "outdated",
         },
         {
-          name: "audit",
-          description: "Check for security vulnerabilities",
           command: "bun audit --audit-level moderate",
+          description: "Check for security vulnerabilities",
+          name: "audit",
         },
         {
-          name: "audit:fix",
-          description: "Fix security vulnerabilities",
           command: "bun audit fix",
+          description: "Fix security vulnerabilities",
+          name: "audit:fix",
         },
         {
           name: "security:check",
@@ -278,85 +276,130 @@ export class ScriptRunner {
             "rm -rf node_modules .next dist build out .turbo bun.lockb && bun pm cache rm && rm -rf ~/.npm/_cacache && bun install",
         },
       ],
+      description: "Dependency Management",
+      icon: "📦",
+      name: "deps",
     },
     {
-      name: "quality",
+      commands: [
+        {
+          command: "bun run next lint",
+          description: "Run ESLint",
+          name: "lint",
+        },
+        {
+          command: "bun run next lint --fix",
+          description: "Fix ESLint issues",
+          name: "lint:fix",
+        },
+        {
+          command: "bun run next lint --quiet",
+          description: "Run ESLint (errors only)",
+          name: "lint:quiet",
+        },
+        {
+          command: "bun run next lint --strict",
+          description: "Setup strict ESLint config",
+          name: "lint:strict",
+        },
+        {
+          command: "prettier --write .",
+          description: "Format code with Prettier",
+          name: "format",
+        },
+        {
+          command: "prettier --check .",
+          description: "Check code formatting",
+          name: "format:check",
+        },
+        {
+          command: "tsc --noEmit",
+          description: "Run TypeScript type checking",
+          name: "type-check",
+        },
+        {
+          command: "bun run next lint && prettier --check . && tsc --noEmit",
+          description: "Run all quality checks",
+          name: "all",
+        },
+      ],
       description: "Code Quality",
       icon: "✨",
-      commands: [
-        {
-          name: "lint",
-          description: "Run ESLint",
-          command: "bun run next lint",
-        },
-        {
-          name: "lint:fix",
-          description: "Fix ESLint issues",
-          command: "bun run next lint --fix",
-        },
-        {
-          name: "lint:quiet",
-          description: "Run ESLint (errors only)",
-          command: "bun run next lint --quiet",
-        },
-        {
-          name: "lint:strict",
-          description: "Setup strict ESLint config",
-          command: "bun run next lint --strict",
-        },
-        {
-          name: "format",
-          description: "Format code with Prettier",
-          command: "prettier --write .",
-        },
-        {
-          name: "format:check",
-          description: "Check code formatting",
-          command: "prettier --check .",
-        },
-        {
-          name: "type-check",
-          description: "Run TypeScript type checking",
-          command: "tsc --noEmit",
-        },
-        {
-          name: "all",
-          description: "Run all quality checks (lint, format, type-check)",
-          command: "bun run next lint && prettier --check . && tsc --noEmit",
-        },
-      ],
+      name: "quality",
     },
     {
-      name: "release",
-      description: "Release Management",
-      icon: "🚢",
       commands: [
         {
-          name: "changeset",
-          description: "Create a new changeset",
           command: "changeset",
+          description: "Create a new changeset",
+          name: "changeset",
         },
         {
-          name: "version",
-          description: "Version packages and update changelog",
           command: "changeset version",
+          description: "Version packages and update changelog",
+          name: "version",
         },
         {
-          name: "publish",
-          description: "Publish packages",
           command: "changeset publish",
+          description: "Publish packages",
+          name: "publish",
         },
         {
-          name: "status",
-          description: "Check changeset status",
           command: "changeset status",
+          description: "Check changeset status",
+          name: "status",
         },
         {
-          name: "release",
-          description: "Full release process",
           command: "changeset version && bun run build && changeset publish",
+          description: "Full release process",
+          name: "release",
         },
       ],
+      description: "Release Management",
+      icon: "🚢",
+      name: "release",
+    },
+    {
+      commands: [
+        {
+          command: "bun run tools/scripts/branch-manager.ts --checkout",
+          description: "Switch to recent branch interactively",
+          name: "checkout",
+        },
+        {
+          command: "bun run tools/scripts/branch-manager.ts",
+          description: "Interactive branch management",
+          name: "interactive",
+        },
+        {
+          command: "bun run tools/scripts/branch-manager.ts --analysis",
+          description: "Show branch analysis and statistics",
+          name: "analysis",
+        },
+        {
+          command: "bun run tools/scripts/branch-manager.ts --stale",
+          description: "Archive stale branches (>30 days)",
+          name: "stale",
+        },
+        {
+          command: "bun run tools/scripts/branch-manager.ts --orphaned",
+          description: "Archive local-only branches",
+          name: "orphaned",
+        },
+        {
+          command: "bun run tools/scripts/branch-manager.ts --merged",
+          description: "Archive merged branches deleted from remote",
+          name: "merged",
+        },
+        {
+          command: "bun run tools/scripts/branch-manager.ts --stale --dry-run",
+          description: "Preview stale branches (dry run)",
+          name: "preview",
+        },
+      ],
+      description: "Branch Management",
+      icon: "🌿",
+      name: "branches",
     },
     {
       name: "kill",
@@ -409,22 +452,242 @@ export class ScriptRunner {
   ];
 
   /**
+   * Execute all commands in a category
+   */
+  executeAllInCategory(category: ScriptCategory): void {
+    const allCommand = category.commands.find((cmd) => cmd.name === "all");
+
+    if (allCommand) {
+      console.log(`\\n▶️  ${category.icon} ${allCommand.description}\\n`);
+      console.log(`🔧 Command: ${allCommand.command}\\n`);
+
+      try {
+        execSync(allCommand.command, { cwd: process.cwd(), stdio: "inherit" });
+        console.log(
+          `\\n✅ All ${category.name} commands completed successfully!`
+        );
+      } catch (error) {
+        console.log(`\\n❌ Command failed:`, error);
+        process.exit(1);
+      }
+    } else {
+      console.log(`\\n🔄 Running all ${category.name} commands...\\n`);
+
+      for (const command of category.commands) {
+        console.log(`\\n▶️  ${command.name}: ${command.description}`);
+        console.log(`🔧 Command: ${command.command}\\n`);
+
+        try {
+          execSync(command.command, { cwd: process.cwd(), stdio: "inherit" });
+          console.log(`✅ ${command.name} completed successfully`);
+        } catch (error) {
+          console.log(`❌ ${command.name} failed:`, error);
+          console.log("\\n🛑 Stopping execution due to failure");
+          process.exit(1);
+        }
+      }
+
+      console.log(
+        `\\n🎉 All ${category.name} commands completed successfully!`
+      );
+    }
+  }
+
+  /**
+   * Execute a specific command
+   */
+  executeCommand(
+    categoryName: string,
+    actionName: string,
+    flags: string[] = []
+  ): void {
+    const category = this.categories.find(
+      (cat) => cat.name.toLowerCase() === categoryName.toLowerCase()
+    );
+
+    if (!category) {
+      console.log(`❌ Unknown category: ${categoryName}`);
+      console.log(
+        "Available categories:",
+        this.categories.map((c) => c.name).join(", ")
+      );
+      process.exit(1);
+    }
+
+    // Handle --all flag
+    if (actionName === "--all" || flags.includes("--all")) {
+      this.executeAllInCategory(category);
+      return;
+    }
+
+    const command = category.commands.find(
+      (cmd) => cmd.name.toLowerCase() === actionName.toLowerCase()
+    );
+
+    if (!command) {
+      console.log(`❌ Unknown command: ${actionName}`);
+      console.log(
+        "Available commands:",
+        category.commands.map((c) => c.name).join(", ")
+      );
+      process.exit(1);
+    }
+
+    console.log(`\\n▶️  ${category.icon} ${command.description}\\n`);
+    console.log(`🔧 Command: ${command.command}\\n`);
+
+    try {
+      execSync(command.command, { cwd: process.cwd(), stdio: "inherit" });
+      console.log(`\\n✅ ${command.name} completed successfully!`);
+    } catch (error) {
+      console.log(`\\n❌ Command failed:`, error);
+      process.exit(1);
+    }
+  }
+
+  /**
+   * Execute a specific command with additional arguments
+   */
+  executeCommandWithArgs(
+    categoryName: string,
+    actionName: string,
+    additionalArgs: string
+  ): void {
+    const category = this.categories.find(
+      (cat) => cat.name.toLowerCase() === categoryName.toLowerCase()
+    );
+
+    if (!category) {
+      console.log(`❌ Unknown category: ${categoryName}`);
+      console.log(
+        "Available categories:",
+        this.categories.map((c) => c.name).join(", ")
+      );
+      process.exit(1);
+    }
+
+    // Handle --all flag
+    if (actionName === "--all") {
+      this.executeAllInCategory(category);
+      return;
+    }
+
+    const command = category.commands.find(
+      (cmd) => cmd.name.toLowerCase() === actionName.toLowerCase()
+    );
+
+    if (!command) {
+      console.log(`❌ Unknown command: ${actionName}`);
+      console.log(
+        "Available commands:",
+        category.commands.map((c) => c.name).join(", ")
+      );
+      process.exit(1);
+    }
+
+    const fullCommand = additionalArgs
+      ? `${command.command} ${additionalArgs}`
+      : command.command;
+
+    console.log(`\\n▶️  ${category.icon} ${command.description}\\n`);
+    console.log(`🔧 Command: ${fullCommand}\\n`);
+
+    try {
+      execSync(fullCommand, { cwd: process.cwd(), stdio: "inherit" });
+      console.log(`\\n✅ ${command.name} completed successfully!`);
+    } catch (error) {
+      console.log(`\\n❌ Command failed:`, error);
+      process.exit(1);
+    }
+  }
+
+  /**
+   * Get context-specific argument examples based on category and command
+   */
+  getArgumentExamples(categoryName: string, commandName: string): string {
+    const exampleMap: Record<string, Record<string, string>> = {
+      db: {
+        default: "--help",
+        generate: "--name add_user_table",
+        migrate: "--verbose",
+      },
+      default: {
+        default: "--help",
+      },
+      deps: {
+        check: "--target minor",
+        default: "--help",
+        "update:patch": "--interactive",
+      },
+      dev: {
+        build: "--debug",
+        default: "--help",
+        preview: "--port 3000",
+        start: "--port 3001",
+      },
+      quality: {
+        default: "src/ --verbose",
+        format: "src/ --check",
+        "format:check": "src/components",
+        lint: "src/ --max-warnings 0",
+        "lint:fix": "src/components --quiet",
+        "lint:quiet": "--max-warnings 5",
+        "lint:strict": "--dir src/app",
+        "type-check": "--incremental",
+      },
+      test: {
+        default: "--timeout 30000",
+        e2e: "--headed --debug",
+        "e2e:debug": "--project=webkit",
+        "e2e:ui": "--project=chromium",
+        performance: "--repeat-each=3",
+        unit: "--watch --coverage",
+        "unit:coverage": "--reporter=verbose",
+        "unit:watch": "--ui --coverage",
+      },
+    };
+
+    const categoryExamples =
+      exampleMap[categoryName.toLowerCase()] || exampleMap.default;
+    return (
+      categoryExamples[commandName] || categoryExamples.default || "--help"
+    );
+  }
+
+  /**
+   * List all available commands
+   */
+  listAllCommands(): void {
+    console.log("\\n📋 All Available Commands\\n");
+
+    for (const category of this.categories) {
+      console.log(`${category.icon} ${category.description}:`);
+      for (const command of category.commands) {
+        console.log(
+          `  bun run script ${category.name} ${command.name.padEnd(15)} - ${command.description}`
+        );
+      }
+      console.log("");
+    }
+  }
+
+  /**
    * Parse command line arguments
    */
   parseArgs(): {
-    mode: "help" | "list" | "interactive" | "category" | "direct";
-    category?: string;
     action?: string;
+    category?: string;
     flags: string[];
+    mode: "category" | "direct" | "help" | "interactive" | "list";
   } {
     const args = process.argv.slice(2);
 
     if (args.includes("--help") || args.includes("-h")) {
-      return { mode: "help", flags: [] };
+      return { flags: [], mode: "help" };
     }
 
     if (args.includes("--list") || args.includes("-l")) {
-      return { mode: "list", flags: [] };
+      return { flags: [], mode: "list" };
     }
 
     if (
@@ -432,7 +695,7 @@ export class ScriptRunner {
       args.includes("--interactive") ||
       args.length === 0
     ) {
-      return { mode: "interactive", flags: [] };
+      return { flags: [], mode: "interactive" };
     }
 
     const [category, action, ...flags] = args;
@@ -440,38 +703,6 @@ export class ScriptRunner {
     // Handle category-specific flags like: bun run test --e2e, bun run dev --build
     if (category && flags.length > 0) {
       const categoryFlagMap: Record<string, Record<string, string>> = {
-        test: {
-          "--e2e": "e2e",
-          "--unit": "unit",
-          "--watch": "unit:watch",
-          "--coverage": "unit:coverage",
-          "--ui": "unit:ui",
-          "--perf": "unit:perf",
-          "--debug": "e2e:debug",
-          "--headed": "e2e:headed",
-          "--visual": "e2e:visual",
-          "--e2e-ui": "e2e:ui",
-          "--e2e-perf": "e2e:perf",
-          "--e2e-visual": "e2e:visual",
-          "--performance": "performance",
-          "--all": "--all",
-        },
-        dev: {
-          "--start": "start",
-          "--build": "build",
-          "--preview": "preview",
-          "--clean": "clean",
-        },
-        quality: {
-          "--lint": "lint",
-          "--fix": "lint:fix",
-          "--quiet": "lint:quiet",
-          "--strict": "lint:strict",
-          "--format": "format",
-          "--check": "format:check",
-          "--type": "type-check",
-          "--all": "all",
-        },
         db: {
           "--generate": "generate",
           "--migrate": "migrate",
@@ -479,15 +710,15 @@ export class ScriptRunner {
           "--studio": "studio",
         },
         deps: {
-          "--check": "check",
-          "--patch": "update:patch",
-          "--minor": "update:minor",
-          "--major": "update:major",
-          "--safe": "update:safe",
-          "--doctor": "doctor",
-          "--outdated": "outdated",
           "--audit": "audit",
           "--audit-fix": "audit:fix",
+          "--check": "check",
+          "--doctor": "doctor",
+          "--major": "update:major",
+          "--minor": "update:minor",
+          "--outdated": "outdated",
+          "--patch": "update:patch",
+          "--safe": "update:safe",
           "--security": "security:check",
           "--clear-cache": "clear:cache",
           "--clear-modules": "clear:node_modules",
@@ -495,12 +726,53 @@ export class ScriptRunner {
           "--clear-build": "clear:build",
           "--clear-all": "clear:all",
         },
+        dev: {
+          "--build": "build",
+          "--clean": "clean",
+          "--preview": "preview",
+          "--start": "start",
+        },
+        quality: {
+          "--all": "all",
+          "--check": "format:check",
+          "--fix": "lint:fix",
+          "--format": "format",
+          "--lint": "lint",
+          "--quiet": "lint:quiet",
+          "--strict": "lint:strict",
+          "--type": "type-check",
+        },
         release: {
           "--changeset": "changeset",
-          "--version": "version",
           "--publish": "publish",
-          "--status": "status",
           "--release": "release",
+          "--status": "status",
+          "--version": "version",
+        },
+        branches: {
+          "--analysis": "analysis",
+          "--checkout": "checkout",
+          "--interactive": "interactive",
+          "--merged": "merged",
+          "--orphaned": "orphaned",
+          "--preview": "preview",
+          "--stale": "stale",
+        },
+        test: {
+          "--all": "--all",
+          "--coverage": "unit:coverage",
+          "--debug": "e2e:debug",
+          "--e2e": "e2e",
+          "--e2e-perf": "e2e:perf",
+          "--e2e-ui": "e2e:ui",
+          "--e2e-visual": "e2e:visual",
+          "--headed": "e2e:headed",
+          "--perf": "unit:perf",
+          "--performance": "performance",
+          "--ui": "unit:ui",
+          "--unit": "unit",
+          "--visual": "e2e:visual",
+          "--watch": "unit:watch",
         },
         kill: {
           "--vitest": "vitest",
@@ -518,10 +790,10 @@ export class ScriptRunner {
         for (const flag of flags) {
           if (categoryFlags[flag]) {
             return {
-              mode: "direct",
-              category,
               action: categoryFlags[flag],
+              category,
               flags: flags.filter((f) => f !== flag),
+              mode: "direct",
             };
           }
         }
@@ -529,10 +801,114 @@ export class ScriptRunner {
     }
 
     if (!action) {
-      return { mode: "category", category, flags };
+      return { category, flags, mode: "category" };
     }
 
-    return { mode: "direct", category, action, flags };
+    return { action, category, flags, mode: "direct" };
+  }
+
+  /**
+   * Main execution method
+   */
+  async run(): Promise<void> {
+    const { action, category, flags, mode } = this.parseArgs();
+
+    switch (mode) {
+      case "help":
+        this.showHelp();
+        break;
+      case "list":
+        this.listAllCommands();
+        break;
+      case "interactive":
+        await this.showInteractiveMenu();
+        break;
+      case "category":
+        if (category) {
+          await this.showCategory(category);
+        }
+        break;
+      case "direct":
+        if (category && action) {
+          this.executeCommand(category, action, flags);
+        }
+        break;
+      default:
+        this.showHelp();
+    }
+  }
+
+  /**
+   * Show category commands with interactive selection
+   */
+  async showCategory(categoryName: string): Promise<void> {
+    const category = this.categories.find(
+      (cat) => cat.name.toLowerCase() === categoryName.toLowerCase()
+    );
+
+    if (!category) {
+      console.log(`❌ Unknown category: ${categoryName}`);
+      console.log(
+        "Available categories:",
+        this.categories.map((c) => c.name).join(", ")
+      );
+      process.exit(1);
+    }
+
+    p.intro(`${category.icon} ${category.description}`);
+
+    const options = [
+      ...category.commands.map((cmd) => ({
+        name: `${cmd.name} - ${cmd.description}`,
+        value: cmd.name,
+      })),
+      { name: "Run all commands in this category", value: "--all" },
+    ];
+
+    let selected;
+    try {
+      selected = await search({
+        message: "Choose a command to run:",
+        source: (input) => {
+          const filtered = options.filter((option) => {
+            const searchTerm = (input || "").toLowerCase();
+            return (
+              option.name.toLowerCase().includes(searchTerm) ||
+              option.value.toLowerCase().includes(searchTerm)
+            );
+          });
+          return Promise.resolve(filtered);
+        },
+      });
+    } catch (error) {
+      p.outro("👋 See you later!");
+      process.exit(0);
+    }
+
+    // Check if user wants to add additional arguments
+    let additionalArgs = "";
+    try {
+      const examples = this.getArgumentExamples(categoryName, String(selected));
+      const result = await p.text({
+        defaultValue: "",
+        message: `Additional arguments (optional, e.g., ${examples}):`,
+        placeholder: "Press Enter to skip",
+      });
+      additionalArgs = String(result);
+    } catch (error) {
+      additionalArgs = "";
+    }
+
+    const fullCommand = additionalArgs
+      ? `${selected} ${additionalArgs}`
+      : selected;
+    p.outro(`Running: ${fullCommand}`);
+
+    this.executeCommandWithArgs(
+      categoryName,
+      selected as string,
+      additionalArgs
+    );
   }
 
   /**
@@ -613,31 +989,14 @@ Passing Additional Arguments:
   }
 
   /**
-   * List all available commands
-   */
-  listAllCommands(): void {
-    console.log("\\n📋 All Available Commands\\n");
-
-    this.categories.forEach((category) => {
-      console.log(`${category.icon} ${category.description}:`);
-      category.commands.forEach((command) => {
-        console.log(
-          `  bun run script ${category.name} ${command.name.padEnd(15)} - ${command.description}`
-        );
-      });
-      console.log("");
-    });
-  }
-
-  /**
    * Show interactive menu with selection
    */
   async showInteractiveMenu(): Promise<void> {
     p.intro("🎯 Interactive Script Runner");
 
     const categoryOptions = this.categories.map((category) => ({
-      value: category.name,
       name: `${category.icon} ${category.description}`,
+      value: category.name,
     }));
 
     let selectedCategory;
@@ -661,328 +1020,6 @@ Passing Additional Arguments:
     }
 
     await this.showCategory(selectedCategory as string);
-  }
-
-  /**
-   * Show category commands with interactive selection
-   */
-  async showCategory(categoryName: string): Promise<void> {
-    const category = this.categories.find(
-      (cat) => cat.name.toLowerCase() === categoryName.toLowerCase()
-    );
-
-    if (!category) {
-      console.log(`❌ Unknown category: ${categoryName}`);
-      console.log(
-        "Available categories:",
-        this.categories.map((c) => c.name).join(", ")
-      );
-      process.exit(1);
-    }
-
-    p.intro(`${category.icon} ${category.description}`);
-
-    const options = [
-      ...category.commands.map((cmd) => ({
-        value: cmd.name,
-        name: `${cmd.name} - ${cmd.description}`,
-      })),
-      { value: "--all", name: "Run all commands in this category" },
-    ];
-
-    let selected;
-    try {
-      selected = await search({
-        message: "Choose a command to run:",
-        source: (input) => {
-          const filtered = options.filter((option) => {
-            const searchTerm = (input || "").toLowerCase();
-            return (
-              option.name.toLowerCase().includes(searchTerm) ||
-              option.value.toLowerCase().includes(searchTerm)
-            );
-          });
-          return Promise.resolve(filtered);
-        },
-      });
-    } catch (error) {
-      p.outro("👋 See you later!");
-      process.exit(0);
-    }
-
-    // Check if user wants to add additional arguments
-    let additionalArgs = "";
-    try {
-      const examples = this.getArgumentExamples(categoryName, String(selected));
-
-      additionalArgs = (await p.text({
-        message: `Additional arguments (optional, e.g., ${examples}):`,
-        placeholder: "Press Enter to skip",
-        defaultValue: "",
-      })) as string;
-    } catch (error) {
-      additionalArgs = "";
-    }
-
-    const fullCommand = additionalArgs
-      ? `${selected} ${additionalArgs}`
-      : selected;
-    p.outro(`Running: ${fullCommand}`);
-
-    this.executeCommandWithArgs(
-      categoryName,
-      selected as string,
-      additionalArgs
-    );
-  }
-
-  /**
-   * Get context-specific argument examples based on category and command
-   */
-  getArgumentExamples(categoryName: string, commandName: string): string {
-    const exampleMap: Record<string, Record<string, string>> = {
-      test: {
-        unit: "--watch --coverage",
-        "unit:watch": "--ui --coverage",
-        "unit:coverage": "--reporter=verbose",
-        e2e: "--headed --debug",
-        "e2e:ui": "--project=chromium",
-        "e2e:debug": "--project=webkit",
-        performance: "--repeat-each=3",
-        default: "--timeout 30000",
-      },
-      quality: {
-        lint: "src/ --max-warnings 0",
-        "lint:fix": "src/components --quiet",
-        "lint:quiet": "--max-warnings 5",
-        "lint:strict": "--dir src/app",
-        format: "src/ --check",
-        "format:check": "src/components",
-        "type-check": "--incremental",
-        default: "src/ --verbose",
-      },
-      dev: {
-        start: "--port 3001",
-        build: "--debug",
-        preview: "--port 3000",
-        default: "--help",
-      },
-      db: {
-        generate: "--name add_user_table",
-        migrate: "--verbose",
-        default: "--help",
-      },
-      deps: {
-        check: "--target minor",
-        "update:patch": "--interactive",
-        default: "--help",
-      },
-      default: {
-        default: "--help",
-      },
-    };
-
-    const categoryExamples =
-      exampleMap[categoryName.toLowerCase()] || exampleMap.default;
-    return (
-      categoryExamples[commandName] || categoryExamples.default || "--help"
-    );
-  }
-
-  /**
-   * Execute a specific command with additional arguments
-   */
-  executeCommandWithArgs(
-    categoryName: string,
-    actionName: string,
-    additionalArgs: string
-  ): void {
-    const category = this.categories.find(
-      (cat) => cat.name.toLowerCase() === categoryName.toLowerCase()
-    );
-
-    if (!category) {
-      console.log(`❌ Unknown category: ${categoryName}`);
-      console.log(
-        "Available categories:",
-        this.categories.map((c) => c.name).join(", ")
-      );
-      process.exit(1);
-    }
-
-    // Handle --all flag
-    if (actionName === "--all") {
-      this.executeAllInCategory(category);
-      return;
-    }
-
-    const command = category.commands.find(
-      (cmd) => cmd.name.toLowerCase() === actionName.toLowerCase()
-    );
-
-    if (!command) {
-      console.log(`❌ Unknown command: ${actionName}`);
-      console.log(
-        "Available commands:",
-        category.commands.map((c) => c.name).join(", ")
-      );
-      process.exit(1);
-    }
-
-    const fullCommand = additionalArgs
-      ? `${command.command} ${additionalArgs}`
-      : command.command;
-
-    console.log(`\\n▶️  ${category.icon} ${command.description}\\n`);
-    console.log(`🔧 Command: ${fullCommand}\\n`);
-
-    try {
-      execSync(fullCommand, { stdio: "inherit", cwd: process.cwd() });
-      console.log(`\\n✅ ${command.name} completed successfully!`);
-    } catch (error) {
-      console.log(`\\n❌ Command failed:`, error);
-      process.exit(1);
-    }
-  }
-
-  /**
-   * Execute a specific command
-   */
-  executeCommand(
-    categoryName: string,
-    actionName: string,
-    flags: string[] = []
-  ): void {
-    const category = this.categories.find(
-      (cat) => cat.name.toLowerCase() === categoryName.toLowerCase()
-    );
-
-    if (!category) {
-      console.log(`❌ Unknown category: ${categoryName}`);
-      console.log(
-        "Available categories:",
-        this.categories.map((c) => c.name).join(", ")
-      );
-      process.exit(1);
-    }
-
-    // Handle --all flag
-    if (actionName === "--all" || flags.includes("--all")) {
-      this.executeAllInCategory(category);
-      return;
-    }
-
-    const command = category.commands.find(
-      (cmd) => cmd.name.toLowerCase() === actionName.toLowerCase()
-    );
-
-    if (!command) {
-      console.log(`❌ Unknown command: ${actionName}`);
-      console.log(
-        "Available commands:",
-        category.commands.map((c) => c.name).join(", ")
-      );
-      process.exit(1);
-    }
-
-    console.log(`\\n▶️  ${category.icon} ${command.description}\\n`);
-    console.log(`🔧 Command: ${command.command}\\n`);
-
-    try {
-      execSync(command.command, { stdio: "inherit", cwd: process.cwd() });
-      console.log(`\\n✅ ${command.name} completed successfully!`);
-    } catch (error: any) {
-      // Handle Ctrl+C gracefully for watch mode commands
-      if (error.signal === "SIGINT") {
-        console.log(`\\n👋 See you later!`);
-        process.exit(0);
-      }
-      console.log(`\\n❌ Command failed:`, error);
-      process.exit(1);
-    }
-  }
-
-  /**
-   * Execute all commands in a category
-   */
-  executeAllInCategory(category: ScriptCategory): void {
-    const allCommand = category.commands.find((cmd) => cmd.name === "all");
-
-    if (allCommand) {
-      console.log(`\\n▶️  ${category.icon} ${allCommand.description}\\n`);
-      console.log(`🔧 Command: ${allCommand.command}\\n`);
-
-      try {
-        execSync(allCommand.command, { stdio: "inherit", cwd: process.cwd() });
-        console.log(
-          `\\n✅ All ${category.name} commands completed successfully!`
-        );
-      } catch (error: any) {
-        // Handle Ctrl+C gracefully
-        if (error.signal === "SIGINT") {
-          console.log(`\\n👋 See you later!`);
-          process.exit(0);
-        }
-        console.log(`\\n❌ Command failed:`, error);
-        process.exit(1);
-      }
-    } else {
-      console.log(`\\n🔄 Running all ${category.name} commands...\\n`);
-
-      for (const command of category.commands) {
-        console.log(`\\n▶️  ${command.name}: ${command.description}`);
-        console.log(`🔧 Command: ${command.command}\\n`);
-
-        try {
-          execSync(command.command, { stdio: "inherit", cwd: process.cwd() });
-          console.log(`✅ ${command.name} completed successfully`);
-        } catch (error: any) {
-          // Handle Ctrl+C gracefully
-          if (error.signal === "SIGINT") {
-            console.log(`\\n👋 See you later!`);
-            process.exit(0);
-          }
-          console.log(`❌ ${command.name} failed:`, error);
-          console.log("\\n🛑 Stopping execution due to failure");
-          process.exit(1);
-        }
-      }
-
-      console.log(
-        `\\n🎉 All ${category.name} commands completed successfully!`
-      );
-    }
-  }
-
-  /**
-   * Main execution method
-   */
-  async run(): Promise<void> {
-    const { mode, category, action, flags } = this.parseArgs();
-
-    switch (mode) {
-      case "help":
-        this.showHelp();
-        break;
-      case "list":
-        this.listAllCommands();
-        break;
-      case "interactive":
-        await this.showInteractiveMenu();
-        break;
-      case "category":
-        if (category) {
-          await this.showCategory(category);
-        }
-        break;
-      case "direct":
-        if (category && action) {
-          this.executeCommand(category, action, flags);
-        }
-        break;
-      default:
-        this.showHelp();
-    }
   }
 }
 

@@ -1,63 +1,63 @@
 export interface Source {
+  active: boolean;
+  category: string;
+  contentTier: string;
+  createdAt: Date;
+  dailyLimit: number;
   id: string;
   name: string;
-  url: string;
-  category: string;
-  active: boolean;
-  dailyLimit: number;
-  contentTier: string;
-  ttsService: "openai" | "google";
-  createdAt: Date;
+  ttsService: "google" | "openai";
   updatedAt: Date;
+  url: string;
 }
 
 export const mockSources: Source[] = [
   {
+    active: true,
+    category: "Tech News",
+    contentTier: "premium",
+    createdAt: new Date("2024-01-01"),
+    dailyLimit: 3,
     id: "tldr",
     name: "TLDR Newsletter",
-    url: "https://tldr.tech",
-    category: "Tech News",
-    active: true,
-    dailyLimit: 3,
-    contentTier: "premium",
     ttsService: "openai",
-    createdAt: new Date("2024-01-01"),
     updatedAt: new Date("2024-01-01"),
+    url: "https://tldr.tech",
   },
   {
+    active: true,
+    category: "Developer News",
+    contentTier: "free",
+    createdAt: new Date("2024-01-01"),
+    dailyLimit: 5,
     id: "hacker-news",
     name: "Hacker News",
-    url: "https://news.ycombinator.com",
-    category: "Developer News",
-    active: true,
-    dailyLimit: 5,
-    contentTier: "free",
     ttsService: "openai",
-    createdAt: new Date("2024-01-01"),
     updatedAt: new Date("2024-01-01"),
+    url: "https://news.ycombinator.com",
   },
   {
+    active: true,
+    category: "Business News",
+    contentTier: "premium",
+    createdAt: new Date("2024-01-01"),
+    dailyLimit: 2,
     id: "morning-brew",
     name: "Morning Brew",
-    url: "https://morningbrew.com",
-    category: "Business News",
-    active: true,
-    dailyLimit: 2,
-    contentTier: "premium",
     ttsService: "google",
-    createdAt: new Date("2024-01-01"),
     updatedAt: new Date("2024-01-01"),
+    url: "https://morningbrew.com",
   },
   {
+    active: false,
+    category: "Tech News",
+    contentTier: "free",
+    createdAt: new Date("2024-01-01"),
+    dailyLimit: 4,
     id: "techcrunch",
     name: "Tech Crunch",
-    url: "https://techcrunch.com",
-    category: "Tech News",
-    active: false,
-    dailyLimit: 4,
-    contentTier: "free",
     ttsService: "openai",
-    createdAt: new Date("2024-01-01"),
     updatedAt: new Date("2024-01-01"),
+    url: "https://techcrunch.com",
   },
 ];

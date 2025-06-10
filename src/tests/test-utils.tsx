@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, RenderOptions } from "@testing-library/react";
-import React, { ReactElement } from "react";
-import { vi, expect } from "vitest";
+import { render, type RenderOptions } from "@testing-library/react";
+import React, { type ReactElement } from "react";
+import { expect, vi } from "vitest";
 
 interface CustomRenderOptions extends Omit<RenderOptions, "wrapper"> {
   theme?: string;
@@ -9,8 +9,8 @@ interface CustomRenderOptions extends Omit<RenderOptions, "wrapper"> {
 
 // Create a test wrapper with providers
 const createTestWrapper = (options: {
-  theme?: string;
   queryClient: QueryClient;
+  theme?: string;
 }) => {
   return function TestWrapper({ children }: { children: React.ReactNode }) {
     return (
@@ -31,17 +31,17 @@ const customRender = (
   // Create a new QueryClient for each test to avoid cache interference
   const queryClient = new QueryClient({
     defaultOptions: {
-      queries: {
-        retry: false,
-        gcTime: 0,
-      },
       mutations: {
+        retry: false,
+      },
+      queries: {
+        gcTime: 0,
         retry: false,
       },
     },
   });
 
-  const Wrapper = createTestWrapper({ theme, queryClient });
+  const Wrapper = createTestWrapper({ queryClient, theme });
 
   return {
     ...render(ui, { wrapper: Wrapper, ...renderOptions }),
@@ -56,8 +56,8 @@ export const renderWithThemes = (
   options: Omit<CustomRenderOptions, "theme"> = {}
 ) => {
   return themes.map((theme) => ({
-    theme,
     result: customRender(ui, { ...options, theme }),
+    theme,
   }));
 };
 
@@ -75,8 +75,8 @@ export const waitForNoLoadingStates = async (container: HTMLElement) => {
 export const createUserInteractionHelpers = () => ({
   clickButton: async (user: unknown, buttonText: string) => {
     const userObj = user as {
-      findByRole: (role: string, options: unknown) => Promise<unknown>;
       click: (element: unknown) => Promise<void>;
+      findByRole: (role: string, options: unknown) => Promise<unknown>;
     };
     const button = await userObj.findByRole("button", {
       name: new RegExp(buttonText, "i"),
@@ -85,23 +85,23 @@ export const createUserInteractionHelpers = () => ({
     return button;
   },
 
-  openModal: async (user: unknown, triggerText: string) => {
-    const userObj = user as {
-      click: (element: unknown) => Promise<void>;
-      findByText: (regex: RegExp) => Promise<unknown>;
-      findByRole: (role: string) => Promise<unknown>;
-    };
-    await userObj.click(await userObj.findByText(new RegExp(triggerText, "i")));
-    return await userObj.findByRole("dialog");
-  },
-
   closeModal: async (user: unknown) => {
     const userObj = user as {
-      findByRole: (role: string, options: unknown) => Promise<unknown>;
       click: (element: unknown) => Promise<void>;
+      findByRole: (role: string, options: unknown) => Promise<unknown>;
     };
     const closeButton = await userObj.findByRole("button", { name: /close/i });
     await userObj.click(closeButton);
+  },
+
+  openModal: async (user: unknown, triggerText: string) => {
+    const userObj = user as {
+      click: (element: unknown) => Promise<void>;
+      findByRole: (role: string) => Promise<unknown>;
+      findByText: (regex: RegExp) => Promise<unknown>;
+    };
+    await userObj.click(await userObj.findByText(new RegExp(triggerText, "i")));
+    return await userObj.findByRole("dialog");
   },
 
   selectOption: async (
@@ -110,8 +110,8 @@ export const createUserInteractionHelpers = () => ({
     optionText: string
   ) => {
     const userObj = user as {
-      findByLabelText: (regex: RegExp) => Promise<unknown>;
       click: (element: unknown) => Promise<void>;
+      findByLabelText: (regex: RegExp) => Promise<unknown>;
       findByText: (regex: RegExp) => Promise<unknown>;
     };
     const select = await userObj.findByLabelText(new RegExp(selectLabel, "i"));

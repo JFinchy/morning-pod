@@ -5,11 +5,11 @@ import posthog, { type PostHog } from "posthog-js";
 import { POSTHOG_CONFIG } from "./config";
 
 // Client-side PostHog instance (singleton)
-let posthogInstance: PostHog | null = null;
+let posthogInstance: null | PostHog = null;
 let isInitialized = false;
 
-export class PostHogClient {
-  static getInstance(): PostHog | null {
+export const PostHogClient = {
+  getInstance(): null | PostHog {
     // Only initialize if we haven't already and PostHog is enabled
     if (
       !isInitialized &&
@@ -24,13 +24,13 @@ export class PostHogClient {
     }
 
     return posthogInstance;
-  }
+  },
 
-  static shutdown(): void {
+  shutdown(): void {
     if (posthogInstance) {
       posthogInstance.reset();
       posthogInstance = null;
       isInitialized = false;
     }
-  }
-}
+  },
+};

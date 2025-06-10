@@ -1,40 +1,40 @@
 "use client";
 
 import {
+  CheckCircle,
   Clock,
-  Globe,
   FileText,
+  Globe,
   Mic,
   Upload,
-  CheckCircle,
   XCircle,
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import {
-  QueueItem,
-  GenerationStats,
+  formatTimeRemaining,
+  type GenerationStats,
   getStatusColor,
   getStatusLabel,
-  formatTimeRemaining,
+  type QueueItem,
 } from "@/lib/mock-data";
 
 interface QueueStatusV1Props {
-  queueItems: QueueItem[];
-  stats: GenerationStats;
-  showDetails?: boolean;
   maxVisible?: number;
+  queueItems: QueueItem[];
+  showDetails?: boolean;
+  stats: GenerationStats;
 }
 
 const StatusIcon = ({ status }: { status: QueueItem["status"] }) => {
   const iconMap = {
+    completed: CheckCircle,
+    failed: XCircle,
+    "generating-audio": Mic,
     pending: Clock,
     scraping: Globe,
     summarizing: FileText,
-    "generating-audio": Mic,
     uploading: Upload,
-    completed: CheckCircle,
-    failed: XCircle,
   };
 
   const IconComponent = iconMap[status];
@@ -44,10 +44,10 @@ const StatusIcon = ({ status }: { status: QueueItem["status"] }) => {
 };
 
 export function QueueStatusV1({
-  queueItems,
-  stats,
-  showDetails = true,
   maxVisible = 5,
+  queueItems,
+  showDetails = true,
+  stats,
 }: QueueStatusV1Props) {
   const [animatedProgress, setAnimatedProgress] = useState<
     Record<string, number>
@@ -56,16 +56,16 @@ export function QueueStatusV1({
   // Animate progress bars
   useEffect(() => {
     const newProgress: Record<string, number> = {};
-    queueItems.forEach((item) => {
+    for (const item of queueItems) {
       newProgress[item.id] = 0;
-    });
+    }
     setAnimatedProgress(newProgress);
 
     const timer = setTimeout(() => {
       const finalProgress: Record<string, number> = {};
-      queueItems.forEach((item) => {
+      for (const item of queueItems) {
         finalProgress[item.id] = item.progress;
-      });
+      }
       setAnimatedProgress(finalProgress);
     }, 100);
 
@@ -128,7 +128,6 @@ export function QueueStatusV1({
         <div className="space-y-3">
           {visibleItems.map((item, index) => (
             <div
-              key={item.id}
               className={`p-4 rounded-lg border transition-all duration-300 ${
                 item.status === "failed"
                   ? "border-error/30 bg-error/5"
@@ -136,6 +135,7 @@ export function QueueStatusV1({
                     ? "border-primary/30 bg-primary/5"
                     : "border-base-300 bg-base-100"
               }`}
+              key={item.id}
             >
               {/* Item Header */}
               <div className="flex items-center justify-between mb-3">

@@ -1,5 +1,5 @@
 import AxeBuilder from "@axe-core/playwright";
-import { test, expect } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
 test.describe("Homepage E2E", () => {
   test.beforeEach(async ({ page }) => {
@@ -12,7 +12,7 @@ test.describe("Homepage E2E", () => {
 
     // Check for specific main heading (not just any H1)
     await expect(
-      page.getByRole("heading", { name: /welcome to morning pod/i, level: 1 })
+      page.getByRole("heading", { level: 1, name: /welcome to morning pod/iu })
     ).toBeVisible();
 
     // Check for navigation
@@ -35,7 +35,7 @@ test.describe("Homepage E2E", () => {
       const externalOverlays = document.querySelectorAll(
         '[data-headlessui-state], .pointer-events-none, [class*="stagewise"]'
       );
-      externalOverlays.forEach((el) => {
+      for (const el of externalOverlays) {
         if (
           el.getAttribute("data-headlessui-state") !== null ||
           el.classList.contains("pointer-events-none") ||
@@ -43,7 +43,7 @@ test.describe("Homepage E2E", () => {
         ) {
           el.remove();
         }
-      });
+      }
     });
 
     const accessibilityScanResults = await new AxeBuilder({ page })
@@ -84,9 +84,9 @@ test.describe("Homepage E2E", () => {
         "Accessibility violations found:",
         accessibilityScanResults.violations.length
       );
-      accessibilityScanResults.violations.forEach((violation) => {
+      for (const violation of accessibilityScanResults.violations) {
         console.log(`- ${violation.id}: ${violation.help}`);
-      });
+      }
     }
 
     expect(criticalViolations).toEqual([]);
@@ -99,7 +99,7 @@ test.describe("Homepage E2E", () => {
     await page.keyboard.press("Tab");
 
     // Verify focus is visible
-    const focusedElement = await page.locator(":focus");
+    const focusedElement = page.locator(":focus");
     await expect(focusedElement).toBeVisible();
 
     // Continue tabbing through interactive elements
@@ -107,7 +107,7 @@ test.describe("Homepage E2E", () => {
     await page.keyboard.press("Tab");
 
     // Should have multiple focusable elements
-    const secondFocusedElement = await page.locator(":focus");
+    const secondFocusedElement = page.locator(":focus");
     await expect(secondFocusedElement).toBeVisible();
   });
 
@@ -132,8 +132,8 @@ test.describe("Homepage E2E", () => {
     // Look for theme switcher with more flexible selectors
     const themeSwitcher = page
       .getByTestId("theme-switcher")
-      .or(page.getByLabel(/change theme/i))
-      .or(page.getByRole("button", { name: /theme/i }));
+      .or(page.getByLabel(/change theme/iu))
+      .or(page.getByRole("button", { name: /theme/iu }));
 
     if (await themeSwitcher.isVisible()) {
       // On mobile Safari, use JavaScript to trigger theme change due to viewport issues
@@ -169,7 +169,7 @@ test.describe("Homepage E2E", () => {
 
   test("should be responsive on mobile", async ({ page }) => {
     // Test mobile viewport
-    await page.setViewportSize({ width: 375, height: 667 });
+    await page.setViewportSize({ height: 667, width: 375 });
     await page.reload();
     await page.waitForLoadState("networkidle");
 
@@ -206,16 +206,16 @@ test.describe("Homepage E2E", () => {
 
     // Verify the H1 is the main welcome heading
     await expect(
-      page.getByRole("heading", { name: /welcome to morning pod/i, level: 1 })
+      page.getByRole("heading", { level: 1, name: /welcome to morning pod/iu })
     ).toBeVisible();
 
     // Should have H2 headings for main sections
     await expect(
-      page.getByRole("heading", { name: /recent episodes/i, level: 2 })
+      page.getByRole("heading", { level: 2, name: /recent episodes/i })
     ).toBeVisible();
   });
 
-  test("should work across different themes", async ({ page, browserName }) => {
+  test("should work across different themes", async ({ browserName, page }) => {
     const themes = ["forest", "dark", "light", "cyberpunk"];
 
     for (const theme of themes) {
@@ -232,8 +232,8 @@ test.describe("Homepage E2E", () => {
 
       // Take screenshot for visual regression testing
       await page.screenshot({
-        path: `test-results/homepage-${theme}-${browserName}.png`,
         fullPage: true,
+        path: `test-results/homepage-${theme}-${browserName}.png`,
       });
     }
   });
@@ -242,9 +242,9 @@ test.describe("Homepage E2E", () => {
     // Mock API to return errors
     await page.route("**/api/trpc/**", async (route) => {
       await route.fulfill({
-        status: 500,
-        contentType: "application/json",
         body: JSON.stringify({ error: "Internal server error" }),
+        contentType: "application/json",
+        status: 500,
       });
     });
 

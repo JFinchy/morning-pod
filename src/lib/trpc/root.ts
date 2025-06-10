@@ -1,7 +1,11 @@
 import { episodesRouter } from "./routers/episodes";
 import { queueRouter } from "./routers/queue";
+import { queueProcessorRouter } from "./routers/queue-processor";
+import { scrapedContentRouter } from "./routers/scraped-content";
 import { scrapingRouter } from "./routers/scraping";
 import { sourcesRouter } from "./routers/sources";
+// import { summarizationRouter } from "./routers/summarization";
+// import { ttsRouter } from "./routers/tts";
 import { createTRPCRouter } from "./server";
 
 /**
@@ -11,9 +15,13 @@ import { createTRPCRouter } from "./server";
  */
 export const appRouter = createTRPCRouter({
   episodes: episodesRouter,
-  sources: sourcesRouter,
   queue: queueRouter,
+  queueProcessor: queueProcessorRouter,
+  scrapedContent: scrapedContentRouter,
   scraping: scrapingRouter,
+  sources: sourcesRouter,
+  // summarization: summarizationRouter, // Temporarily disabled - needs refactoring to match new API
+  // tts: ttsRouter, // Temporarily disabled - needs refactoring to match new API
 });
 
 // Export type definition of API
