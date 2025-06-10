@@ -68,13 +68,13 @@ export default function QueueManagementPage() {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "processing":
-        return <Activity className="w-5 h-5 text-success animate-pulse" />;
+        return <Activity className="text-success h-5 w-5 animate-pulse" />;
       case "paused":
-        return <Pause className="w-5 h-5 text-warning" />;
+        return <Pause className="text-warning h-5 w-5" />;
       case "error":
-        return <AlertCircle className="w-5 h-5 text-error" />;
+        return <AlertCircle className="text-error h-5 w-5" />;
       default:
-        return <Clock className="w-5 h-5 text-base-content/60" />;
+        return <Clock className="text-base-content/60 h-5 w-5" />;
     }
   };
 
@@ -82,9 +82,9 @@ export default function QueueManagementPage() {
     <MainLayout>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-base-content">
+            <h1 className="text-base-content text-2xl font-bold">
               Queue Processor Management
             </h1>
             <p className="text-base-content/60">
@@ -110,17 +110,17 @@ export default function QueueManagementPage() {
               onClick={() => refetchStatus()}
               size="sm"
             >
-              <RefreshCw className="w-4 h-4" />
+              <RefreshCw className="h-4 w-4" />
               Refresh
             </Button>
           </div>
         </div>
 
         {/* Processor Status */}
-        <div className="card bg-base-100 shadow-sm border border-base-300">
+        <div className="card bg-base-100 border-base-300 border shadow-sm">
           <div className="card-body">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold flex items-center gap-2">
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="flex items-center gap-2 text-lg font-semibold">
                 {processorStatus && getStatusIcon(processorStatus.status)}
                 Processor Status
               </h2>
@@ -135,7 +135,7 @@ export default function QueueManagementPage() {
             </div>
 
             {/* Control Buttons */}
-            <div className="flex flex-wrap gap-2 mb-6">
+            <div className="mb-6 flex flex-wrap gap-2">
               {processorStatus?.status === "idle" && (
                 <Button
                   className="gap-2"
@@ -144,7 +144,7 @@ export default function QueueManagementPage() {
                   size="sm"
                   variant="primary"
                 >
-                  <Play className="w-4 h-4" />
+                  <Play className="h-4 w-4" />
                   Start Processor
                 </Button>
               )}
@@ -158,7 +158,7 @@ export default function QueueManagementPage() {
                     onClick={() => pauseProcessor.mutate()}
                     size="sm"
                   >
-                    <Pause className="w-4 h-4" />
+                    <Pause className="h-4 w-4" />
                     Pause
                   </Button>
                   <Button
@@ -168,7 +168,7 @@ export default function QueueManagementPage() {
                     size="sm"
                     variant="error"
                   >
-                    <Square className="w-4 h-4" />
+                    <Square className="h-4 w-4" />
                     Stop
                   </Button>
                 </>
@@ -183,7 +183,7 @@ export default function QueueManagementPage() {
                     size="sm"
                     variant="primary"
                   >
-                    <Play className="w-4 h-4" />
+                    <Play className="h-4 w-4" />
                     Resume
                   </Button>
                   <Button
@@ -193,46 +193,46 @@ export default function QueueManagementPage() {
                     size="sm"
                     variant="error"
                   >
-                    <Square className="w-4 h-4" />
+                    <Square className="h-4 w-4" />
                     Stop
                   </Button>
                 </>
               )}
 
               <Button btnStyle="outline" className="gap-2" size="sm">
-                <Settings className="w-4 h-4" />
+                <Settings className="h-4 w-4" />
                 Configure
               </Button>
             </div>
 
             {/* Statistics Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
               <div className="stat bg-base-200/50 rounded-lg p-4">
                 <div className="stat-figure text-info">
-                  <Activity className="w-6 h-6" />
+                  <Activity className="h-6 w-6" />
                 </div>
                 <div className="stat-title text-sm">Active Jobs</div>
-                <div className="stat-value text-2xl text-info">
+                <div className="stat-value text-info text-2xl">
                   {processorStatus?.activeJobs || 0}
                 </div>
               </div>
 
               <div className="stat bg-base-200/50 rounded-lg p-4">
                 <div className="stat-figure text-success">
-                  <CheckCircle className="w-6 h-6" />
+                  <CheckCircle className="h-6 w-6" />
                 </div>
                 <div className="stat-title text-sm">Processed Today</div>
-                <div className="stat-value text-2xl text-success">
+                <div className="stat-value text-success text-2xl">
                   {processorStatus?.totalProcessedToday || 0}
                 </div>
               </div>
 
               <div className="stat bg-base-200/50 rounded-lg p-4">
                 <div className="stat-figure text-warning">
-                  <Clock className="w-6 h-6" />
+                  <Clock className="h-6 w-6" />
                 </div>
                 <div className="stat-title text-sm">Success Rate</div>
-                <div className="stat-value text-2xl text-warning">
+                <div className="stat-value text-warning text-2xl">
                   {processorStatus?.successRate
                     ? `${(processorStatus.successRate * 100).toFixed(1)}%`
                     : "0%"}
@@ -241,10 +241,10 @@ export default function QueueManagementPage() {
 
               <div className="stat bg-base-200/50 rounded-lg p-4">
                 <div className="stat-figure text-error">
-                  <DollarSign className="w-6 h-6" />
+                  <DollarSign className="h-6 w-6" />
                 </div>
                 <div className="stat-title text-sm">Cost Today</div>
-                <div className="stat-value text-2xl text-error">
+                <div className="stat-value text-error text-2xl">
                   ${processorStatus?.totalCostToday?.toFixed(2) || "0.00"}
                 </div>
               </div>
@@ -253,15 +253,15 @@ export default function QueueManagementPage() {
         </div>
 
         {/* Processing Logs */}
-        <div className="card bg-base-100 shadow-sm border border-base-300">
-          <div className="card-header p-4 border-b border-base-300">
+        <div className="card bg-base-100 border-base-300 border shadow-sm">
+          <div className="card-header border-base-300 border-b p-4">
             <h2 className="text-lg font-semibold">Processing Logs</h2>
           </div>
           <div className="card-body p-0">
             {!processorLogs?.logs || processorLogs.logs.length === 0 ? (
-              <div className="text-center py-8">
-                <Activity className="w-12 h-12 mx-auto mb-4 text-base-content/30" />
-                <h3 className="text-lg font-medium text-base-content mb-2">
+              <div className="py-8 text-center">
+                <Activity className="text-base-content/30 mx-auto mb-4 h-12 w-12" />
+                <h3 className="text-base-content mb-2 text-lg font-medium">
                   No logs available
                 </h3>
                 <p className="text-base-content/60">
@@ -272,27 +272,27 @@ export default function QueueManagementPage() {
               <div className="space-y-2 p-4">
                 {processorLogs.logs.map((log) => (
                   <div
-                    className={`flex items-start gap-3 p-3 rounded-lg ${(() => {
+                    className={`flex items-start gap-3 rounded-lg p-3 ${(() => {
                       const level = log.level as string;
                       if (level === "warning")
-                        return "bg-warning/10 border border-warning/20";
+                        return "bg-warning/10 border-warning/20 border";
                       if (level === "error")
-                        return "bg-error/10 border border-error/20";
+                        return "bg-error/10 border-error/20 border";
                       return "bg-base-200/50";
                     })()}`}
                     key={log.id}
                   >
-                    <div className="flex-shrink-0 mt-0.5">
+                    <div className="mt-0.5 flex-shrink-0">
                       {(log.level as string) === "warning" ? (
-                        <AlertCircle className="w-4 h-4 text-warning" />
+                        <AlertCircle className="text-warning h-4 w-4" />
                       ) : (
-                        <CheckCircle className="w-4 h-4 text-success" />
+                        <CheckCircle className="text-success h-4 w-4" />
                       )}
                     </div>
 
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-sm text-base-content/60">
+                    <div className="min-w-0 flex-1">
+                      <div className="mb-1 flex items-center gap-2">
+                        <span className="text-base-content/60 text-sm">
                           {log.timestamp.toLocaleTimeString()}
                         </span>
                         {log.queueItemId && (
@@ -301,7 +301,7 @@ export default function QueueManagementPage() {
                           </span>
                         )}
                       </div>
-                      <p className="text-sm text-base-content">{log.message}</p>
+                      <p className="text-base-content text-sm">{log.message}</p>
                     </div>
                   </div>
                 ))}
@@ -311,12 +311,12 @@ export default function QueueManagementPage() {
         </div>
 
         {/* Performance Metrics */}
-        <div className="card bg-base-100 shadow-sm border border-base-300">
-          <div className="card-header p-4 border-b border-base-300">
+        <div className="card bg-base-100 border-base-300 border shadow-sm">
+          <div className="card-header border-base-300 border-b p-4">
             <h2 className="text-lg font-semibold">Performance Metrics</h2>
           </div>
           <div className="card-body">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               {/* Average Processing Time */}
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
@@ -325,7 +325,7 @@ export default function QueueManagementPage() {
                     {processorStatus?.averageProcessingTime || 0}s
                   </span>
                 </div>
-                <div className="w-full bg-base-300 rounded-full h-2">
+                <div className="bg-base-300 h-2 w-full rounded-full">
                   <div
                     className="bg-primary h-2 rounded-full transition-all duration-300"
                     style={{
@@ -333,7 +333,7 @@ export default function QueueManagementPage() {
                     }}
                   />
                 </div>
-                <p className="text-xs text-base-content/60">
+                <p className="text-base-content/60 text-xs">
                   Target: under 5 minutes
                 </p>
               </div>
@@ -348,7 +348,7 @@ export default function QueueManagementPage() {
                       : "0%"}
                   </span>
                 </div>
-                <div className="w-full bg-base-300 rounded-full h-2">
+                <div className="bg-base-300 h-2 w-full rounded-full">
                   <div
                     className="bg-success h-2 rounded-full transition-all duration-300"
                     style={{
@@ -356,7 +356,7 @@ export default function QueueManagementPage() {
                     }}
                   />
                 </div>
-                <p className="text-xs text-base-content/60">
+                <p className="text-base-content/60 text-xs">
                   Target: above 90%
                 </p>
               </div>

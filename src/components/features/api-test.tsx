@@ -80,12 +80,12 @@ export function ApiTest() {
 
         {episodes && episodes.episodes.length > 0 && (
           <div className="mt-4">
-            <h3 className="text-lg font-semibold mb-2">Recent Episodes:</h3>
+            <h3 className="mb-2 text-lg font-semibold">Recent Episodes:</h3>
             <div className="space-y-2">
               {episodes.episodes.slice(0, 3).map((episode) => (
-                <div className="p-3 bg-base-200 rounded-lg" key={episode.id}>
+                <div className="bg-base-200 rounded-lg p-3" key={episode.id}>
                   <div className="font-medium">{episode.title}</div>
-                  <div className="text-sm text-base-content/60">
+                  <div className="text-base-content/60 text-sm">
                     Status:{" "}
                     <span className="badge badge-sm">{episode.status}</span>
                   </div>

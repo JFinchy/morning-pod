@@ -24,29 +24,29 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
   return (
     <html lang="en">
       <body>
-        <div className="min-h-screen bg-red-50 dark:bg-gray-900 flex flex-col items-center justify-center text-center px-4">
+        <div className="flex min-h-screen flex-col items-center justify-center bg-red-50 px-4 text-center dark:bg-gray-900">
           <div className="mb-8">
             {/* Placeholder for TuneBot image/animation */}
             {/* <Image src={TuneBotFrazzled} alt="TuneBot looking frazzled" width={150} height={150} /> */}
-            <div className="text-6xl mb-4">⚡🤖🔧</div>{" "}
+            <div className="mb-4 text-6xl">⚡🤖🔧</div>{" "}
             {/* Simple emoji placeholder */}
-            <h1 className="text-4xl font-bold text-red-700 dark:text-red-400 mb-2">
+            <h1 className="mb-2 text-4xl font-bold text-red-700 dark:text-red-400">
               500 - TuneBot&apos;s Circuits are Sizzling!
             </h1>
-            <p className="text-lg text-gray-700 dark:text-gray-300 mb-6">
+            <p className="mb-6 text-lg text-gray-700 dark:text-gray-300">
               Our AI is experiencing some unexpected turbulence and needs a
               quick reboot. The engineers have been notified!
             </p>
           </div>
           <div className="space-x-4">
             <button
-              className="px-6 py-3 bg-yellow-500 hover:bg-yellow-600 text-white font-semibold rounded-md shadow-md transition duration-300"
+              className="rounded-md bg-yellow-500 px-6 py-3 font-semibold text-white shadow-md transition duration-300 hover:bg-yellow-600"
               onClick={() => reset()}
             >
               Try Refreshing Page
             </button>
             <Link
-              className="px-6 py-3 bg-gray-300 hover:bg-gray-400 text-gray-800 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-white font-semibold rounded-md shadow-md transition duration-300"
+              className="rounded-md bg-gray-300 px-6 py-3 font-semibold text-gray-800 shadow-md transition duration-300 hover:bg-gray-400 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"
               href="/"
             >
               Go to Homepage
@@ -57,10 +57,10 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
           </p>
           {process.env.NODE_ENV === "development" && (
             <details className="mt-4">
-              <summary className="cursor-pointer text-sm text-base-content/60">
+              <summary className="text-base-content/60 cursor-pointer text-sm">
                 Error details
               </summary>
-              <pre className="text-xs mt-2 p-2 bg-base-200 rounded overflow-auto">
+              <pre className="bg-base-200 mt-2 overflow-auto rounded p-2 text-xs">
                 {error.message}
               </pre>
             </details>

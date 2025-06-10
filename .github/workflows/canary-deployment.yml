@@ -8,46 +8,46 @@ on:
   workflow_dispatch:
     inputs:
       deployment_url:
-        description: 'Deployment URL to test'
+        description: "Deployment URL to test"
         required: true
         type: string
       skip_canary:
-        description: 'Skip canary testing'
+        description: "Skip canary testing"
         required: false
         type: boolean
         default: false
 
 env:
-  NODE_VERSION: '22'
-  BUN_VERSION: '1.0.13'
+  NODE_VERSION: "22"
+  BUN_VERSION: "1.0.13"
 
 jobs:
   canary-validation:
-    name: 'Canary Validation'
+    name: "Canary Validation"
     runs-on: ubuntu-latest
     if: github.event.deployment_status.state == 'success' || github.event_name == 'workflow_dispatch'
-    
+
     outputs:
       test-passed: ${{ steps.canary-test.outputs.passed }}
       test-score: ${{ steps.canary-test.outputs.score }}
       deployment-url: ${{ steps.deployment-info.outputs.url }}
       should-rollout: ${{ steps.canary-test.outputs.passed == 'true' && steps.canary-test.outputs.score > 85 }}
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        
+
       - name: Setup Bun
         uses: oven-sh/setup-bun@v1
         with:
           bun-version: ${{ env.BUN_VERSION }}
-          
+
       - name: Install dependencies
         run: bun install --frozen-lockfile
-        
+
       - name: Install Playwright browsers
         run: bun playwright install chromium firefox
-        
+
       - name: Get deployment info
         id: deployment-info
         run: |
@@ -58,7 +58,7 @@ jobs:
             echo "url=${{ github.event.deployment_status.target_url }}" >> $GITHUB_OUTPUT
             echo "environment=${{ github.event.deployment.environment }}" >> $GITHUB_OUTPUT
           fi
-        
+
       - name: Wait for deployment to be ready
         uses: nwtgck/wait-for-http@v1.2.0
         with:
@@ -66,7 +66,7 @@ jobs:
           response-code: 200
           timeout: 300000
           interval: 10000
-          
+
       - name: Run canary synthetic testing
         id: canary-test
         env:
@@ -78,22 +78,22 @@ jobs:
           GOOGLE_CLOUD_TTS_API_KEY: ${{ secrets.GOOGLE_CLOUD_TTS_API_KEY }}
         run: |
           echo "🚀 Starting canary validation for ${{ steps.deployment-info.outputs.url }}"
-          
+
           # Run synthetic user testing
           result=$(bun run scripts/canary-validation.ts "${{ steps.deployment-info.outputs.url }}")
-          
+
           # Parse results
           passed=$(echo "$result" | jq -r '.passed')
           score=$(echo "$result" | jq -r '.score')
           summary=$(echo "$result" | jq -r '.summary')
-          
+
           echo "passed=$passed" >> $GITHUB_OUTPUT
           echo "score=$score" >> $GITHUB_OUTPUT
           echo "summary=$summary" >> $GITHUB_OUTPUT
-          
+
           # Create test report artifact
           echo "$result" > canary-test-results.json
-          
+
           if [ "$passed" = "true" ]; then
             echo "✅ Canary validation passed with score $score/100"
             echo "📊 $summary"
@@ -102,7 +102,7 @@ jobs:
             echo "📊 $summary"
             exit 1
           fi
-        
+
       - name: Upload test results
         uses: actions/upload-artifact@v4
         if: always()
@@ -112,7 +112,7 @@ jobs:
             canary-test-results.json
             test-results/
           retention-days: 30
-          
+
       - name: Comment on PR with results
         if: github.event_name == 'pull_request'
         uses: actions/github-script@v7
@@ -120,36 +120,36 @@ jobs:
           script: |
             const fs = require('fs');
             const results = JSON.parse(fs.readFileSync('canary-test-results.json', 'utf8'));
-            
+
             const emoji = results.passed ? '✅' : '❌';
             const status = results.passed ? 'PASSED' : 'FAILED';
             const scoreColor = results.score >= 90 ? '🟢' : results.score >= 80 ? '🟡' : '🔴';
-            
+
             const comment = `## ${emoji} Canary Testing ${status}
-            
+
             **Deployment URL:** ${{ steps.deployment-info.outputs.url }}
             **Test Score:** ${scoreColor} ${results.score}/100
             **Summary:** ${results.summary}
-            
+
             ### Test Details
             - **Success Rate:** ${(results.successRate * 100).toFixed(1)}%
             - **Total Tests:** ${results.totalTests}
             - **Failed Tests:** ${results.failedTests}
             - **Avg Duration:** ${results.avgDuration}ms
-            
+
             ${results.passed ? 
               '🚀 **Recommendation:** Safe to proceed with feature rollout' :
               '⚠️ **Recommendation:** Review issues before rollout'
             }
-            
+
             <details>
             <summary>View detailed test report</summary>
-            
+
             \`\`\`json
             ${JSON.stringify(results, null, 2)}
             \`\`\`
             </details>`;
-            
+
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
@@ -158,23 +158,23 @@ jobs:
             });
 
   feature-flag-rollout:
-    name: 'Automated Feature Flag Rollout'
+    name: "Automated Feature Flag Rollout"
     runs-on: ubuntu-latest
     needs: canary-validation
     if: needs.canary-validation.outputs.should-rollout == 'true' && github.event.deployment.environment == 'preview'
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        
+
       - name: Setup Bun
         uses: oven-sh/setup-bun@v1
         with:
           bun-version: ${{ env.BUN_VERSION }}
-          
+
       - name: Install dependencies
         run: bun install --frozen-lockfile
-        
+
       - name: Execute automated rollout
         env:
           POSTHOG_PERSONAL_API_KEY: ${{ secrets.POSTHOG_PERSONAL_API_KEY }}
@@ -183,7 +183,7 @@ jobs:
         run: |
           echo "🎯 Executing automated feature flag rollout"
           echo "Canary test score: ${{ needs.canary-validation.outputs.test-score }}"
-          
+
           # Run automated rollout script
           bun run scripts/automated-rollout.ts \
             --deployment-url="${{ needs.canary-validation.outputs.deployment-url }}" \
@@ -191,23 +191,23 @@ jobs:
             --branch-name="${{ github.head_ref || github.ref_name }}"
 
   rollback-on-failure:
-    name: 'Automatic Rollback'
+    name: "Automatic Rollback"
     runs-on: ubuntu-latest
     needs: canary-validation
     if: needs.canary-validation.outputs.test-passed == 'false'
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        
+
       - name: Setup Bun
         uses: oven-sh/setup-bun@v1
         with:
           bun-version: ${{ env.BUN_VERSION }}
-          
+
       - name: Install dependencies
         run: bun install --frozen-lockfile
-        
+
       - name: Execute emergency rollback
         env:
           POSTHOG_PERSONAL_API_KEY: ${{ secrets.POSTHOG_PERSONAL_API_KEY }}
@@ -215,15 +215,15 @@ jobs:
         run: |
           echo "🛑 Canary test failed. Executing emergency rollback procedures"
           echo "Test score: ${{ needs.canary-validation.outputs.test-score }}"
-          
+
           # Disable all feature flags for this branch/deployment
           bun run scripts/emergency-rollback.ts \
             --reason="Canary test failure" \
             --score="${{ needs.canary-validation.outputs.test-score }}" \
             --deployment-url="${{ needs.canary-validation.outputs.deployment-url }}"
-          
+
           echo "✅ Emergency rollback completed"
-        
+
       - name: Create incident report
         if: always()
         uses: actions/github-script@v7
@@ -231,29 +231,29 @@ jobs:
           script: |
             const title = `🚨 Canary Test Failure - ${context.payload.pull_request?.title || 'Deployment'}`;
             const body = `## Incident Report: Canary Test Failure
-            
+
             **Deployment URL:** ${{ needs.canary-validation.outputs.deployment-url }}
             **Test Score:** ${{ needs.canary-validation.outputs.test-score }}/100
             **Branch:** ${{ github.head_ref || github.ref_name }}
             **Commit:** ${{ github.sha }}
             **Timestamp:** ${new Date().toISOString()}
-            
+
             ### Automatic Actions Taken
             - ✅ Feature flags disabled
             - ✅ Emergency rollback executed
             - ✅ Monitoring alerts triggered
-            
+
             ### Required Actions
             - [ ] Review test results and error logs
             - [ ] Fix identified issues
             - [ ] Re-run canary testing
             - [ ] Close this issue when resolved
-            
+
             ### Test Summary
             ${{ needs.canary-validation.outputs.summary }}
-            
+
             **Priority:** High - Production safety issue`;
-            
+
             const issue = await github.rest.issues.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -261,15 +261,15 @@ jobs:
               body,
               labels: ['incident', 'canary-failure', 'high-priority']
             });
-            
+
             console.log(`Created incident report: ${issue.data.html_url}`);
 
   notify-team:
-    name: 'Team Notification'
+    name: "Team Notification"
     runs-on: ubuntu-latest
     needs: [canary-validation]
     if: always()
-    
+
     steps:
       - name: Send Slack notification
         if: env.SLACK_WEBHOOK_URL != ''
@@ -279,7 +279,7 @@ jobs:
           status="${{ needs.canary-validation.outputs.test-passed == 'true' && '✅ PASSED' || '❌ FAILED' }}"
           score="${{ needs.canary-validation.outputs.test-score }}"
           url="${{ needs.canary-validation.outputs.deployment-url }}"
-          
+
           curl -X POST "$SLACK_WEBHOOK_URL" \
             -H 'Content-type: application/json' \
             -d "{
@@ -293,4 +293,4 @@ jobs:
                   }
                 }
               ]
-            }" 
+            }"

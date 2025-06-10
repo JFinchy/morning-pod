@@ -80,12 +80,12 @@ export function EpisodeCard({
   // Handle undefined episode data with loading skeleton
   if (!episode) {
     return (
-      <div className="card bg-base-100 shadow-sm border-0">
+      <div className="card bg-base-100 border-0 shadow-sm">
         <div className="card-body p-4">
           <div className="animate-pulse space-y-2">
-            <div className="h-4 bg-base-300 rounded w-3/4" />
-            <div className="h-3 bg-base-300 rounded w-full" />
-            <div className="h-3 bg-base-300 rounded w-2/3" />
+            <div className="bg-base-300 h-4 w-3/4 rounded" />
+            <div className="bg-base-300 h-3 w-full rounded" />
+            <div className="bg-base-300 h-3 w-2/3 rounded" />
           </div>
         </div>
       </div>
@@ -105,9 +105,9 @@ export function EpisodeCard({
   // Compact variant for list views
   if (variant === "compact") {
     return (
-      <div className="flex items-center gap-4 p-4 hover:bg-base-200/50 rounded-lg transition-all duration-200 hover:scale-[1.01] hover:shadow-md border border-transparent hover:border-base-300">
+      <div className="hover:bg-base-200/50 hover:border-base-300 flex items-center gap-4 rounded-lg border border-transparent p-4 transition-all duration-200 hover:scale-[1.01] hover:shadow-md">
         <div
-          className={`w-2 h-12 rounded-full flex-shrink-0 ${
+          className={`h-12 w-2 flex-shrink-0 rounded-full ${
             episode.status === "ready"
               ? "bg-success"
               : episode.status === "generating"
@@ -115,13 +115,13 @@ export function EpisodeCard({
                 : "bg-error"
           }`}
         />
-        <div className="flex-1 min-w-0">
-          <h3 className="font-medium text-sm truncate">{episode.title}</h3>
-          <p className="text-xs text-base-content/60 line-clamp-1">
+        <div className="min-w-0 flex-1">
+          <h3 className="truncate text-sm font-medium">{episode.title}</h3>
+          <p className="text-base-content/60 line-clamp-1 text-xs">
             {episode.summary}
           </p>
-          <div className="flex items-center gap-2 mt-1">
-            <span className="text-xs text-base-content/40">
+          <div className="mt-1 flex items-center gap-2">
+            <span className="text-base-content/40 text-xs">
               {episode.sourceId || "Unknown source"}
             </span>
             <span
@@ -140,14 +140,14 @@ export function EpisodeCard({
         {canPlay && (
           <Button
             btnStyle="ghost"
-            className="h-8 w-8 p-0 hover:scale-110 transition-transform duration-200 active:scale-95"
+            className="h-8 w-8 p-0 transition-transform duration-200 hover:scale-110 active:scale-95"
             onClick={handlePlayPause}
             size="sm"
           >
             {isCurrentlyPlaying ? (
-              <Pause className="w-4 h-4" />
+              <Pause className="h-4 w-4" />
             ) : (
-              <Play className="w-4 h-4" />
+              <Play className="h-4 w-4" />
             )}
           </Button>
         )}
@@ -158,15 +158,15 @@ export function EpisodeCard({
   // Default variant - enhanced with best features
   return (
     <div
-      className={`card bg-gradient-to-br from-base-100 to-base-200 shadow-lg hover:shadow-xl transition-all duration-300 border-0 overflow-hidden group hover:scale-[1.02] hover:-translate-y-1 ${
-        isCurrentlyPlaying ? "ring-2 ring-primary" : ""
+      className={`card from-base-100 to-base-200 group overflow-hidden border-0 bg-gradient-to-br shadow-lg transition-all duration-300 hover:-translate-y-1 hover:scale-[1.02] hover:shadow-xl ${
+        isCurrentlyPlaying ? "ring-primary ring-2" : ""
       } ${className}`}
     >
       <div className="card-body p-6">
         {/* Header */}
         <div className="mb-4">
-          <div className="flex items-start justify-between mb-2">
-            <h3 className="card-title text-lg font-bold text-base-content line-clamp-2 flex-1 mr-2">
+          <div className="mb-2 flex items-start justify-between">
+            <h3 className="card-title text-base-content mr-2 line-clamp-2 flex-1 text-lg font-bold">
               {episode.title}
             </h3>
             <div
@@ -177,13 +177,13 @@ export function EpisodeCard({
           </div>
 
           {/* Episode metadata */}
-          <div className="flex items-center gap-3 text-sm text-base-content/60 mb-3">
+          <div className="text-base-content/60 mb-3 flex items-center gap-3 text-sm">
             <div className="flex items-center gap-1">
-              <Clock className="w-4 h-4" />
+              <Clock className="h-4 w-4" />
               <span>{formatDuration(episode.duration || 0)}</span>
             </div>
             <div className="flex items-center gap-1">
-              <Music className="w-4 h-4" />
+              <Music className="h-4 w-4" />
               <span>{episode.sourceId || "Unknown"}</span>
             </div>
             {episode.createdAt && (
@@ -205,7 +205,7 @@ export function EpisodeCard({
           </p>
           {episode.summary && episode.summary.length > 120 && (
             <button
-              className="text-primary text-xs font-medium mt-1 hover:underline"
+              className="text-primary mt-1 text-xs font-medium hover:underline"
               onClick={() => setIsExpanded(!isExpanded)}
             >
               {isExpanded ? "Show less" : "Show more"}
@@ -216,9 +216,9 @@ export function EpisodeCard({
         {/* Progress bar for generating episodes */}
         {episode.status === "generating" && (
           <div className="mb-4">
-            <div className="flex items-center gap-2 mb-2">
-              <Loader2 className="w-4 h-4 animate-spin text-warning" />
-              <span className="text-sm font-medium text-warning">
+            <div className="mb-2 flex items-center gap-2">
+              <Loader2 className="text-warning h-4 w-4 animate-spin" />
+              <span className="text-warning text-sm font-medium">
                 Generating episode...
               </span>
             </div>
@@ -227,7 +227,7 @@ export function EpisodeCard({
               max="100"
               value={30}
             />
-            <div className="text-xs text-base-content/60 mt-1">
+            <div className="text-base-content/60 mt-1 text-xs">
               30% complete
             </div>
           </div>
@@ -236,13 +236,13 @@ export function EpisodeCard({
         {/* Error state */}
         {episode.status === "failed" && (
           <div className="alert alert-error mb-4 p-3">
-            <AlertCircle className="w-4 h-4" />
+            <AlertCircle className="h-4 w-4" />
             <span className="text-sm">Generation failed</span>
           </div>
         )}
 
         {/* Actions */}
-        <div className="flex items-center justify-between mt-auto">
+        <div className="mt-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
             {/* Main play/pause button */}
             <Button
@@ -253,9 +253,9 @@ export function EpisodeCard({
               variant={canPlay ? "primary" : "secondary"}
             >
               {isCurrentlyPlaying ? (
-                <Pause className="w-4 h-4 mr-1" />
+                <Pause className="mr-1 h-4 w-4" />
               ) : (
-                <Play className="w-4 h-4 mr-1" />
+                <Play className="mr-1 h-4 w-4" />
               )}
               {isCurrentlyPlaying ? "Pause" : "Play"}
             </Button>
@@ -270,7 +270,7 @@ export function EpisodeCard({
                   size="sm"
                 >
                   <Heart
-                    className={`w-4 h-4 ${
+                    className={`h-4 w-4 ${
                       isFavorite(episode.id)
                         ? "fill-error text-error"
                         : "text-base-content/60"
@@ -283,7 +283,7 @@ export function EpisodeCard({
                   className="transition-all duration-200 hover:scale-110 active:scale-95"
                   size="sm"
                 >
-                  <Download className="w-4 h-4" />
+                  <Download className="h-4 w-4" />
                 </Button>
 
                 <Button
@@ -291,23 +291,23 @@ export function EpisodeCard({
                   className="transition-all duration-200 hover:scale-110 active:scale-95"
                   size="sm"
                 >
-                  <Share2 className="w-4 h-4" />
+                  <Share2 className="h-4 w-4" />
                 </Button>
               </>
             )}
           </div>
 
           {/* Episode stats */}
-          <div className="flex items-center gap-3 text-xs text-base-content/50">
+          <div className="text-base-content/50 flex items-center gap-3 text-xs">
             {episode.playCount && episode.playCount > 0 && (
               <div className="flex items-center gap-1">
-                <Headphones className="w-3 h-3" />
+                <Headphones className="h-3 w-3" />
                 <span>{episode.playCount}</span>
               </div>
             )}
             {episode.duration && episode.duration > 60 && (
               <div className="flex items-center gap-1">
-                <TrendingUp className="w-3 h-3" />
+                <TrendingUp className="h-3 w-3" />
                 <span>Long</span>
               </div>
             )}
@@ -316,11 +316,11 @@ export function EpisodeCard({
 
         {/* Audio waveform visualization (placeholder) */}
         {canPlay && isCurrentlyPlaying && (
-          <div className="mt-4 h-8 bg-base-300 rounded overflow-hidden relative">
-            <div className="absolute inset-0 bg-primary/20" />
-            <div className="absolute left-0 top-0 h-full bg-primary/60 transition-all duration-300 w-1/3" />
+          <div className="bg-base-300 relative mt-4 h-8 overflow-hidden rounded">
+            <div className="bg-primary/20 absolute inset-0" />
+            <div className="bg-primary/60 absolute top-0 left-0 h-full w-1/3 transition-all duration-300" />
             <div className="absolute inset-0 flex items-center justify-center">
-              <span className="text-xs font-mono text-base-content/60">
+              <span className="text-base-content/60 font-mono text-xs">
                 ♪♫♪ Playing ♪♫♪
               </span>
             </div>

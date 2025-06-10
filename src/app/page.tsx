@@ -120,16 +120,16 @@ export default function Home() {
       <div className="space-y-4">
         {/* Welcome Header - Server Component */}
         <div className="text-center">
-          <h1 className="text-3xl lg:text-4xl font-bold text-base-content mb-2">
+          <h1 className="text-base-content mb-2 text-3xl font-bold lg:text-4xl">
             Welcome to Morning Pod
           </h1>
-          <p className="text-lg lg:text-xl text-base-content/70 max-w-2xl mx-auto mb-3">
+          <p className="text-base-content/70 mx-auto mb-3 max-w-2xl text-lg lg:text-xl">
             AI-powered podcast generation from your favorite news sources. Stay
             informed with personalized audio content delivered daily.
           </p>
           <div className="flex flex-wrap justify-center gap-3">
             <Button className="gap-2" size="lg" variant="primary">
-              <Play className="w-5 h-5" />
+              <Play className="h-5 w-5" />
               Play Latest Episode
             </Button>
             <GenerateEpisodeButton />
@@ -137,33 +137,33 @@ export default function Home() {
         </div>
 
         {/* Quick Stats - Server Component */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {quickStats.map((stat) => {
             const Icon = stat.icon;
             return (
               <div
-                className="card bg-base-100 shadow-sm border border-base-300"
+                className="card bg-base-100 border-base-300 border shadow-sm"
                 key={stat.label}
               >
                 <div className="card-body p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-base-content/60">
+                      <p className="text-base-content/60 text-sm">
                         {stat.label}
                       </p>
-                      <p className="text-2xl font-bold text-base-content">
+                      <p className="text-base-content text-2xl font-bold">
                         {String(stat.value)}
                       </p>
                       {stat.change && (
-                        <p className="text-xs text-base-content/70">
+                        <p className="text-base-content/70 text-xs">
                           {stat.change}
                         </p>
                       )}
                     </div>
                     <div
-                      className={`w-12 h-12 rounded-full bg-base-200 flex items-center justify-center ${stat.color}`}
+                      className={`bg-base-200 flex h-12 w-12 items-center justify-center rounded-full ${stat.color}`}
                     >
-                      <Icon className="w-6 h-6" />
+                      <Icon className="h-6 w-6" />
                     </div>
                   </div>
                 </div>
@@ -173,28 +173,28 @@ export default function Home() {
         </div>
 
         {/* Recent Episodes - Server Component */}
-        <div className="card bg-base-100 shadow-sm border border-base-300">
+        <div className="card bg-base-100 border-base-300 border shadow-sm">
           <div className="card-body p-6">
-            <div className="flex items-center justify-between mb-6">
+            <div className="mb-6 flex items-center justify-between">
               <h2 className="text-xl font-semibold">Recent Episodes</h2>
               <Link href="/episodes">
                 <Button btnStyle="ghost" className="gap-2" size="sm">
                   View All
-                  <ArrowRight className="w-4 h-4" />
+                  <ArrowRight className="h-4 w-4" />
                 </Button>
               </Link>
             </div>
 
             {episodes.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                 {episodes.map((episode) => (
                   <EpisodeCard episode={episode} key={episode.id} />
                 ))}
               </div>
             ) : (
-              <div className="text-center py-8">
-                <Headphones className="w-12 h-12 mx-auto mb-4 text-base-content/30" />
-                <h3 className="text-lg font-medium text-base-content mb-2">
+              <div className="py-8 text-center">
+                <Headphones className="text-base-content/30 mx-auto mb-4 h-12 w-12" />
+                <h3 className="text-base-content mb-2 text-lg font-medium">
                   No episodes yet
                 </h3>
                 <p className="text-base-content/60 mb-4">
@@ -207,19 +207,19 @@ export default function Home() {
         </div>
 
         {/* Quick Actions - Server Component */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           {/* Sources Management */}
-          <div className="card bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/20">
+          <div className="card from-primary/5 to-primary/10 border-primary/20 border bg-gradient-to-br">
             <div className="card-body p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center">
-                  <Globe className="w-5 h-5 text-primary" />
+              <div className="mb-4 flex items-center gap-3">
+                <div className="bg-primary/20 flex h-10 w-10 items-center justify-center rounded-full">
+                  <Globe className="text-primary h-5 w-5" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-base-content">
+                  <h3 className="text-base-content font-semibold">
                     News Sources
                   </h3>
-                  <p className="text-sm text-base-content/60">
+                  <p className="text-base-content/60 text-sm">
                     {activeSources?.length || 0} active sources
                   </p>
                 </div>
@@ -239,17 +239,17 @@ export default function Home() {
           </div>
 
           {/* Generation Queue */}
-          <div className="card bg-gradient-to-br from-accent/5 to-accent/10 border border-accent/20">
+          <div className="card from-accent/5 to-accent/10 border-accent/20 border bg-gradient-to-br">
             <div className="card-body p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-accent/20 rounded-full flex items-center justify-center">
-                  <Zap className="w-5 h-5 text-accent" />
+              <div className="mb-4 flex items-center gap-3">
+                <div className="bg-accent/20 flex h-10 w-10 items-center justify-center rounded-full">
+                  <Zap className="text-accent h-5 w-5" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-base-content">
+                  <h3 className="text-base-content font-semibold">
                     Generation Queue
                   </h3>
-                  <p className="text-sm text-base-content/60">
+                  <p className="text-base-content/60 text-sm">
                     {(() => {
                       if (!queueStats) return 0;
                       if ("active" in queueStats)
@@ -276,9 +276,9 @@ export default function Home() {
         </div>
 
         {/* Debug/Development Section - Client Component wrapped */}
-        <div className="card bg-base-100 shadow-sm border border-base-300">
+        <div className="card bg-base-100 border-base-300 border shadow-sm">
           <div className="card-body p-6">
-            <h2 className="text-xl font-semibold mb-4">API Connection Test</h2>
+            <h2 className="mb-4 text-xl font-semibold">API Connection Test</h2>
             <HomeClientWrapper>
               <ApiTest />
             </HomeClientWrapper>

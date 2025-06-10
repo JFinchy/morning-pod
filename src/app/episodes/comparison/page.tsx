@@ -25,15 +25,15 @@ export default function EpisodeComparisonPage() {
 
   return (
     <MainLayout>
-      <div className="max-w-7xl mx-auto">
+      <div className="mx-auto max-w-7xl">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="mb-8 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Link className="btn btn-ghost btn-circle" href="/">
-              <ArrowLeft className="w-5 h-5" />
+              <ArrowLeft className="h-5 w-5" />
             </Link>
             <div>
-              <h1 className="text-3xl font-bold text-base-content">
+              <h1 className="text-base-content text-3xl font-bold">
                 Episode Card Variants
               </h1>
               <p className="text-base-content/70 mt-1">
@@ -48,27 +48,27 @@ export default function EpisodeComparisonPage() {
               size="sm"
               variant={viewMode === "grid" ? "primary" : "neutral"}
             >
-              <Grid className="w-4 h-4" />
+              <Grid className="h-4 w-4" />
             </Button>
             <Button
               onClick={() => setViewMode("list")}
               size="sm"
               variant={viewMode === "list" ? "primary" : "neutral"}
             >
-              <List className="w-4 h-4" />
+              <List className="h-4 w-4" />
             </Button>
           </div>
         </div>
 
         {/* Episode Selector */}
         <div className="mb-8">
-          <div className="flex items-center gap-2 mb-4">
-            <Eye className="w-4 h-4 text-base-content/60" />
-            <span className="text-sm font-medium text-base-content/60">
+          <div className="mb-4 flex items-center gap-2">
+            <Eye className="text-base-content/60 h-4 w-4" />
+            <span className="text-base-content/60 text-sm font-medium">
               Preview Episode:
             </span>
           </div>
-          <div className="flex gap-2 flex-wrap">
+          <div className="flex flex-wrap gap-2">
             {mockEpisodes.map((ep, index) => (
               <button
                 className={`btn btn-sm ${
@@ -85,14 +85,14 @@ export default function EpisodeComparisonPage() {
 
         {/* Variants Showcase */}
         {viewMode === "grid" ? (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
             {/* Version 1 - Minimal */}
             <div>
               <div className="mb-4">
-                <h2 className="text-xl font-semibold text-base-content mb-2">
+                <h2 className="text-base-content mb-2 text-xl font-semibold">
                   Version 1: Minimal
                 </h2>
-                <p className="text-sm text-base-content/70">
+                <p className="text-base-content/70 text-sm">
                   Clean typography, simple layout, focus on content readability.
                   Ideal for content-heavy interfaces.
                 </p>
@@ -108,10 +108,10 @@ export default function EpisodeComparisonPage() {
             {/* Version 2 - Visual */}
             <div>
               <div className="mb-4">
-                <h2 className="text-xl font-semibold text-base-content mb-2">
+                <h2 className="text-base-content mb-2 text-xl font-semibold">
                   Version 2: Visual
                 </h2>
-                <p className="text-sm text-base-content/70">
+                <p className="text-base-content/70 text-sm">
                   Rich visuals, gradient backgrounds, prominent thumbnails.
                   Great for discovery and engagement.
                 </p>
@@ -127,10 +127,10 @@ export default function EpisodeComparisonPage() {
             {/* Version 3 - Compact */}
             <div>
               <div className="mb-4">
-                <h2 className="text-xl font-semibold text-base-content mb-2">
+                <h2 className="text-base-content mb-2 text-xl font-semibold">
                   Version 3: Compact
                 </h2>
-                <p className="text-sm text-base-content/70">
+                <p className="text-base-content/70 text-sm">
                   Space-efficient, list-style layout, perfect for showing many
                   episodes in limited space.
                 </p>
@@ -175,18 +175,18 @@ export default function EpisodeComparisonPage() {
             ].map(
               ({ component: Component, description, tags, title }, index) => (
                 <div
-                  className="border border-base-300 rounded-lg p-6"
+                  className="border-base-300 rounded-lg border p-6"
                   key={index}
                 >
-                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
                     <div className="lg:col-span-1">
-                      <h2 className="text-xl font-semibold text-base-content mb-2">
+                      <h2 className="text-base-content mb-2 text-xl font-semibold">
                         {title}
                       </h2>
-                      <p className="text-sm text-base-content/70 mb-3">
+                      <p className="text-base-content/70 mb-3 text-sm">
                         {description}
                       </p>
-                      <div className="flex gap-1 flex-wrap">
+                      <div className="flex flex-wrap gap-1">
                         {tags.map((tag) => (
                           <span
                             className="badge badge-sm badge-outline"
@@ -214,13 +214,13 @@ export default function EpisodeComparisonPage() {
         )}
 
         {/* Design Notes */}
-        <div className="mt-12 p-6 bg-base-200 rounded-lg">
-          <h3 className="text-lg font-semibold text-base-content mb-3">
+        <div className="bg-base-200 mt-12 rounded-lg p-6">
+          <h3 className="text-base-content mb-3 text-lg font-semibold">
             Design Philosophy
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
+          <div className="grid grid-cols-1 gap-6 text-sm md:grid-cols-3">
             <div>
-              <h4 className="font-medium text-base-content mb-2">
+              <h4 className="text-base-content mb-2 font-medium">
                 Minimal (V1)
               </h4>
               <p className="text-base-content/70">
@@ -230,7 +230,7 @@ export default function EpisodeComparisonPage() {
               </p>
             </div>
             <div>
-              <h4 className="font-medium text-base-content mb-2">
+              <h4 className="text-base-content mb-2 font-medium">
                 Visual (V2)
               </h4>
               <p className="text-base-content/70">
@@ -240,7 +240,7 @@ export default function EpisodeComparisonPage() {
               </p>
             </div>
             <div>
-              <h4 className="font-medium text-base-content mb-2">
+              <h4 className="text-base-content mb-2 font-medium">
                 Compact (V3)
               </h4>
               <p className="text-base-content/70">

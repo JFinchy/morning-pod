@@ -103,7 +103,7 @@ export function MainLayout({ children }: MainLayoutProps) {
   };
 
   return (
-    <div className="min-h-screen bg-base-100">
+    <div className="bg-base-100 min-h-screen">
       {/* Mobile menu backdrop */}
       {mobileMenuOpen && (
         <div
@@ -122,37 +122,37 @@ export function MainLayout({ children }: MainLayoutProps) {
 
       {/* Sidebar */}
       <div
-        className={`fixed inset-y-0 left-0 z-50 w-72 bg-base-200 border-r border-base-300 transform transition-all duration-300 ease-in-out lg:translate-x-0 shadow-xl lg:shadow-none ${
+        className={`bg-base-200 border-base-300 fixed inset-y-0 left-0 z-50 w-72 transform border-r shadow-xl transition-all duration-300 ease-in-out lg:translate-x-0 lg:shadow-none ${
           mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         <div className="flex h-full flex-col">
           {/* Header */}
-          <div className="flex h-16 items-center justify-between px-6 border-b border-base-300">
+          <div className="border-base-300 flex h-16 items-center justify-between border-b px-6">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                <Podcast className="w-5 h-5 text-primary-content" />
+              <div className="bg-primary flex h-8 w-8 items-center justify-center rounded-lg">
+                <Podcast className="text-primary-content h-5 w-5" />
               </div>
               <div>
-                <div className="text-lg font-bold text-base-content">
+                <div className="text-base-content text-lg font-bold">
                   Morning Pod
                 </div>
-                <p className="text-xs text-base-content/60">
+                <p className="text-base-content/60 text-xs">
                   AI Podcast Generator
                 </p>
               </div>
             </div>
             <button
               aria-label="Close navigation menu"
-              className="lg:hidden btn btn-ghost btn-sm btn-circle"
+              className="btn btn-ghost btn-sm btn-circle lg:hidden"
               onClick={() => setMobileMenuOpen(false)}
             >
-              <X className="w-4 h-4" />
+              <X className="h-4 w-4" />
             </button>
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 px-4 py-6 space-y-1">
+          <nav className="flex-1 space-y-1 px-4 py-6">
             <div className="space-y-1">
               {navigation.map((item) => {
                 const Icon = item.icon;
@@ -160,7 +160,7 @@ export function MainLayout({ children }: MainLayoutProps) {
 
                 return (
                   <Link
-                    className={`group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 hover:scale-[1.02] ${
+                    className={`group flex items-center rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 hover:scale-[1.02] ${
                       isActive
                         ? "bg-primary text-primary-content shadow-lg"
                         : "text-base-content hover:bg-base-300 hover:shadow-md"
@@ -194,16 +194,16 @@ export function MainLayout({ children }: MainLayoutProps) {
             </div>
 
             {/* Internal/Development Section */}
-            <div className="pt-6 mt-6 border-t border-base-300">
-              <div className="px-3 mb-3">
-                <h3 className="text-xs font-semibold text-base-content/70 uppercase tracking-wider">
+            <div className="border-base-300 mt-6 border-t pt-6">
+              <div className="mb-3 px-3">
+                <h3 className="text-base-content/70 text-xs font-semibold tracking-wider uppercase">
                   Development
                 </h3>
               </div>
               <div className="space-y-1">
                 {internalLinks.map((item) => (
                   <Link
-                    className={`group flex items-center px-3 py-2 text-sm rounded-lg transition-colors ${
+                    className={`group flex items-center rounded-lg px-3 py-2 text-sm transition-colors ${
                       isActiveRoute(item.href)
                         ? "bg-warning/20 text-warning-content"
                         : "text-base-content/70 hover:bg-base-300"
@@ -212,10 +212,10 @@ export function MainLayout({ children }: MainLayoutProps) {
                     key={item.name}
                     onClick={() => setMobileMenuOpen(false)}
                   >
-                    <div className="w-2 h-2 rounded-full bg-warning mr-3 flex-shrink-0" />
+                    <div className="bg-warning mr-3 h-2 w-2 flex-shrink-0 rounded-full" />
                     <div className="flex-1">
                       <div className="font-medium">{item.name}</div>
-                      <div className="text-xs text-base-content/70">
+                      <div className="text-base-content/70 text-xs">
                         {item.description}
                       </div>
                     </div>
@@ -226,9 +226,9 @@ export function MainLayout({ children }: MainLayoutProps) {
           </nav>
 
           {/* Footer */}
-          <div className="p-4 border-t border-base-300">
+          <div className="border-base-300 border-t p-4">
             <div className="flex items-center justify-between">
-              <div className="text-xs text-base-content/50">
+              <div className="text-base-content/50 text-xs">
                 v0.1.0 • Development
               </div>
               <ThemeSwitcherCompact />
@@ -240,18 +240,18 @@ export function MainLayout({ children }: MainLayoutProps) {
       {/* Main content */}
       <div className="lg:ml-72">
         {/* Top bar */}
-        <div className="sticky top-0 z-30 flex h-12 items-center justify-between bg-base-100/95 backdrop-blur-sm border-b border-base-300 px-4 lg:px-6">
+        <div className="bg-base-100/95 border-base-300 sticky top-0 z-30 flex h-12 items-center justify-between border-b px-4 backdrop-blur-sm lg:px-6">
           <button
             aria-label="Open navigation menu"
-            className="lg:hidden btn btn-ghost btn-sm btn-circle"
+            className="btn btn-ghost btn-sm btn-circle lg:hidden"
             onClick={() => setMobileMenuOpen(true)}
           >
-            <Menu className="w-5 h-5" />
+            <Menu className="h-5 w-5" />
           </button>
 
           <div className="flex-1 lg:flex-none">
             <div className="hidden lg:block">
-              <h2 className="text-lg font-semibold text-base-content">
+              <h2 className="text-base-content text-lg font-semibold">
                 {navigation.find((item) => isActiveRoute(item.href))?.name ||
                   "Morning Pod"}
               </h2>
@@ -268,13 +268,13 @@ export function MainLayout({ children }: MainLayoutProps) {
                   setFeatureFlagDropdownOpen(!featureFlagDropdownOpen)
                 }
               >
-                <Shield className="w-4 h-4" />
+                <Shield className="h-4 w-4" />
                 <span className="hidden sm:inline">Flags</span>
-                <ChevronDown className="w-3 h-3" />
+                <ChevronDown className="h-3 w-3" />
               </button>
 
               {featureFlagDropdownOpen && (
-                <div className="absolute right-0 top-full mt-2 w-80 z-50">
+                <div className="absolute top-full right-0 z-50 mt-2 w-80">
                   <FeatureFlagAdmin />
                 </div>
               )}

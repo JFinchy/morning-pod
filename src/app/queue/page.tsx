@@ -54,9 +54,9 @@ export default function QueuePage() {
     <MainLayout>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-base-content">
+            <h1 className="text-base-content text-2xl font-bold">
               Generation Queue
             </h1>
             <p className="text-base-content/60">
@@ -78,11 +78,11 @@ export default function QueuePage() {
               </label>
             </div>
             <Button btnStyle="outline" className="gap-2" size="sm">
-              <RefreshCw className="w-4 h-4" />
+              <RefreshCw className="h-4 w-4" />
               Refresh
             </Button>
             <Button className="gap-2" size="sm" variant="primary">
-              <Play className="w-4 h-4" />
+              <Play className="h-4 w-4" />
               Start Queue
             </Button>
           </div>
@@ -111,10 +111,10 @@ export default function QueuePage() {
         />
 
         {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="stat bg-base-100 rounded-lg shadow-sm border border-base-300">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+          <div className="stat bg-base-100 border-base-300 rounded-lg border shadow-sm">
             <div className="stat-figure text-info">
-              <Clock className="w-6 h-6" />
+              <Clock className="h-6 w-6" />
             </div>
             <div className="stat-title">In Progress</div>
             <div className="stat-value text-info">
@@ -123,9 +123,9 @@ export default function QueuePage() {
             <div className="stat-desc">Currently processing</div>
           </div>
 
-          <div className="stat bg-base-100 rounded-lg shadow-sm border border-base-300">
+          <div className="stat bg-base-100 border-base-300 rounded-lg border shadow-sm">
             <div className="stat-figure text-warning">
-              <Pause className="w-6 h-6" />
+              <Pause className="h-6 w-6" />
             </div>
             <div className="stat-title">Pending</div>
             <div className="stat-value text-warning">
@@ -136,9 +136,9 @@ export default function QueuePage() {
             <div className="stat-desc">Waiting to start</div>
           </div>
 
-          <div className="stat bg-base-100 rounded-lg shadow-sm border border-base-300">
+          <div className="stat bg-base-100 border-base-300 rounded-lg border shadow-sm">
             <div className="stat-figure text-success">
-              <Play className="w-6 h-6" />
+              <Play className="h-6 w-6" />
             </div>
             <div className="stat-title">Completed</div>
             <div className="stat-value text-success">
@@ -149,9 +149,9 @@ export default function QueuePage() {
             <div className="stat-desc">Successfully finished</div>
           </div>
 
-          <div className="stat bg-base-100 rounded-lg shadow-sm border border-base-300">
+          <div className="stat bg-base-100 border-base-300 rounded-lg border shadow-sm">
             <div className="stat-figure text-error">
-              <AlertCircle className="w-6 h-6" />
+              <AlertCircle className="h-6 w-6" />
             </div>
             <div className="stat-title">Failed</div>
             <div className="stat-value text-error">
@@ -164,15 +164,15 @@ export default function QueuePage() {
         </div>
 
         {/* Queue Items */}
-        <div className="card bg-base-100 shadow-sm border border-base-300">
-          <div className="card-header p-4 border-b border-base-300">
+        <div className="card bg-base-100 border-base-300 border shadow-sm">
+          <div className="card-header border-base-300 border-b p-4">
             <h2 className="text-lg font-semibold">Queue Items</h2>
           </div>
           <div className="card-body p-0">
             {!queueItems?.queueItems || queueItems.queueItems.length === 0 ? (
-              <div className="text-center py-12">
-                <Clock className="w-12 h-12 mx-auto mb-4 text-base-content/30" />
-                <h3 className="text-lg font-medium text-base-content mb-2">
+              <div className="py-12 text-center">
+                <Clock className="text-base-content/30 mx-auto mb-4 h-12 w-12" />
+                <h3 className="text-base-content mb-2 text-lg font-medium">
                   Queue is empty
                 </h3>
                 <p className="text-base-content/60">
@@ -181,7 +181,7 @@ export default function QueuePage() {
               </div>
             ) : (
               <div className="overflow-x-auto">
-                <table className="table table-zebra">
+                <table className="table-zebra table">
                   <thead>
                     <tr>
                       <th>Episode</th>
@@ -204,7 +204,7 @@ export default function QueuePage() {
                             {item.progress !== undefined &&
                               item.progress > 0 && (
                                 <div className="mt-1">
-                                  <div className="progress progress-primary w-24 h-2">
+                                  <div className="progress progress-primary h-2 w-24">
                                     <div
                                       className="progress-bar"
                                       style={{ width: `${item.progress}%` }}
@@ -220,7 +220,7 @@ export default function QueuePage() {
                           </span>
                         </td>
                         <td>
-                          <span className="font-medium capitalize text-base-content">
+                          <span className="text-base-content font-medium capitalize">
                             Position {item.position + 1}
                           </span>
                         </td>
@@ -249,7 +249,7 @@ export default function QueuePage() {
                           )}
                         </td>
                         <td>
-                          <span className="text-sm text-base-content/60">
+                          <span className="text-base-content/60 text-sm">
                             {item.startedAt
                               ? new Date(item.startedAt).toLocaleTimeString()
                               : "-"}
@@ -263,13 +263,13 @@ export default function QueuePage() {
                                 size="xs"
                                 title="Move to front"
                               >
-                                <SkipForward className="w-3 h-3" />
+                                <SkipForward className="h-3 w-3" />
                               </Button>
                             )}
                             {(item.status === "failed" ||
                               item.status === "pending") && (
                               <Button btnStyle="ghost" size="xs" title="Retry">
-                                <RefreshCw className="w-3 h-3" />
+                                <RefreshCw className="h-3 w-3" />
                               </Button>
                             )}
                           </div>
@@ -284,25 +284,25 @@ export default function QueuePage() {
         </div>
 
         {/* System Status */}
-        <div className="card bg-base-100 shadow-sm border border-base-300">
+        <div className="card bg-base-100 border-base-300 border shadow-sm">
           <div className="card-body p-6">
-            <h3 className="text-lg font-semibold mb-4">System Status</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <h3 className="mb-4 text-lg font-semibold">System Status</h3>
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <div>
-                <h4 className="font-medium mb-2">Processing Capacity</h4>
-                <div className="progress progress-primary w-full mb-2">
+                <h4 className="mb-2 font-medium">Processing Capacity</h4>
+                <div className="progress progress-primary mb-2 w-full">
                   <div className="progress-bar" style={{ width: "65%" }} />
                 </div>
-                <p className="text-sm text-base-content/60">
+                <p className="text-base-content/60 text-sm">
                   3 of 5 workers active
                 </p>
               </div>
               <div>
-                <h4 className="font-medium mb-2">Daily Limits</h4>
-                <div className="progress progress-warning w-full mb-2">
+                <h4 className="mb-2 font-medium">Daily Limits</h4>
+                <div className="progress progress-warning mb-2 w-full">
                   <div className="progress-bar" style={{ width: "42%" }} />
                 </div>
-                <p className="text-sm text-base-content/60">
+                <p className="text-base-content/60 text-sm">
                   42 of 100 episodes generated today
                 </p>
               </div>

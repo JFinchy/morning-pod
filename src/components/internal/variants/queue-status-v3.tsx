@@ -38,12 +38,12 @@ const TimelineConnector = ({
   if (isLast) return null;
 
   return (
-    <div className="absolute left-6 top-12 w-0.5 h-8 flex items-center justify-center">
+    <div className="absolute top-12 left-6 flex h-8 w-0.5 items-center justify-center">
       <div
-        className={`w-0.5 h-full ${isActive ? "bg-primary animate-pulse" : "bg-base-300"}`}
+        className={`h-full w-0.5 ${isActive ? "bg-primary animate-pulse" : "bg-base-300"}`}
       />
       {isActive && (
-        <ArrowDown className="absolute w-3 h-3 text-primary animate-bounce" />
+        <ArrowDown className="text-primary absolute h-3 w-3 animate-bounce" />
       )}
     </div>
   );
@@ -63,7 +63,7 @@ const StatusIcon = ({ status }: { status: QueueItem["status"] }) => {
   const IconComponent = iconMap[status];
   const colorClass = getStatusColor(status);
 
-  return <IconComponent className={`w-4 h-4 ${colorClass}`} />;
+  return <IconComponent className={`h-4 w-4 ${colorClass}`} />;
 };
 
 const MiniProgressBar = ({
@@ -83,8 +83,8 @@ const MiniProgressBar = ({
   if (progress === 0) return null;
 
   return (
-    <div className="w-full mt-2">
-      <div className="w-full bg-base-300 rounded-full h-1">
+    <div className="mt-2 w-full">
+      <div className="bg-base-300 h-1 w-full rounded-full">
         <div
           className={`h-1 rounded-full transition-all duration-1000 ease-out ${
             status === "failed" ? "bg-error" : "bg-primary"
@@ -114,16 +114,16 @@ export function QueueStatusV3({
   );
 
   return (
-    <div className="card bg-base-100 border border-base-300 shadow-sm overflow-hidden">
+    <div className="card bg-base-100 border-base-300 overflow-hidden border shadow-sm">
       <div className="card-body p-0">
         {/* Compact Header */}
-        <div className="px-6 py-4 bg-gradient-to-r from-primary/5 to-secondary/5 border-b border-base-300">
+        <div className="from-primary/5 to-secondary/5 border-base-300 border-b bg-gradient-to-r px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <h3 className="font-bold text-base-content">Queue Timeline</h3>
+              <h3 className="text-base-content font-bold">Queue Timeline</h3>
               <div className="flex items-center gap-1">
-                <Zap className="w-4 h-4 text-primary" />
-                <span className="text-sm font-medium text-primary">
+                <Zap className="text-primary h-4 w-4" />
+                <span className="text-primary text-sm font-medium">
                   {processingItems.length} active
                 </span>
               </div>
@@ -140,7 +140,7 @@ export function QueueStatusV3({
         </div>
 
         {/* Timeline View */}
-        <div className="px-6 py-4 max-h-96 overflow-y-auto">
+        <div className="max-h-96 overflow-y-auto px-6 py-4">
           {visibleItems.length > 0 ? (
             <div className="relative">
               {visibleItems.map((item, index) => {
@@ -166,26 +166,26 @@ export function QueueStatusV3({
                     <div className="flex items-start gap-4 pb-6">
                       {/* Status Circle */}
                       <div
-                        className={`relative z-10 flex items-center justify-center w-12 h-12 rounded-full border-2 transition-all duration-200 ${
+                        className={`relative z-10 flex h-12 w-12 items-center justify-center rounded-full border-2 transition-all duration-200 ${
                           item.status === "failed"
                             ? "border-error bg-error/10"
                             : item.status === "completed"
                               ? "border-success bg-success/10"
                               : isActive
-                                ? "border-primary bg-primary/10 shadow-lg shadow-primary/20"
+                                ? "border-primary bg-primary/10 shadow-primary/20 shadow-lg"
                                 : "border-base-300 bg-base-100"
                         }`}
                       >
                         <StatusIcon status={item.status} />
                         {isActive && (
-                          <div className="absolute inset-0 rounded-full border-2 border-primary animate-ping opacity-20" />
+                          <div className="border-primary absolute inset-0 animate-ping rounded-full border-2 opacity-20" />
                         )}
                       </div>
 
                       {/* Content */}
-                      <div className="flex-1 min-w-0 pt-1">
-                        <div className="flex items-center justify-between mb-1">
-                          <h4 className="font-medium text-sm text-base-content truncate">
+                      <div className="min-w-0 flex-1 pt-1">
+                        <div className="mb-1 flex items-center justify-between">
+                          <h4 className="text-base-content truncate text-sm font-medium">
                             {item.episodeTitle}
                           </h4>
                           <div className="flex items-center gap-2 text-xs">
@@ -204,8 +204,8 @@ export function QueueStatusV3({
                           </div>
                         </div>
 
-                        <div className="flex items-center justify-between mb-2">
-                          <p className="text-xs text-base-content/60">
+                        <div className="mb-2 flex items-center justify-between">
+                          <p className="text-base-content/60 text-xs">
                             {item.sourceName}
                           </p>
                           <span
@@ -223,14 +223,14 @@ export function QueueStatusV3({
 
                         {/* Error Message */}
                         {item.status === "failed" && item.errorMessage && (
-                          <div className="mt-2 text-xs text-error bg-error/5 px-2 py-1 rounded">
+                          <div className="text-error bg-error/5 mt-2 rounded px-2 py-1 text-xs">
                             {item.errorMessage}
                           </div>
                         )}
 
                         {/* Cost & Duration for Active Items */}
                         {isActive && showDetails && (
-                          <div className="mt-2 flex items-center gap-4 text-xs text-base-content/60">
+                          <div className="text-base-content/60 mt-2 flex items-center gap-4 text-xs">
                             {item.cost && (
                               <span>Cost: ${item.cost.toFixed(3)}</span>
                             )}
@@ -254,12 +254,12 @@ export function QueueStatusV3({
               {/* More Items Indicator */}
               {remainingCount > 0 && (
                 <div className="relative flex items-center gap-4 text-center">
-                  <div className="w-12 h-12 rounded-full border-2 border-dashed border-base-300 flex items-center justify-center">
-                    <span className="text-xs text-base-content/60">
+                  <div className="border-base-300 flex h-12 w-12 items-center justify-center rounded-full border-2 border-dashed">
+                    <span className="text-base-content/60 text-xs">
                       +{remainingCount}
                     </span>
                   </div>
-                  <div className="text-sm text-base-content/60">
+                  <div className="text-base-content/60 text-sm">
                     {remainingCount} more items in queue
                   </div>
                 </div>
@@ -267,14 +267,14 @@ export function QueueStatusV3({
             </div>
           ) : (
             /* Empty State */
-            <div className="text-center py-8">
-              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-base-200 flex items-center justify-center">
-                <CheckCircle className="w-8 h-8 text-success" />
+            <div className="py-8 text-center">
+              <div className="bg-base-200 mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full">
+                <CheckCircle className="text-success h-8 w-8" />
               </div>
-              <h4 className="font-medium text-base-content mb-2">
+              <h4 className="text-base-content mb-2 font-medium">
                 Timeline Clear
               </h4>
-              <p className="text-sm text-base-content/60">
+              <p className="text-base-content/60 text-sm">
                 No episodes in the generation pipeline
               </p>
             </div>
@@ -283,25 +283,25 @@ export function QueueStatusV3({
 
         {/* Footer Stats */}
         {showDetails && queueItems.length > 0 && (
-          <div className="px-6 py-3 bg-base-200/30 border-t border-base-300">
+          <div className="bg-base-200/30 border-base-300 border-t px-6 py-3">
             <div className="grid grid-cols-3 gap-4 text-center">
               <div>
-                <div className="text-lg font-bold text-success">
+                <div className="text-success text-lg font-bold">
                   {Math.round(stats.successRate * 100)}%
                 </div>
-                <div className="text-xs text-base-content/60">Success Rate</div>
+                <div className="text-base-content/60 text-xs">Success Rate</div>
               </div>
               <div>
-                <div className="text-lg font-bold text-primary">
+                <div className="text-primary text-lg font-bold">
                   {formatTimeRemaining(stats.averageProcessingTime)}
                 </div>
-                <div className="text-xs text-base-content/60">Avg Time</div>
+                <div className="text-base-content/60 text-xs">Avg Time</div>
               </div>
               <div>
-                <div className="text-lg font-bold text-base-content">
+                <div className="text-base-content text-lg font-bold">
                   ${stats.totalCostToday.toFixed(2)}
                 </div>
-                <div className="text-xs text-base-content/60">
+                <div className="text-base-content/60 text-xs">
                   Today&apos;s Cost
                 </div>
               </div>

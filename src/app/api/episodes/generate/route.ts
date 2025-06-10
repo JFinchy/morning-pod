@@ -9,8 +9,10 @@ import {
   type SummaryOutput,
 } from "@/lib/services/ai/summarization";
 import { createTTSService, type TTSResult } from "@/lib/services/ai/tts";
-import { createScrapingService } from "@/lib/services/scraping/scraping-service";
-import { type ScrapedContent } from "@/lib/services/scraping/types";
+import {
+  createScrapingService,
+  type ScrapedContent,
+} from "@/lib/services/scraping/scraping-service";
 
 const INTERNAL_SERVER_ERROR = "Internal server error";
 const UNKNOWN_ERROR = "Unknown error";
@@ -34,14 +36,7 @@ type GenerateRequest = z.infer<typeof GenerateRequestSchema>;
  */
 interface GenerationProgress {
   data?:
-    | { contentLength: number; source: string; title: string } // scraping
     | { audioUrl: string; cost: number; duration: number; fileSize: number } // generating_audio
-    | {
-        cost: number;
-        estimatedReadTime: number;
-        keyPoints: string[];
-        title: string;
-      } // summarizing
     | {
         audioUrl: string;
         duration: number;
@@ -49,7 +44,14 @@ interface GenerationProgress {
         processingTime: number;
         title: string;
         totalCost: number;
-      }; // completed
+      } // completed
+    | { contentLength: number; source: string; title: string } // scraping
+    | {
+        cost: number;
+        estimatedReadTime: number;
+        keyPoints: string[];
+        title: string;
+      }; // summarizing
   error?: string;
   message: string;
   progress: number; // 0-100
@@ -240,10 +242,10 @@ async function generateEpisode(
 
     onProgress({
       data: {
-        audioUrl: audioResult.audioUrl,
-        cost: audioResult.cost,
-        duration: audioResult.duration,
-        fileSize: audioResult.fileSize,
+        audioUrl: audioResult.audioUrl || "",
+        cost: audioResult.cost || 0,
+        duration: audioResult.duration || 0,
+        fileSize: audioResult.fileSize || 0,
       },
       message: "Audio generated successfully",
       progress: 85,

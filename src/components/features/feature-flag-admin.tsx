@@ -115,22 +115,22 @@ export function FeatureFlagAdmin() {
 
   if (!flags || Object.keys(flags).length === 0) {
     return (
-      <div className="bg-base-100 rounded-lg border border-base-300 p-4">
-        <div className="flex items-center gap-2 mb-2">
-          <Shield className="w-4 h-4 text-base-content/70" />
-          <span className="text-sm font-medium text-base-content/70">
+      <div className="bg-base-100 border-base-300 rounded-lg border p-4">
+        <div className="mb-2 flex items-center gap-2">
+          <Shield className="text-base-content/70 h-4 w-4" />
+          <span className="text-base-content/70 text-sm font-medium">
             Feature Flags
           </span>
         </div>
-        <p className="text-xs text-base-content/50">Loading...</p>
+        <p className="text-base-content/50 text-xs">Loading...</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-base-100 rounded-lg border border-base-300 p-4">
-      <div className="flex items-center gap-2 mb-4">
-        <Shield className="w-4 h-4 text-primary" />
+    <div className="bg-base-100 border-base-300 rounded-lg border p-4">
+      <div className="mb-4 flex items-center gap-2">
+        <Shield className="text-primary h-4 w-4" />
         <span className="text-sm font-medium">Feature Flags</span>
       </div>
 
@@ -141,27 +141,27 @@ export function FeatureFlagAdmin() {
           return (
             <div className="space-y-2" key={category.title}>
               <div className="flex items-center gap-2">
-                <CategoryIcon className="w-3 h-3 text-base-content/60" />
-                <span className="text-xs font-medium text-base-content/80">
+                <CategoryIcon className="text-base-content/60 h-3 w-3" />
+                <span className="text-base-content/80 text-xs font-medium">
                   {category.title}
                 </span>
               </div>
 
-              <div className="grid grid-cols-2 gap-2 ml-5">
+              <div className="ml-5 grid grid-cols-2 gap-2">
                 {category.flags.map((flag) => {
                   const isEnabled = flags[flag.key as keyof typeof flags];
 
                   return (
                     <div
-                      className="flex items-center justify-between p-2 bg-base-200/50 rounded"
+                      className="bg-base-200/50 flex items-center justify-between rounded p-2"
                       key={flag.key}
                       title={flag.description}
                     >
-                      <span className="text-xs text-base-content/70 truncate">
+                      <span className="text-base-content/70 truncate text-xs">
                         {flag.name}
                       </span>
                       <div
-                        className={`w-2 h-2 rounded-full ${
+                        className={`h-2 w-2 rounded-full ${
                           isEnabled ? "bg-success" : "bg-error"
                         }`}
                       />

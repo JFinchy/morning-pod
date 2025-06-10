@@ -4,4 +4,4 @@ const config = {
     autoprefixer: {},
   },
 };
-export default config; 
+export default config;

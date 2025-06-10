@@ -95,14 +95,14 @@ export default function EpisodesPage() {
   return (
     <ErrorBoundary>
       <MainLayout>
-        <div className="min-h-screen bg-base-100">
+        <div className="bg-base-100 min-h-screen">
           {/* Header */}
-          <div className="bg-gradient-to-r from-primary/10 to-secondary/10 border-b border-primary/20">
+          <div className="from-primary/10 to-secondary/10 border-primary/20 border-b bg-gradient-to-r">
             <div className="container mx-auto px-6 py-8">
-              <div className="flex items-center justify-between mb-6">
+              <div className="mb-6 flex items-center justify-between">
                 <div>
-                  <h1 className="text-3xl font-bold text-base-content flex items-center gap-3">
-                    <Play className="w-8 h-8 text-primary" />
+                  <h1 className="text-base-content flex items-center gap-3 text-3xl font-bold">
+                    <Play className="text-primary h-8 w-8" />
                     Episode Library
                   </h1>
                   <p className="text-base-content/70 mt-2">
@@ -116,23 +116,23 @@ export default function EpisodesPage() {
                     size="sm"
                     variant={viewMode === "grid" ? "primary" : "secondary"}
                   >
-                    <Grid className="w-4 h-4" />
+                    <Grid className="h-4 w-4" />
                   </Button>
                   <Button
                     onClick={() => setViewMode("list")}
                     size="sm"
                     variant={viewMode === "list" ? "primary" : "secondary"}
                   >
-                    <List className="w-4 h-4" />
+                    <List className="h-4 w-4" />
                   </Button>
                 </div>
               </div>
 
               {/* Stats */}
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+              <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
                 {Object.entries(statusCounts).map(([status, count]) => (
                   <div
-                    className={`stats shadow cursor-pointer transition-colors ${
+                    className={`stats cursor-pointer shadow transition-colors ${
                       statusFilter === status
                         ? "bg-primary text-primary-content"
                         : "bg-base-200"
@@ -154,11 +154,11 @@ export default function EpisodesPage() {
 
           {/* Controls */}
           <div className="container mx-auto px-6 py-6">
-            <div className="flex flex-col md:flex-row gap-4 mb-6">
+            <div className="mb-6 flex flex-col gap-4 md:flex-row">
               {/* Search */}
               <div className="flex-1">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-base-content/50" />
+                  <Search className="text-base-content/50 absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform" />
                   <input
                     className="input input-bordered w-full pl-10"
                     onChange={(e) =>
@@ -173,7 +173,7 @@ export default function EpisodesPage() {
 
               {/* Filter */}
               <div className="flex items-center gap-2">
-                <Filter className="w-4 h-4 text-base-content/50" />
+                <Filter className="text-base-content/50 h-4 w-4" />
                 <select
                   className="select select-bordered"
                   onChange={(e) =>
@@ -204,9 +204,9 @@ export default function EpisodesPage() {
 
             {/* Empty State */}
             {!isLoading && !error && filteredEpisodes.length === 0 && (
-              <div className="text-center py-12">
-                <Play className="w-16 h-16 text-base-content/30 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-base-content/70 mb-2">
+              <div className="py-12 text-center">
+                <Play className="text-base-content/30 mx-auto mb-4 h-16 w-16" />
+                <h3 className="text-base-content/70 mb-2 text-xl font-semibold">
                   {searchQuery || statusFilter !== "all"
                     ? "No episodes match your criteria"
                     : "No episodes yet"}
@@ -229,7 +229,7 @@ export default function EpisodesPage() {
               <div
                 className={
                   viewMode === "grid"
-                    ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+                    ? "grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3"
                     : "space-y-4"
                 }
               >
@@ -250,17 +250,17 @@ export default function EpisodesPage() {
 
           {/* Global Audio Player - Fixed at bottom */}
           {currentEpisode && (
-            <div className="fixed bottom-0 left-0 right-0 bg-base-100 border-t border-base-300 shadow-2xl z-50">
+            <div className="bg-base-100 border-base-300 fixed right-0 bottom-0 left-0 z-50 border-t shadow-2xl">
               <div className="container mx-auto px-6 py-4">
                 <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-2 text-primary">
-                    <Volume2 className="w-5 h-5" />
+                  <div className="text-primary flex items-center gap-2">
+                    <Volume2 className="h-5 w-5" />
                     <span className="text-sm font-medium">Now Playing</span>
                   </div>
                   <div className="flex-1">
                     <AudioPlayer
                       autoPlay
-                      className="shadow-none bg-transparent"
+                      className="bg-transparent shadow-none"
                       episode={currentEpisode}
                       onEpisodeEnd={handleEpisodeEnd}
                     />

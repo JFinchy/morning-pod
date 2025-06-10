@@ -3,34 +3,6 @@
  */
 
 export const nextjsProject = {
-  packageJson: {
-    name: "test-nextjs-app",
-    version: "1.0.0",
-    scripts: {
-      dev: "next dev --turbo",
-      build: "next build",
-      start: "next start",
-      lint: "next lint",
-    },
-    dependencies: {
-      next: "^14.0.0",
-      react: "^18.0.0",
-      "react-dom": "^18.0.0",
-    },
-    devDependencies: {
-      typescript: "^5.0.0",
-      "@types/node": "^20.0.0",
-      "@types/react": "^18.0.0",
-      vitest: "^1.0.0",
-      "@playwright/test": "^1.0.0",
-      eslint: "^8.0.0",
-      "eslint-config-next": "^14.0.0",
-      prettier: "^3.0.0",
-      tailwindcss: "^3.0.0",
-      "@storybook/react": "^7.0.0",
-      drizzle: "^1.0.0",
-    },
-  },
   files: [
     "next.config.js",
     "tsconfig.json",
@@ -39,40 +11,37 @@ export const nextjsProject = {
     ".storybook/main.js",
     "bun.lockb",
   ],
+  packageJson: {
+    dependencies: {
+      next: "^14.0.0",
+      react: "^18.0.0",
+      "react-dom": "^18.0.0",
+    },
+    devDependencies: {
+      "@playwright/test": "^1.0.0",
+      "@storybook/react": "^7.0.0",
+      "@types/node": "^20.0.0",
+      "@types/react": "^18.0.0",
+      drizzle: "^1.0.0",
+      eslint: "^8.0.0",
+      "eslint-config-next": "^14.0.0",
+      prettier: "^3.0.0",
+      tailwindcss: "^3.0.0",
+      typescript: "^5.0.0",
+      vitest: "^1.0.0",
+    },
+    name: "test-nextjs-app",
+    scripts: {
+      build: "next build",
+      dev: "next dev --turbo",
+      lint: "next lint",
+      start: "next start",
+    },
+    version: "1.0.0",
+  },
 };
 
 export const reactProject = {
-  packageJson: {
-    name: "test-react-app",
-    version: "1.0.0",
-    scripts: {
-      dev: "vite",
-      build: "vite build",
-      preview: "vite preview",
-      test: "vitest",
-      "test:ui": "vitest --ui",
-      lint: "eslint src --ext ts,tsx",
-      format: "prettier --write src/**/*.{ts,tsx}",
-    },
-    dependencies: {
-      react: "^18.0.0",
-      "react-dom": "^18.0.0",
-      "react-router-dom": "^6.0.0",
-    },
-    devDependencies: {
-      vite: "^5.0.0",
-      "@vitejs/plugin-react": "^4.0.0",
-      typescript: "^5.0.0",
-      "@types/react": "^18.0.0",
-      "@types/react-dom": "^18.0.0",
-      vitest: "^1.0.0",
-      "@testing-library/react": "^14.0.0",
-      eslint: "^8.0.0",
-      "@typescript-eslint/eslint-plugin": "^6.0.0",
-      prettier: "^3.0.0",
-      "@storybook/react-vite": "^7.0.0",
-    },
-  },
   files: [
     "vite.config.ts",
     "tsconfig.json",
@@ -80,85 +49,93 @@ export const reactProject = {
     ".storybook/main.ts",
     "yarn.lock",
   ],
+  packageJson: {
+    dependencies: {
+      react: "^18.0.0",
+      "react-dom": "^18.0.0",
+      "react-router-dom": "^6.0.0",
+    },
+    devDependencies: {
+      "@storybook/react-vite": "^7.0.0",
+      "@testing-library/react": "^14.0.0",
+      "@types/react": "^18.0.0",
+      "@types/react-dom": "^18.0.0",
+      "@typescript-eslint/eslint-plugin": "^6.0.0",
+      "@vitejs/plugin-react": "^4.0.0",
+      eslint: "^8.0.0",
+      prettier: "^3.0.0",
+      typescript: "^5.0.0",
+      vite: "^5.0.0",
+      vitest: "^1.0.0",
+    },
+    name: "test-react-app",
+    scripts: {
+      build: "vite build",
+      dev: "vite",
+      format: "prettier --write src/**/*.{ts,tsx}",
+      lint: "eslint src --ext ts,tsx",
+      preview: "vite preview",
+      test: "vitest",
+      "test:ui": "vitest --ui",
+    },
+    version: "1.0.0",
+  },
 };
 
 export const nodeProject = {
+  files: ["tsconfig.json", "jest.config.js", "package-lock.json"],
   packageJson: {
-    name: "test-node-app",
-    version: "1.0.0",
-    main: "dist/index.js",
-    scripts: {
-      start: "node dist/index.js",
-      dev: "node --watch src/index.ts",
-      build: "tsc",
-      test: "jest",
-      "test:watch": "jest --watch",
-      "test:coverage": "jest --coverage",
-      lint: "eslint src --ext .ts",
-      format: "prettier --write src/**/*.ts",
-    },
     dependencies: {
-      express: "^4.18.0",
       cors: "^2.8.5",
+      express: "^4.18.0",
       helmet: "^7.0.0",
     },
     devDependencies: {
-      "@types/node": "^20.0.0",
-      "@types/express": "^4.17.0",
       "@types/cors": "^2.8.0",
-      typescript: "^5.0.0",
-      "ts-node": "^10.9.0",
-      jest: "^29.0.0",
+      "@types/express": "^4.17.0",
       "@types/jest": "^29.0.0",
-      "ts-jest": "^29.0.0",
-      eslint: "^8.0.0",
+      "@types/node": "^20.0.0",
       "@typescript-eslint/eslint-plugin": "^6.0.0",
-      prettier: "^3.0.0",
+      eslint: "^8.0.0",
+      jest: "^29.0.0",
       nodemon: "^3.0.0",
+      prettier: "^3.0.0",
+      "ts-jest": "^29.0.0",
+      "ts-node": "^10.9.0",
+      typescript: "^5.0.0",
     },
+    main: "dist/index.js",
+    name: "test-node-app",
+    scripts: {
+      build: "tsc",
+      dev: "node --watch src/index.ts",
+      format: "prettier --write src/**/*.ts",
+      lint: "eslint src --ext .ts",
+      start: "node dist/index.js",
+      test: "jest",
+      "test:coverage": "jest --coverage",
+      "test:watch": "jest --watch",
+    },
+    version: "1.0.0",
   },
-  files: ["tsconfig.json", "jest.config.js", "package-lock.json"],
 };
 
 export const genericProject = {
+  files: ["package.json", "README.md"],
   packageJson: {
-    name: "test-generic-project",
-    version: "1.0.0",
-    scripts: {
-      start: 'echo "Hello World"',
-      build: 'echo "Building..."',
-      test: 'echo "Testing..."',
-    },
     dependencies: {},
     devDependencies: {},
+    name: "test-generic-project",
+    scripts: {
+      build: 'echo "Building..."',
+      start: 'echo "Hello World"',
+      test: 'echo "Testing..."',
+    },
+    version: "1.0.0",
   },
-  files: ["package.json", "README.md"],
 };
 
 export const monorepoProject = {
-  packageJson: {
-    name: "test-monorepo",
-    version: "1.0.0",
-    private: true,
-    workspaces: ["packages/*", "apps/*"],
-    scripts: {
-      dev: "turbo run dev",
-      build: "turbo run build",
-      test: "turbo run test",
-      lint: "turbo run lint",
-      format: 'prettier --write "**/*.{ts,tsx,js,jsx,json,md}"',
-      "changeset:version": "changeset version",
-      "changeset:publish": "changeset publish",
-    },
-    dependencies: {},
-    devDependencies: {
-      turbo: "^1.0.0",
-      "@changesets/cli": "^2.26.0",
-      prettier: "^3.0.0",
-      eslint: "^8.0.0",
-      typescript: "^5.0.0",
-    },
-  },
   files: [
     "turbo.json",
     "pnpm-workspace.yaml",
@@ -167,88 +144,102 @@ export const monorepoProject = {
     "packages/ui/package.json",
     "apps/web/package.json",
   ],
+  packageJson: {
+    dependencies: {},
+    devDependencies: {
+      "@changesets/cli": "^2.26.0",
+      eslint: "^8.0.0",
+      prettier: "^3.0.0",
+      turbo: "^1.0.0",
+      typescript: "^5.0.0",
+    },
+    name: "test-monorepo",
+    private: true,
+    scripts: {
+      build: "turbo run build",
+      "changeset:publish": "changeset publish",
+      "changeset:version": "changeset version",
+      dev: "turbo run dev",
+      format: 'prettier --write "**/*.{ts,tsx,js,jsx,json,md}"',
+      lint: "turbo run lint",
+      test: "turbo run test",
+    },
+    version: "1.0.0",
+    workspaces: ["packages/*", "apps/*"],
+  },
 };
 
 export const customConfigProject = {
-  packageJson: {
-    name: "test-custom-config",
-    version: "1.0.0",
-    scripts: {
-      start: "node index.js",
-    },
-    dependencies: {},
-    devDependencies: {},
-  },
   configFile: {
     categories: {
       deploy: {
-        name: "🚀 Deploy",
-        description: "Deployment commands",
         commands: {
+          production: {
+            args: [
+              {
+                description: "Version to deploy",
+                name: "version",
+                required: true,
+              },
+            ],
+            command: "npm run deploy:prod",
+            description: "Deploy application to production",
+            env: {
+              API_URL: "https://api.example.com",
+              NODE_ENV: "production",
+            },
+            name: "Deploy to production",
+          },
           staging: {
-            name: "Deploy to staging",
             command: "npm run deploy:staging",
             description: "Deploy application to staging environment",
             env: {
-              NODE_ENV: "staging",
               API_URL: "https://api-staging.example.com",
+              NODE_ENV: "staging",
             },
-          },
-          production: {
-            name: "Deploy to production",
-            command: "npm run deploy:prod",
-            description: "Deploy application to production",
-            args: [
-              {
-                name: "version",
-                description: "Version to deploy",
-                required: true,
-              },
-            ],
-            env: {
-              NODE_ENV: "production",
-              API_URL: "https://api.example.com",
-            },
+            name: "Deploy to staging",
           },
         },
+        description: "Deployment commands",
+        name: "🚀 Deploy",
       },
       docker: {
-        name: "🐳 Docker",
-        description: "Docker commands",
         commands: {
           build: {
-            name: "Build Docker image",
+            args: [
+              {
+                default: "my-app",
+                description: "Docker image name",
+                name: "imageName",
+                required: true,
+              },
+            ],
             command: "docker build -t {{imageName}} .",
             description: "Build Docker image",
-            args: [
-              {
-                name: "imageName",
-                description: "Docker image name",
-                required: true,
-                default: "my-app",
-              },
-            ],
+            name: "Build Docker image",
           },
           run: {
-            name: "Run Docker container",
-            command: "docker run -p {{port}}:3000 {{imageName}}",
-            description: "Run Docker container",
             args: [
               {
-                name: "port",
-                description: "Port to bind",
-                required: false,
                 default: "3000",
+                description: "Port to bind",
+                name: "port",
+                required: false,
               },
               {
-                name: "imageName",
-                description: "Docker image name",
-                required: true,
                 default: "my-app",
+                description: "Docker image name",
+                name: "imageName",
+                required: true,
               },
             ],
+            command: "docker run -p {{port}}:3000 {{imageName}}",
+            description: "Run Docker container",
+            name: "Run Docker container",
           },
         },
+        description: "Docker commands",
+        name: "🐳 Docker",
       },
     },
     env: {
@@ -262,68 +253,58 @@ export const customConfigProject = {
     "docker-compose.yml",
     "package.json",
   ],
+  packageJson: {
+    dependencies: {},
+    devDependencies: {},
+    name: "test-custom-config",
+    scripts: {
+      start: "node index.js",
+    },
+    version: "1.0.0",
+  },
 };
 
 export const packageManagers = {
   bun: {
-    files: ["bun.lockb"],
     commands: {
+      dev: "bun run dev",
       install: "bun install",
       run: "bun run",
       test: "bun test",
-      dev: "bun run dev",
     },
+    files: ["bun.lockb"],
   },
   npm: {
-    files: ["package-lock.json"],
     commands: {
+      dev: "npm run dev",
       install: "npm install",
       run: "npm run",
       test: "npm test",
-      dev: "npm run dev",
     },
-  },
-  yarn: {
-    files: ["yarn.lock"],
-    commands: {
-      install: "yarn install",
-      run: "yarn",
-      test: "yarn test",
-      dev: "yarn dev",
-    },
+    files: ["package-lock.json"],
   },
   pnpm: {
-    files: ["pnpm-lock.yaml"],
     commands: {
+      dev: "pnpm dev",
       install: "pnpm install",
       run: "pnpm",
       test: "pnpm test",
-      dev: "pnpm dev",
     },
+    files: ["pnpm-lock.yaml"],
+  },
+  yarn: {
+    commands: {
+      dev: "yarn dev",
+      install: "yarn install",
+      run: "yarn",
+      test: "yarn test",
+    },
+    files: ["yarn.lock"],
   },
 };
 
 export const configFiles = {
-  javascript: {
-    filename: "script-runner.config.js",
-    content: `module.exports = {
-  categories: {
-    custom: {
-      name: '⚙️ Custom',
-      description: 'Custom commands',
-      commands: {
-        hello: {
-          name: 'Say hello',
-          command: 'echo "Hello from JS config"',
-          description: 'Print hello message',
-        },
-      },
-    },
-  },
-};`,
-  },
   esm: {
-    filename: "script-runner.config.mjs",
     content: `export default {
   categories: {
     custom: {
@@ -339,31 +320,49 @@ export const configFiles = {
     },
   },
 };`,
+    filename: "script-runner.config.mjs",
+  },
+  javascript: {
+    content: `module.exports = {
+  categories: {
+    custom: {
+      name: '⚙️ Custom',
+      description: 'Custom commands',
+      commands: {
+        hello: {
+          name: 'Say hello',
+          command: 'echo "Hello from JS config"',
+          description: 'Print hello message',
+        },
+      },
+    },
+  },
+};`,
+    filename: "script-runner.config.js",
   },
   json: {
-    filename: ".scriptrunnerrc.json",
     content: JSON.stringify(
       {
         categories: {
           custom: {
-            name: "⚙️ Custom",
-            description: "Custom commands",
             commands: {
               hello: {
-                name: "Say hello",
                 command: 'echo "Hello from JSON config"',
                 description: "Print hello message",
+                name: "Say hello",
               },
             },
+            description: "Custom commands",
+            name: "⚙️ Custom",
           },
         },
       },
       null,
       2
     ),
+    filename: ".scriptrunnerrc.json",
   },
   yaml: {
-    filename: ".scriptrunnerrc.yml",
     content: `categories:
   custom:
     name: ⚙️ Custom
@@ -373,26 +372,27 @@ export const configFiles = {
         name: Say hello
         command: echo "Hello from YAML config"
         description: Print hello message`,
+    filename: ".scriptrunnerrc.yml",
   },
 };
 
 export const errorScenarios = {
-  invalidPackageJson: {
-    packageJson: "{ invalid json",
-    files: ["package.json"],
-  },
-  missingPackageJson: {
-    files: ["README.md"],
-  },
   brokenConfigFile: {
+    configFile: "module.exports = { invalid: javascript",
+    files: ["script-runner.config.js", "package.json"],
     packageJson: {
       name: "test-broken-config",
       version: "1.0.0",
     },
-    configFile: "module.exports = { invalid: javascript",
-    files: ["script-runner.config.js", "package.json"],
   },
   emptyProject: {
     files: [],
+  },
+  invalidPackageJson: {
+    files: ["package.json"],
+    packageJson: "{ invalid json",
+  },
+  missingPackageJson: {
+    files: ["README.md"],
   },
 };

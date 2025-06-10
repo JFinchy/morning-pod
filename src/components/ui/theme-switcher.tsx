@@ -90,7 +90,7 @@ export function ThemeSwitcher() {
         onClick={() => setIsOpen(!isOpen)}
         ref={buttonRef}
       >
-        <Palette className="w-5 h-5" />
+        <Palette className="h-5 w-5" />
       </button>
 
       {isOpen && (
@@ -103,7 +103,7 @@ export function ThemeSwitcher() {
 
           {/* Dropdown - positioned to extend beyond sidebar */}
           <div
-            className={`fixed z-[250] w-80 bg-base-100 rounded-box shadow-2xl border border-base-300 p-2 ${
+            className={`bg-base-100 rounded-box border-base-300 fixed z-[250] w-80 border p-2 shadow-2xl ${
               dropdownPosition === "above" ? "bottom-16" : "top-16"
             }`}
             style={{
@@ -117,7 +117,7 @@ export function ThemeSwitcher() {
                 <span>Choose Theme</span>
               </li>
 
-              <li className="menu-title text-xs opacity-60 mt-2">
+              <li className="menu-title mt-2 text-xs opacity-60">
                 <span>Light Themes</span>
               </li>
 
@@ -131,19 +131,19 @@ export function ThemeSwitcher() {
                       onClick={() => handleThemeChange(theme.name)}
                     >
                       <div
-                        className="w-4 h-4 rounded-full bg-primary border-2 border-base-content/20"
+                        className="bg-primary border-base-content/20 h-4 w-4 rounded-full border-2"
                         data-theme={theme.name}
                       />
                       <span className="flex-1 text-left">{theme.label}</span>
                       {currentTheme === theme.name && (
-                        <Check className="w-4 h-4 text-primary" />
+                        <Check className="text-primary h-4 w-4" />
                       )}
                     </button>
                   </li>
                 ))}
               </div>
 
-              <li className="menu-title text-xs opacity-60 mt-4">
+              <li className="menu-title mt-4 text-xs opacity-60">
                 <span>Dark Themes</span>
               </li>
 
@@ -157,12 +157,12 @@ export function ThemeSwitcher() {
                       onClick={() => handleThemeChange(theme.name)}
                     >
                       <div
-                        className="w-4 h-4 rounded-full bg-primary border-2 border-base-content/20"
+                        className="bg-primary border-base-content/20 h-4 w-4 rounded-full border-2"
                         data-theme={theme.name}
                       />
                       <span className="flex-1 text-left">{theme.label}</span>
                       {currentTheme === theme.name && (
-                        <Check className="w-4 h-4 text-primary" />
+                        <Check className="text-primary h-4 w-4" />
                       )}
                     </button>
                   </li>

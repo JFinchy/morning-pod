@@ -26,12 +26,12 @@ export function EpisodeCardV1({
   // Handle undefined episode data
   if (!episode) {
     return (
-      <div className="card bg-base-100 shadow-sm border-0">
+      <div className="card bg-base-100 border-0 shadow-sm">
         <div className="card-body p-4">
           <div className="animate-pulse space-y-2">
-            <div className="h-4 bg-base-300 rounded w-3/4" />
-            <div className="h-3 bg-base-300 rounded w-full" />
-            <div className="h-3 bg-base-300 rounded w-2/3" />
+            <div className="bg-base-300 h-4 w-3/4 rounded" />
+            <div className="bg-base-300 h-3 w-full rounded" />
+            <div className="bg-base-300 h-3 w-2/3 rounded" />
           </div>
         </div>
       </div>
@@ -48,16 +48,16 @@ export function EpisodeCardV1({
 
   return (
     <div
-      className={`card bg-base-100 shadow-sm border border-base-300 hover:shadow-md transition-shadow ${className}`}
+      className={`card bg-base-100 border-base-300 border shadow-sm transition-shadow hover:shadow-md ${className}`}
     >
       <div className="card-body p-6">
         {/* Header */}
-        <div className="flex items-start justify-between gap-4 mb-3">
-          <div className="flex-1 min-w-0">
-            <h3 className="card-title text-base font-semibold line-clamp-2 text-base-content">
+        <div className="mb-3 flex items-start justify-between gap-4">
+          <div className="min-w-0 flex-1">
+            <h3 className="card-title text-base-content line-clamp-2 text-base font-semibold">
               {episode.title}
             </h3>
-            <p className="text-sm text-base-content/60 mt-1">
+            <p className="text-base-content/60 mt-1 text-sm">
               {episode.source?.name}
             </p>
           </div>
@@ -71,22 +71,22 @@ export function EpisodeCardV1({
         </div>
 
         {/* Summary */}
-        <p className="text-sm text-base-content/80 line-clamp-3 mb-4">
+        <p className="text-base-content/80 mb-4 line-clamp-3 text-sm">
           {episode.summary}
         </p>
 
         {/* Footer */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4 text-xs text-base-content/60">
+          <div className="text-base-content/60 flex items-center gap-4 text-xs">
             {episode.status === "ready" && (
               <>
                 <div className="flex items-center gap-1">
-                  <Clock className="w-3 h-3" />
+                  <Clock className="h-3 w-3" />
                   <span>{formatDuration(episode.duration)}</span>
                 </div>
                 {episode.playCount > 0 && (
                   <div className="flex items-center gap-1">
-                    <Headphones className="w-3 h-3" />
+                    <Headphones className="h-3 w-3" />
                     <span>{episode.playCount} plays</span>
                   </div>
                 )}
@@ -103,9 +103,9 @@ export function EpisodeCardV1({
               size="sm"
             >
               {episode.isPlaying ? (
-                <Pause className="w-4 h-4" />
+                <Pause className="h-4 w-4" />
               ) : (
-                <Play className="w-4 h-4" />
+                <Play className="h-4 w-4" />
               )}
             </Button>
           ) : episode.status === "generating" ? (
@@ -118,7 +118,7 @@ export function EpisodeCardV1({
           episode.progress !== undefined &&
           episode.progress > 0 && (
             <div className="mt-3">
-              <div className="progress progress-primary w-full h-1">
+              <div className="progress progress-primary h-1 w-full">
                 <div
                   className="progress-bar"
                   style={{ width: `${episode.progress}%` }}

@@ -12,21 +12,21 @@ export function EpisodeCardV3({ episode }: EpisodeCardV3Props) {
   // Handle undefined episode data
   if (!episode) {
     return (
-      <div className="flex items-center gap-4 p-4 hover:bg-base-200/50 rounded-lg transition-colors">
-        <div className="w-2 h-12 bg-base-300 rounded-full flex-shrink-0 animate-pulse" />
-        <div className="flex-1 min-w-0 space-y-2">
-          <div className="h-4 bg-base-300 rounded w-3/4" />
-          <div className="h-3 bg-base-300 rounded w-full" />
+      <div className="hover:bg-base-200/50 flex items-center gap-4 rounded-lg p-4 transition-colors">
+        <div className="bg-base-300 h-12 w-2 flex-shrink-0 animate-pulse rounded-full" />
+        <div className="min-w-0 flex-1 space-y-2">
+          <div className="bg-base-300 h-4 w-3/4 rounded" />
+          <div className="bg-base-300 h-3 w-full rounded" />
         </div>
-        <div className="w-8 h-8 bg-base-300 rounded-full animate-pulse" />
+        <div className="bg-base-300 h-8 w-8 animate-pulse rounded-full" />
       </div>
     );
   }
 
   return (
-    <div className="flex items-center gap-4 p-4 hover:bg-base-200/50 rounded-lg transition-colors">
+    <div className="hover:bg-base-200/50 flex items-center gap-4 rounded-lg p-4 transition-colors">
       <div
-        className={`w-2 h-12 rounded-full flex-shrink-0 ${
+        className={`h-12 w-2 flex-shrink-0 rounded-full ${
           episode.status === "ready"
             ? "bg-success"
             : episode.status === "generating"
@@ -34,13 +34,13 @@ export function EpisodeCardV3({ episode }: EpisodeCardV3Props) {
               : "bg-error"
         }`}
       />
-      <div className="flex-1 min-w-0">
-        <h3 className="font-medium text-sm truncate">{episode.title}</h3>
-        <p className="text-xs text-base-content/60 line-clamp-1">
+      <div className="min-w-0 flex-1">
+        <h3 className="truncate text-sm font-medium">{episode.title}</h3>
+        <p className="text-base-content/60 line-clamp-1 text-xs">
           {episode.summary}
         </p>
-        <div className="flex items-center gap-2 mt-1">
-          <span className="text-xs text-base-content/40">
+        <div className="mt-1 flex items-center gap-2">
+          <span className="text-base-content/40 text-xs">
             {episode.sourceId}
           </span>
           <span
@@ -58,7 +58,7 @@ export function EpisodeCardV3({ episode }: EpisodeCardV3Props) {
       </div>
       {episode.status === "ready" && (
         <button className="btn btn-circle btn-sm btn-ghost">
-          <Play className="w-4 h-4" />
+          <Play className="h-4 w-4" />
         </button>
       )}
     </div>

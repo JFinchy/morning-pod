@@ -109,10 +109,10 @@ export default function AnalyticsPage() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto p-6 space-y-8">
+    <div className="mx-auto max-w-6xl space-y-8 p-6">
       {/* Header */}
-      <div className="border-b border-base-300 pb-6">
-        <h1 className="text-3xl font-bold text-base-content">
+      <div className="border-base-300 border-b pb-6">
+        <h1 className="text-base-content text-3xl font-bold">
           Analytics Dashboard
         </h1>
         <p className="text-base-content/70 mt-2">
@@ -121,7 +121,7 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Status */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <div className="stats shadow">
           <div className="stat">
             <div className="stat-title">PostHog Status</div>
@@ -191,11 +191,11 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Event Testing */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <div className="card bg-base-100 shadow-lg">
           <div className="card-body">
             <h3 className="card-title text-secondary">Basic Events</h3>
-            <p className="text-sm text-base-content/70">
+            <p className="text-base-content/70 text-sm">
               User authentication, page views, and interactions
             </p>
             <div className="card-actions">
@@ -212,7 +212,7 @@ export default function AnalyticsPage() {
         <div className="card bg-base-100 shadow-lg">
           <div className="card-body">
             <h3 className="card-title text-accent">Podcast Generation</h3>
-            <p className="text-sm text-base-content/70">
+            <p className="text-base-content/70 text-sm">
               Complete podcast generation workflow analytics
             </p>
             <div className="card-actions">
@@ -233,7 +233,7 @@ export default function AnalyticsPage() {
 
           <div className="space-y-4">
             <div>
-              <h4 className="font-semibold text-base-content">
+              <h4 className="text-base-content font-semibold">
                 Client Components
               </h4>
               <div className="mockup-code text-xs">

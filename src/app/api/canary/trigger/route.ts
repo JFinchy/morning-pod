@@ -254,7 +254,12 @@ async function triggerAutomatedRollout(
 
 async function logTestFailure(
   testId: string,
-  testResult: { passed: boolean; score: number; summary: string },
+  testResult: {
+    error?: string;
+    passed: boolean;
+    score: number;
+    summary: string;
+  },
   config: TriggerRequest
 ) {
   // Log test failure for analysis

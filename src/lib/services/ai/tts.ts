@@ -13,6 +13,9 @@ import {
   type TTSResult,
 } from "./types";
 
+// Re-export types for external use
+export type { CostTracking, TTSOptions, TTSRequest, TTSResult } from "./types";
+
 /**
  * Configuration for Text-to-Speech service
  *

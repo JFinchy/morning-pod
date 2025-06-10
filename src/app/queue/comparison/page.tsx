@@ -65,17 +65,17 @@ export default function QueueComparisonPage() {
   };
 
   return (
-    <div className="min-h-screen bg-base-200">
+    <div className="bg-base-200 min-h-screen">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="mb-8 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Link className="btn btn-ghost btn-sm" href="/">
-              <ArrowLeft className="w-4 h-4" />
+              <ArrowLeft className="h-4 w-4" />
               Back to Home
             </Link>
             <div>
-              <h1 className="text-3xl font-bold text-base-content">
+              <h1 className="text-base-content text-3xl font-bold">
                 Queue Status Variants
               </h1>
               <p className="text-base-content/60 mt-1">
@@ -86,7 +86,7 @@ export default function QueueComparisonPage() {
           </div>
           <div className="flex items-center gap-2">
             <button className="btn btn-primary btn-sm" onClick={handleRefresh}>
-              <RefreshCw className="w-4 h-4" />
+              <RefreshCw className="h-4 w-4" />
               Refresh
             </button>
             <div className="form-control">
@@ -104,37 +104,37 @@ export default function QueueComparisonPage() {
         </div>
 
         {/* Design Philosophy */}
-        <div className="card bg-base-100 shadow-sm mb-8">
+        <div className="card bg-base-100 mb-8 shadow-sm">
           <div className="card-body">
             <h2 className="card-title text-primary mb-4">
               Queue Status Design Philosophy
             </h2>
-            <div className="grid md:grid-cols-3 gap-6">
+            <div className="grid gap-6 md:grid-cols-3">
               <div>
-                <h3 className="font-semibold text-base-content mb-2">
+                <h3 className="text-base-content mb-2 font-semibold">
                   V1: Traditional Progress
                 </h3>
-                <p className="text-sm text-base-content/70">
+                <p className="text-base-content/70 text-sm">
                   Familiar list-based interface with detailed progress bars,
                   comprehensive statistics, and clear error states. Perfect for
                   users who need complete information at a glance.
                 </p>
               </div>
               <div>
-                <h3 className="font-semibold text-base-content mb-2">
+                <h3 className="text-base-content mb-2 font-semibold">
                   V2: Real-time Dashboard
                 </h3>
-                <p className="text-sm text-base-content/70">
+                <p className="text-base-content/70 text-sm">
                   Modern dashboard approach with live updates, circular progress
                   indicators, and metric cards. Ideal for monitoring systems and
                   administrative interfaces.
                 </p>
               </div>
               <div>
-                <h3 className="font-semibold text-base-content mb-2">
+                <h3 className="text-base-content mb-2 font-semibold">
                   V3: Timeline Flow
                 </h3>
-                <p className="text-sm text-base-content/70">
+                <p className="text-base-content/70 text-sm">
                   Visual timeline showing queue progression with interactive
                   elements and compact display. Great for understanding process
                   flow and current pipeline status.
@@ -154,8 +154,8 @@ export default function QueueComparisonPage() {
                 {/* Variant Info */}
                 <div className="card bg-base-100 shadow-sm">
                   <div className="card-body p-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <h3 className="text-xl font-bold text-base-content">
+                    <div className="mb-3 flex items-center justify-between">
+                      <h3 className="text-base-content text-xl font-bold">
                         {variant.name}
                       </h3>
                       <div className="badge badge-primary badge-outline">
@@ -166,22 +166,22 @@ export default function QueueComparisonPage() {
                       {variant.description}
                     </p>
 
-                    <div className="grid md:grid-cols-2 gap-4 text-sm">
+                    <div className="grid gap-4 text-sm md:grid-cols-2">
                       <div>
-                        <h4 className="font-semibold text-base-content mb-1">
+                        <h4 className="text-base-content mb-1 font-semibold">
                           Strengths:
                         </h4>
                         <ul className="text-base-content/60 space-y-1">
                           {variant.strengths.map((strength, i) => (
                             <li className="flex items-center gap-2" key={i}>
-                              <div className="w-1 h-1 bg-primary rounded-full" />
+                              <div className="bg-primary h-1 w-1 rounded-full" />
                               {strength}
                             </li>
                           ))}
                         </ul>
                       </div>
                       <div>
-                        <h4 className="font-semibold text-base-content mb-1">
+                        <h4 className="text-base-content mb-1 font-semibold">
                           Best For:
                         </h4>
                         <p className="text-base-content/60">
@@ -194,10 +194,10 @@ export default function QueueComparisonPage() {
 
                 {/* Component Demo */}
                 <div className="card bg-base-100 shadow-sm">
-                  <div className="card-header p-4 border-b border-base-300">
+                  <div className="card-header border-base-300 border-b p-4">
                     <div className="flex items-center gap-2">
-                      <Settings className="w-4 h-4 text-primary" />
-                      <span className="font-medium text-base-content">
+                      <Settings className="text-primary h-4 w-4" />
+                      <span className="text-base-content font-medium">
                         Live Demo
                       </span>
                     </div>
@@ -217,23 +217,23 @@ export default function QueueComparisonPage() {
         </div>
 
         {/* Mock Data Info */}
-        <div className="card bg-base-100 shadow-sm mt-8">
+        <div className="card bg-base-100 mt-8 shadow-sm">
           <div className="card-body">
             <h3 className="card-title text-base-content mb-4">
               Sample Queue Data
             </h3>
-            <div className="grid md:grid-cols-2 gap-6 text-sm">
+            <div className="grid gap-6 text-sm md:grid-cols-2">
               <div>
-                <h4 className="font-semibold text-base-content mb-2">
+                <h4 className="text-base-content mb-2 font-semibold">
                   Queue Items ({mockQueueItems.length})
                 </h4>
-                <ul className="space-y-1 text-base-content/60">
+                <ul className="text-base-content/60 space-y-1">
                   {mockQueueItems.map((item, index) => (
                     <li className="flex items-center gap-2" key={item.id}>
                       <span className="font-mono text-xs">#{index + 1}</span>
                       <span className="truncate">{item.episodeTitle}</span>
                       <span
-                        className={`text-xs px-1 py-0.5 rounded ${(() => {
+                        className={`rounded px-1 py-0.5 text-xs ${(() => {
                           if (item.status === "failed")
                             return "bg-error/10 text-error";
                           if (item.status === "completed")
@@ -250,10 +250,10 @@ export default function QueueComparisonPage() {
                 </ul>
               </div>
               <div>
-                <h4 className="font-semibold text-base-content mb-2">
+                <h4 className="text-base-content mb-2 font-semibold">
                   Statistics
                 </h4>
-                <div className="space-y-1 text-base-content/60">
+                <div className="text-base-content/60 space-y-1">
                   <div>Total in Queue: {mockGenerationStats.totalInQueue}</div>
                   <div>
                     Currently Processing:{" "}
@@ -279,7 +279,7 @@ export default function QueueComparisonPage() {
         </div>
 
         {/* Navigation Footer */}
-        <div className="flex justify-center mt-8">
+        <div className="mt-8 flex justify-center">
           <div className="join">
             <Link
               className="btn btn-outline join-item"

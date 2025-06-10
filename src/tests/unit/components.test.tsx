@@ -34,7 +34,7 @@ function MockDashboardCard({
         <h3 className="card-title text-sm font-medium">{title}</h3>
         <p className="text-2xl font-bold">{value}</p>
         {description && (
-          <p className="text-xs text-base-content/70">{description}</p>
+          <p className="text-base-content/70 text-xs">{description}</p>
         )}
       </div>
     </div>
@@ -57,15 +57,15 @@ function MockEpisodeCard({
   }[status];
 
   return (
-    <div className="card bg-base-100 shadow-sm border-0">
+    <div className="card bg-base-100 border-0 shadow-sm">
       <div className="card-body p-4">
-        <div className="flex items-center justify-between mb-2">
+        <div className="mb-2 flex items-center justify-between">
           <h3 className="card-title text-sm font-medium">{title}</h3>
           <span className={`badge badge-sm ${statusColor}`}>{status}</span>
         </div>
-        <p className="text-xs text-base-content/70 line-clamp-2">{summary}</p>
+        <p className="text-base-content/70 line-clamp-2 text-xs">{summary}</p>
         {status === "ready" && (
-          <div className="card-actions justify-end mt-2">
+          <div className="card-actions mt-2 justify-end">
             <MockButton>Play</MockButton>
           </div>
         )}
@@ -98,7 +98,7 @@ function MockNavigation() {
       </div>
       <div className="navbar-end">
         <button aria-label="Menu" className="btn btn-square btn-ghost">
-          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+          <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
             <path
               clipRule="evenodd"
               d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"
@@ -123,7 +123,7 @@ function MockDashboard() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
           <MockDashboardCard title="Total Episodes" value={42} />
           <MockDashboardCard title="Total Play Time" value="2.5 hours" />
           <MockDashboardCard title="Episodes This Week" value={7} />
@@ -131,8 +131,8 @@ function MockDashboard() {
         </div>
 
         <section>
-          <h2 className="text-xl font-semibold mb-4">Recent Episodes</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <h2 className="mb-4 text-xl font-semibold">Recent Episodes</h2>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
             <MockEpisodeCard
               status="ready"
               summary="Today in tech: OpenAI announces new features, Apple releases iOS update, and more..."

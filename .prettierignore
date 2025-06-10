@@ -20,3 +20,8 @@ bun.lockb
 
 # Generated files
 .husky/_/ 
+
+# Template files with handlebars syntax (all template directories)
+packages/create-finch-app/src/templates/**/*
+packages/create-finch-app/dist/templates/**/*
+packages/create-finch-app/bin/**/*

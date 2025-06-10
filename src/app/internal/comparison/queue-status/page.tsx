@@ -12,10 +12,10 @@ export default function QueueStatusShowcase() {
     <div className="space-y-8">
       {/* Header */}
       <div className="text-center">
-        <h1 className="text-3xl font-bold text-base-content mb-2">
+        <h1 className="text-base-content mb-2 text-3xl font-bold">
           Queue Status Variants
         </h1>
-        <p className="text-base-content/60 max-w-2xl mx-auto">
+        <p className="text-base-content/60 mx-auto max-w-2xl">
           Compare different queue monitoring designs for episode generation
           processing.
         </p>
@@ -24,7 +24,7 @@ export default function QueueStatusShowcase() {
       {/* Queue Variants */}
       <div className="space-y-8">
         <div className="space-y-4">
-          <h3 className="text-xl font-semibold text-base-content">
+          <h3 className="text-base-content text-xl font-semibold">
             V1: Progress Bar Layout
           </h3>
           <QueueStatusV1
@@ -34,7 +34,7 @@ export default function QueueStatusShowcase() {
         </div>
 
         <div className="space-y-4">
-          <h3 className="text-xl font-semibold text-base-content">
+          <h3 className="text-base-content text-xl font-semibold">
             V2: Real-time Dashboard
           </h3>
           <QueueStatusV2
@@ -44,7 +44,7 @@ export default function QueueStatusShowcase() {
         </div>
 
         <div className="space-y-4">
-          <h3 className="text-xl font-semibold text-base-content">
+          <h3 className="text-base-content text-xl font-semibold">
             V3: Timeline Visualization
           </h3>
           <QueueStatusV3

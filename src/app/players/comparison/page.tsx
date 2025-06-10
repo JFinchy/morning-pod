@@ -58,18 +58,18 @@ export default function PlayerComparisonPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-base-200">
+    <div className="bg-base-200 min-h-screen">
       {/* Header */}
-      <div className="bg-base-100 border-b border-base-300">
+      <div className="bg-base-100 border-base-300 border-b">
         <div className="container mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Link className="btn btn-ghost btn-sm" href="/">
-                <ArrowLeft className="w-4 h-4" />
+                <ArrowLeft className="h-4 w-4" />
                 Back
               </Link>
               <div>
-                <h1 className="text-2xl font-bold text-base-content">
+                <h1 className="text-base-content text-2xl font-bold">
                   Episode Player Variants
                 </h1>
                 <p className="text-base-content/60">
@@ -80,7 +80,7 @@ export default function PlayerComparisonPage() {
 
             <div className="flex items-center gap-3">
               <button className="btn btn-ghost btn-sm">
-                <Settings className="w-4 h-4" />
+                <Settings className="h-4 w-4" />
                 Settings
               </button>
             </div>
@@ -90,9 +90,9 @@ export default function PlayerComparisonPage() {
 
       <div className="container mx-auto px-4 py-8">
         {/* Episode Selector */}
-        <div className="card bg-base-100 shadow-sm mb-8">
+        <div className="card bg-base-100 mb-8 shadow-sm">
           <div className="card-body p-6">
-            <h2 className="font-semibold text-lg mb-4">Test Episode</h2>
+            <h2 className="mb-4 text-lg font-semibold">Test Episode</h2>
             <div className="flex flex-wrap gap-2">
               {mockEpisodes.map((ep, index) => (
                 <button
@@ -127,7 +127,7 @@ export default function PlayerComparisonPage() {
                   type="range"
                   value={currentTime}
                 />
-                <span className="text-sm text-base-content/60">
+                <span className="text-base-content/60 text-sm">
                   {Math.floor(currentTime / 60)}:
                   {(currentTime % 60).toString().padStart(2, "0")}
                 </span>
@@ -146,19 +146,19 @@ export default function PlayerComparisonPage() {
                 {/* Variant Info */}
                 <div className="card bg-base-100 shadow-sm">
                   <div className="card-body p-4">
-                    <h3 className="font-semibold text-lg text-primary">
+                    <h3 className="text-primary text-lg font-semibold">
                       {variant.name}
                     </h3>
-                    <p className="text-sm text-base-content/70 mb-3">
+                    <p className="text-base-content/70 mb-3 text-sm">
                       {variant.description}
                     </p>
 
                     <div className="space-y-2">
                       <div>
-                        <span className="text-xs font-medium text-base-content/60">
+                        <span className="text-base-content/60 text-xs font-medium">
                           Strengths:
                         </span>
-                        <ul className="text-xs text-base-content/70 ml-2">
+                        <ul className="text-base-content/70 ml-2 text-xs">
                           {variant.strengths.map((strength, i) => (
                             <li key={i}>• {strength}</li>
                           ))}
@@ -166,10 +166,10 @@ export default function PlayerComparisonPage() {
                       </div>
 
                       <div>
-                        <span className="text-xs font-medium text-base-content/60">
+                        <span className="text-base-content/60 text-xs font-medium">
                           Best for:
                         </span>
-                        <p className="text-xs text-base-content/70">
+                        <p className="text-base-content/70 text-xs">
                           {variant.useCase}
                         </p>
                       </div>
@@ -196,9 +196,9 @@ export default function PlayerComparisonPage() {
         </div>
 
         {/* Design Notes */}
-        <div className="card bg-base-100 shadow-sm mt-8">
+        <div className="card bg-base-100 mt-8 shadow-sm">
           <div className="card-body p-6">
-            <h2 className="font-semibold text-lg mb-4">Design Philosophy</h2>
+            <h2 className="mb-4 text-lg font-semibold">Design Philosophy</h2>
             <div className="prose prose-sm">
               <p>
                 Each player variant targets different user preferences and use
