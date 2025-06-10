@@ -40,7 +40,7 @@ graph TD
 
 ```bash
 # Main interactive menu - choose category then command
-bun run script
+bun run interactive
 
 # Category interactive menu - choose command within category
 bun run test
@@ -55,11 +55,14 @@ bun run branches
 ### Direct Execution
 
 ```bash
-# Run specific commands directly
-bun run test unit
-bun run dev build
-bun run quality lint
-bun run db migrate
+# Run specific commands directly through interactive script
+bun run interactive quality lint
+bun run interactive db migrate
+
+# Or use standard commands
+bun run dev                     # Standard Next.js dev server
+bun run test                    # Standard Vitest tests
+bun run lint                    # Standard ESLint
 ```
 
 ### Flag Shortcuts
