@@ -8,7 +8,7 @@ import {
   formatDuration,
   getStatusColor,
   getStatusText,
-} from "@/lib/mock-data/episodes";
+} from "@/lib/mock-data/mocks";
 
 interface EpisodeCardV1Props {
   className?: string;
@@ -64,9 +64,17 @@ export function EpisodeCardV1({
 
           {/* Status Badge */}
           <div
-            className={`badge badge-${getStatusColor(episode.status)} badge-sm`}
+            className={`badge badge-${
+              episode.status === "ready"
+                ? "success"
+                : episode.status === "generating"
+                  ? "warning"
+                  : episode.status === "failed"
+                    ? "error"
+                    : "info"
+            } badge-sm`}
           >
-            {getStatusText(episode.status)}
+            {episode.status}
           </div>
         </div>
 

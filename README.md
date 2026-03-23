@@ -33,18 +33,19 @@ Morning Pod is an AI-powered podcast generation platform that transforms news so
 
 ## 🚀 Development Status
 
-**Current Phase**: MVP Audio Generation Pipeline  
-**Foundation Complete**: ✅ Web scraping system with full database persistence  
-**Next**: AI summarization and text-to-speech integration for on-demand episode generation
+**Current Phase**: v0.1.0-beta (Client Focused & Polished)  
+**Foundation Complete**: ✅ End-to-end persistent generation pipeline  
+**Latest Enhancements**: Persistent global audio playback, autonomous RSS discovery, and WCAG AA accessibility compliance.
 
 ## 🌟 Key Features
 
-- **AI Content Generation**: Automated podcast creation from news sources (TLDR, Hacker News, Morning Brew)
-- **Multi-Theme Support**: 30+ DaisyUI themes with accessibility testing
-- **Component-First Architecture**: Reusable UI components with variant testing
-- **Real-time Queue Management**: Live episode generation status tracking
-- **Responsive Design**: Mobile-first with cross-browser compatibility
-- **Comprehensive Testing**: Unit, integration, E2E, and accessibility testing
+- **Autonomous Discovery**: Real-time RSS integration for Hacker News, TLDR Tech, and Morning Brew with background refreshing.
+- **Persistent Global Audio**: Seamless, layout-level playback that survives navigation and page refreshes.
+- **Real-time Generation**: Database-backed progress tracking (0-100%) for all AI pipeline stages.
+- **Discovery Hub**: Centralized `/discover` page for browsing headlines and instant podcast creation.
+- **Flexible Storage**: Production-ready Vercel Blob integration with automatic local filesystem fallback for development.
+- **WCAG AA Compliance**: High-contrast, keyboard-navigable interface across 30+ themes.
+- **Isolated Admin Tools**: Clean separation between user features and technical management tools under `/internal`.
 
 ## 🚀 Quick Start
 

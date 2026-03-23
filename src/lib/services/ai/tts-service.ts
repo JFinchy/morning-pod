@@ -3,6 +3,8 @@ import { del, list, put } from "@vercel/blob";
 import { createHash } from "crypto";
 import OpenAI from "openai";
 
+import { GoogleTTSService } from "./google-tts";
+
 import {
   AUDIO_FORMAT_SPECS,
   type AudioCacheEntry,
@@ -19,6 +21,7 @@ import {
   type TTSRequest,
   type TTSResponse,
   type VoiceType,
+  TTSError,
 } from "./tts-types";
 
 export class TTSService {
@@ -27,6 +30,7 @@ export class TTSService {
   private history: TTSHistory[] = [];
   private metrics: TTSMetrics;
   private openai: null | OpenAI = null;
+  private googleService: GoogleTTSService | null = null;
 
   constructor(config: Partial<TTSConfig> = {}) {
     this.config = { ...DEFAULT_TTS_CONFIG, ...config };
@@ -411,9 +415,35 @@ export class TTSService {
       case "openai":
         return this.generateOpenAIAudio(request);
       case "google":
+        if (!this.googleService) {
+          throw new TTSError(
+            "Google TTS not initialized",
+            "API_ERROR",
+            "google",
+            false
+          );
+        }
+
+        const result = await this.googleService.synthesizeSpeech(request);
+
+        if (!result.success || !result.audioBuffer) {
+          throw new TTSError(
+            result.error || "Google TTS generation failed",
+            "API_ERROR",
+            "google",
+            false
+          );
+        }
+
+        // Return ArrayBuffer since the caller expects ArrayBuffer for storage
+        return result.audioBuffer.buffer.slice(
+          result.audioBuffer.byteOffset,
+          result.audioBuffer.byteOffset + result.audioBuffer.byteLength
+        ) as ArrayBuffer;
+      case "gemini":
         throw new TTSError(
-          "Google TTS not yet implemented",
-          "NOT_IMPLEMENTED",
+          "Gemini API currently only supports Summarization. Please use OpenAI or Google Cloud for TTS.",
+          "INVALID_PROVIDER",
           provider,
           false
         );
@@ -448,6 +478,7 @@ export class TTSService {
       cacheHitRate: 0,
       costByProvider: {
         elevenlabs: 0,
+        gemini: 0,
         google: 0,
         local: 0,
         openai: 0,
@@ -479,6 +510,14 @@ export class TTSService {
       this.openai = new OpenAI({
         apiKey: process.env.OPENAI_API_KEY,
       });
+    }
+
+    // Initialize Google TTS if project ID is available
+    if (
+      process.env.GOOGLE_CLOUD_PROJECT_ID &&
+      this.config.provider === "google"
+    ) {
+      this.googleService = new GoogleTTSService();
     }
   }
 
@@ -618,19 +657,6 @@ export class TTSService {
         false
       );
     }
-  }
-}
-
-// Create TTSError class
-class TTSError extends Error implements TTSError {
-  constructor(
-    message: string,
-    public code: string,
-    public provider?: TTSProvider,
-    public retryable: boolean = false
-  ) {
-    super(message);
-    this.name = "TTSError";
   }
 }
 

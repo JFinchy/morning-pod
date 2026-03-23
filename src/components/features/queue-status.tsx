@@ -14,11 +14,13 @@ import { useEffect, useState } from "react";
 
 import {
   formatTimeRemaining,
-  type GenerationStats,
   getStatusColor,
   getStatusLabel,
+  mockGenerationStats,
+  mockQueueItems,
+  type GenerationStats,
   type QueueItem,
-} from "@/lib/mock-data";
+} from "@/lib/mock-data/mocks";
 
 interface QueueStatusProps {
   maxVisible?: number;

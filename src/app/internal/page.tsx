@@ -9,8 +9,10 @@ import {
   Flag,
   Layout,
   Palette,
+  PlaySquare,
   Search,
   Volume2,
+  Zap,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -41,23 +43,50 @@ export default function InternalPage() {
       status: "Complete",
       variants: ["Progress Bar", "Dashboard", "Timeline"],
     },
+    {
+      description: "Rich detail views for individual podcast episodes",
+      href: "/internal/comparison/episode-details",
+      name: "Episode Details",
+      status: "Active",
+      variants: ["Interactive", "Timeline", "Minimal"],
+    },
+    {
+      description: "Content source and scraping strategy comparison",
+      href: "/internal/comparison/scraping",
+      name: "Scraping Strategies",
+      status: "Complete",
+      variants: ["RSS", "Direct", "API"],
+    },
   ];
 
   const developmentPages = [
+    {
+      category: "Content Pipeline",
+      description: "Manage and browse episodes in the admin interface",
+      href: "/internal/episodes",
+      name: "Episodes Admin",
+      status: "Active",
+    },
+    {
+      category: "Content Pipeline",
+      description: "Manage news sources and configure scraping preferences",
+      href: "/internal/sources",
+      name: "Sources Admin",
+      status: "Active",
+    },
+    {
+      category: "Content Pipeline",
+      description: "Monitor episode generation progress and queue status",
+      href: "/internal/queue",
+      name: "Generation Queue",
+      status: "Active",
+    },
     {
       category: "Content Pipeline",
       description:
         "Debug and monitor content scraping services with real-time metrics",
       href: "/internal/scraping",
       name: "Scraping Development Tools",
-      status: "Active",
-    },
-    {
-      category: "Content Pipeline",
-      description:
-        "Compare content sources and scraping strategies for optimal results",
-      href: "/internal/scraping/comparison",
-      name: "Scraping Strategy Comparison",
       status: "Active",
     },
     {
@@ -141,7 +170,7 @@ export default function InternalPage() {
         <div className="card bg-base-100 shadow-sm border border-base-300">
           <div className="card-body p-6">
             <h2 className="text-xl font-semibold mb-4">Development Tools</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <Link
                 className="block p-4 border border-base-300 rounded-lg hover:bg-base-200/50 transition-colors"
                 href="/api/trpc-ui"
@@ -161,6 +190,26 @@ export default function InternalPage() {
                 </div>
               </Link>
 
+              <Link
+                className="block p-4 border border-base-300 rounded-lg hover:bg-base-200/50 transition-colors"
+                href="/internal/test-mock"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-info/10 rounded-lg flex items-center justify-center">
+                    <Zap className="w-5 h-5 text-info" />
+                  </div>
+                  <div>
+                    <h3 className="font-medium text-base-content">
+                      Mock Generation
+                    </h3>
+                    <p className="text-sm text-base-content/60">
+                      Test pipeline with NASA samples
+                    </p>
+                  </div>
+                  <ExternalLink className="w-4 h-4 text-base-content/40 ml-auto" />
+                </div>
+              </Link>
+
               <div className="p-4 border border-base-300 rounded-lg opacity-50">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-base-300 rounded-lg flex items-center justify-center">
@@ -171,7 +220,7 @@ export default function InternalPage() {
                       Performance Monitor
                     </h3>
                     <p className="text-sm text-base-content/40">
-                      Coming soon - Real-time performance metrics
+                      Coming soon - Real-time metrics
                     </p>
                   </div>
                 </div>
@@ -373,22 +422,22 @@ export default function InternalPage() {
             <div className="flex flex-wrap justify-center gap-2">
               <Link href="/">
                 <Button size="sm" variant="primary">
-                  Dashboard
+                  Home (Client)
                 </Button>
               </Link>
-              <Link href="/episodes">
+              <Link href="/internal/episodes">
                 <Button btnStyle="outline" size="sm">
-                  Episodes
+                  Episodes Admin
                 </Button>
               </Link>
-              <Link href="/sources">
+              <Link href="/internal/sources">
                 <Button btnStyle="outline" size="sm">
-                  Sources
+                  Sources Admin
                 </Button>
               </Link>
-              <Link href="/queue">
+              <Link href="/internal/queue">
                 <Button btnStyle="outline" size="sm">
-                  Queue
+                  Queue Admin
                 </Button>
               </Link>
             </div>

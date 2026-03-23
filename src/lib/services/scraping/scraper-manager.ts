@@ -6,6 +6,7 @@ import { type NewScrapedContent, scrapedContent } from "@/lib/db/schema";
 import { HackerNewsScraper } from "./hackernews-scraper";
 import { MorningBrewScraper } from "./morningbrew-scraper";
 import { TLDRScraper } from "./tldr-scraper";
+import { RssScraper } from "./rss-scraper";
 import {
   type BaseScraper,
   type ScrapedContent,
@@ -221,19 +222,46 @@ export class ScraperManager {
 
   private initializeScrapers(): void {
     // Initialize available scrapers
-    const availableScrapers = {
-      hackernews: new HackerNewsScraper(),
-      morningbrew: new MorningBrewScraper(),
-      tldr: new TLDRScraper(),
+    const availableScrapers: Record<string, BaseScraper> = {
+      hackernews: new RssScraper({
+        baseUrl: "https://news.ycombinator.com",
+        category: "technology",
+        name: "Hacker News",
+        sourceId: "hacker-news",
+        rateLimit: 10,
+        retries: 3,
+        selectors: {},
+        timeout: 10000,
+        feedUrl: "https://news.ycombinator.com/rss",
+      }),
+      morningbrew: new RssScraper({
+        baseUrl: "https://morningbrew.com",
+        category: "business",
+        name: "Morning Brew",
+        sourceId: "morning-brew",
+        rateLimit: 10,
+        retries: 3,
+        selectors: {},
+        timeout: 10000,
+        feedUrl: "https://www.morningbrew.com/feed.xml",
+      }),
+      tldr: new RssScraper({
+        baseUrl: "https://tldr.tech",
+        category: "technology",
+        name: "TLDR Tech",
+        sourceId: "tldr",
+        rateLimit: 10,
+        retries: 3,
+        selectors: {},
+        timeout: 10000,
+        feedUrl: "https://tldr.tech/api/rss/tech",
+      }),
     };
 
     // Only enable configured sources
     for (const source of this.config.enabledSources) {
-      if (availableScrapers[source as keyof typeof availableScrapers]) {
-        this.scrapers.set(
-          source,
-          availableScrapers[source as keyof typeof availableScrapers]
-        );
+      if (availableScrapers[source]) {
+        this.scrapers.set(source, availableScrapers[source]);
       }
     }
   }
@@ -247,12 +275,18 @@ export class ScraperManager {
     for (const item of content) {
       // Check if content already exists by hash
       const existing = await db
-        .select({ id: scrapedContent.id })
+        .select({
+          id: scrapedContent.id,
+          contentHash: scrapedContent.contentHash,
+        })
         .from(scrapedContent)
         .where(eq(scrapedContent.contentHash, item.contentHash))
         .limit(1);
 
       if (existing.length === 0) {
+        console.log(
+          `ScraperManager: New content detected: "${item.title.slice(0, 30)}..." hash=${item.contentHash.slice(0, 10)}`
+        );
         // Content doesn't exist, prepare for insertion
         contentToSave.push({
           category: item.category,
@@ -265,12 +299,17 @@ export class ScraperManager {
           }),
           publishedAt: item.publishedAt,
           source: item.source,
+          sourceId: item.sourceId,
           status: "raw",
           summary: item.summary,
           tags: item.tags ? JSON.stringify(item.tags) : null,
           title: item.title,
           url: item.url,
         });
+      } else {
+        console.log(
+          `ScraperManager: Duplicate skipped: "${item.title.slice(0, 30)}..." hash=${item.contentHash.slice(0, 10)} matches ID=${existing[0].id}`
+        );
       }
     }
 

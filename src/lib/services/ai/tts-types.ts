@@ -1,5 +1,10 @@
 // Text-to-Speech Service Types for podcast audio generation
-export type TTSProvider = "elevenlabs" | "google" | "local" | "openai";
+export type TTSProvider =
+  | "elevenlabs"
+  | "gemini"
+  | "google"
+  | "local"
+  | "openai";
 
 export type VoiceType =
   // OpenAI voices
@@ -140,10 +145,16 @@ export interface VoiceConfig {
   voiceId: VoiceType;
 }
 
-export interface TTSError extends Error {
-  code: string;
-  provider?: TTSProvider;
-  retryable: boolean;
+export class TTSError extends Error {
+  constructor(
+    message: string,
+    public code: string,
+    public provider?: TTSProvider,
+    public retryable: boolean = false
+  ) {
+    super(message);
+    this.name = "TTSError";
+  }
 }
 
 // Configuration constants
@@ -240,6 +251,7 @@ export const SUPPORTED_VOICES: VoiceConfig[] = [
 
 export const TTS_COST_PER_1K_CHARS: Record<TTSProvider, number> = {
   elevenlabs: 0.3, // Premium but higher quality
+  gemini: 0.001, // Placeholder, needs actual pricing
   google: 0.016, // Google Cloud TTS pricing
   local: 0.0, // Free but requires setup
   openai: 0.015, // $15 per 1M characters

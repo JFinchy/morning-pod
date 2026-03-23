@@ -3,7 +3,7 @@
 import { MoreHorizontal, Pause, Play, Volume2 } from "lucide-react";
 import { useRef, useState } from "react";
 
-import { type Episode } from "@/lib/mock-data/episodes";
+import { type Episode } from "@/lib/db/schema";
 
 interface EpisodePlayerV3Props {
   currentTime?: number;
@@ -100,8 +100,8 @@ export function EpisodePlayerV3({
           <h3 className="font-semibold text-sm text-base-content truncate">
             {episode.title}
           </h3>
-          <p className="text-xs text-base-content/60">
-            {episode.source?.name || `Source ${episode.sourceId}`}
+          <p className="text-sm text-base-content/60">
+            {`Source ${episode.sourceId}`}
           </p>
         </div>
         <button className="btn btn-ghost btn-xs">

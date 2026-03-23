@@ -2,13 +2,13 @@ import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 import { type NextRequest, NextResponse } from "next/server";
 
 import { securityConfig } from "../../../../lib/config/security";
-import { appMockRouter } from "../../../../lib/trpc/root-mock";
-import { createTRPCMockContext } from "../../../../lib/trpc/server-mock";
+import { appRouter } from "../../../../lib/trpc/root";
+import { createTRPCContext } from "../../../../lib/trpc/server";
 import { withApiMiddleware } from "../../../../lib/utils/api-middleware";
 
 const baseHandler = (req: NextRequest) =>
   fetchRequestHandler({
-    createContext: createTRPCMockContext,
+    createContext: createTRPCContext,
     endpoint: "/api/trpc",
     onError:
       process.env.NODE_ENV === "development"
@@ -19,7 +19,7 @@ const baseHandler = (req: NextRequest) =>
           }
         : undefined,
     req,
-    router: appMockRouter,
+    router: appRouter,
   });
 
 // Wrap handler with middleware

@@ -1,5 +1,7 @@
 import { createId } from "@paralleldrive/cuid2";
 import { del, head, put } from "@vercel/blob";
+import fs from "fs/promises";
+import path from "path";
 
 export interface BlobUploadOptions {
   addRandomSuffix?: boolean;
@@ -36,25 +38,51 @@ export interface BlobInfoResult {
 
 export class BlobStorageService {
   private readonly baseUrl: string;
+  private readonly isLocal: boolean;
+  private readonly localPath: string;
 
   constructor() {
     // Vercel Blob automatically uses BLOB_READ_WRITE_TOKEN from environment
     this.baseUrl =
       process.env.BLOB_STORE_URL || "https://blob.vercel-storage.com";
+
+    // Check if we should use local storage
+    this.isLocal = !process.env.BLOB_READ_WRITE_TOKEN;
+    this.localPath = path.join(process.cwd(), "public", "uploads", "audio");
+
+    if (this.isLocal) {
+      console.log("🛠️ Using local storage for audio files:", this.localPath);
+      // Ensure local directory exists (async but constructor is sync, so we just log)
+      this.ensureLocalDir().catch(console.error);
+    }
+  }
+
+  private async ensureLocalDir() {
+    try {
+      await fs.mkdir(this.localPath, { recursive: true });
+    } catch (error) {
+      console.error("Failed to create local audio directory:", error);
+    }
   }
 
   /**
-   * Delete audio file from Vercel Blob storage
+   * Delete audio file
    */
   async deleteAudio(url: string): Promise<BlobDeleteResult> {
     try {
-      await del(url);
+      if (this.isLocal) {
+        const filename = path.basename(url);
+        const filePath = path.join(this.localPath, filename);
+        await fs.unlink(filePath);
+      } else {
+        await del(url);
+      }
 
       return {
         success: true,
       };
     } catch (error) {
-      console.error("Blob delete error:", error);
+      console.error("Storage delete error:", error);
 
       return {
         error: error instanceof Error ? error.message : "Unknown delete error",
@@ -73,10 +101,24 @@ export class BlobStorageService {
   }
 
   /**
-   * Get information about a blob file
+   * Get information about a file
    */
   async getAudioInfo(url: string): Promise<BlobInfoResult> {
     try {
+      if (this.isLocal) {
+        const filename = path.basename(url);
+        const filePath = path.join(this.localPath, filename);
+        const stats = await fs.stat(filePath);
+
+        return {
+          contentType: "audio/mpeg",
+          exists: true,
+          size: stats.size,
+          success: true,
+          uploadedAt: stats.mtime,
+        };
+      }
+
       const info = await head(url);
 
       return {
@@ -87,10 +129,13 @@ export class BlobStorageService {
         uploadedAt: info.uploadedAt,
       };
     } catch (error) {
-      console.error("Blob info error:", error);
+      console.error("Storage info error:", error);
 
       // If the error is 404, the file doesn't exist
-      if (error instanceof Error && error.message.includes("404")) {
+      if (
+        error instanceof Error &&
+        (error.message.includes("404") || (error as any).code === "ENOENT")
+      ) {
         return {
           exists: false,
           success: true,
@@ -105,32 +150,7 @@ export class BlobStorageService {
   }
 
   /**
-   * Get storage usage statistics (if available)
-   */
-  async getStorageStats(): Promise<{
-    error?: string;
-    success: boolean;
-    totalFiles?: number;
-    totalSize?: number;
-  }> {
-    try {
-      // Note: Vercel Blob doesn't provide a direct API for listing all files
-      // This would need to be tracked separately in your database
-      return {
-        success: true,
-        totalFiles: 0,
-        totalSize: 0,
-      };
-    } catch (error) {
-      return {
-        error: error instanceof Error ? error.message : "Unknown stats error",
-        success: false,
-      };
-    }
-  }
-
-  /**
-   * Upload audio buffer to Vercel Blob storage
+   * Upload audio buffer
    */
   async uploadAudio(
     audioBuffer: Buffer,
@@ -151,6 +171,27 @@ export class BlobStorageService {
       // Determine content type
       const contentType = options?.contentType || "audio/mpeg";
 
+      if (this.isLocal) {
+        await this.ensureLocalDir();
+        const filePath = path.join(this.localPath, filename);
+        await fs.writeFile(filePath, audioBuffer);
+
+        // Return local relative URL
+        const url = `/uploads/audio/${filename}`;
+
+        return {
+          metadata: {
+            contentType,
+            filename,
+            uploadTime: Date.now() - startTime,
+          },
+          pathname: url,
+          size: audioBuffer.length,
+          success: true,
+          url,
+        };
+      }
+
       // Upload to Vercel Blob
       const blob = await put(filename, audioBuffer, {
         access: "public",
@@ -169,7 +210,7 @@ export class BlobStorageService {
         url: blob.url,
       };
     } catch (error) {
-      console.error("Blob upload error:", error);
+      console.error("Storage upload error:", error);
 
       return {
         error: error instanceof Error ? error.message : "Unknown upload error",

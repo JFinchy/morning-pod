@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { mockEpisodes } from "../../mock-data/episodes";
+import { mockEpisodes } from "../../mock-data/mocks";
 import { createTRPCRouter, publicProcedure } from "../server-mock";
 
 // Input validation schemas

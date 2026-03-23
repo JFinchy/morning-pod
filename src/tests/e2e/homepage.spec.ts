@@ -12,7 +12,10 @@ test.describe("Homepage E2E", () => {
 
     // Check for specific main heading (not just any H1)
     await expect(
-      page.getByRole("heading", { level: 1, name: /welcome to morning pod/iu })
+      page.getByRole("heading", {
+        level: 1,
+        name: /your daily tech briefing/iu,
+      })
     ).toBeVisible();
 
     // Check for navigation
@@ -206,12 +209,15 @@ test.describe("Homepage E2E", () => {
 
     // Verify the H1 is the main welcome heading
     await expect(
-      page.getByRole("heading", { level: 1, name: /welcome to morning pod/iu })
+      page.getByRole("heading", {
+        level: 1,
+        name: /your daily tech briefing/iu,
+      })
     ).toBeVisible();
 
     // Should have H2 headings for main sections
     await expect(
-      page.getByRole("heading", { level: 2, name: /recent episodes/i })
+      page.getByRole("heading", { level: 2, name: /fresh from your feeds/i })
     ).toBeVisible();
   });
 

@@ -2,14 +2,12 @@
 
 import { type QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { httpBatchLink } from "@trpc/client";
-import { createTRPCReact } from "@trpc/react-query";
 import { useState } from "react";
 import superjson from "superjson";
 
+import { api } from "@/lib/trpc/client";
 import { makeQueryClient } from "./query-client";
 import { type AppRouter } from "./root";
-
-export const api = createTRPCReact<AppRouter>();
 
 function getBaseUrl() {
   if (typeof window !== "undefined") return ""; // browser should use relative url

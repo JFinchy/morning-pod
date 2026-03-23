@@ -2,7 +2,7 @@
 
 import { Mic, Play } from "lucide-react";
 
-import { type Episode } from "@/lib/mock-data/episodes";
+import { type Episode } from "@/lib/mock-data/mocks";
 
 interface EpisodeCardV2Props {
   episode?: Episode;

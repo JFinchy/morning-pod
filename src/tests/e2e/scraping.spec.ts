@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 
 test.describe("Scraping Page E2E", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto("/scraping");
+    await page.goto("/internal/scraping");
   });
 
   test("should load scraping page successfully", async ({ page }) => {

@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 import { getEnabledSources } from "../../feature-flags/server";
-import { mockSources, type Source } from "../../mock-data/sources";
+import { mockSources, type Source } from "../../mock-data/mocks";
 import { createTRPCRouter, publicProcedure } from "../server-mock";
 
 // Using imported mockSources from mock-data/sources.ts

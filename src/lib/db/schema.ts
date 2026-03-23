@@ -85,6 +85,7 @@ export const episodes = pgTable("episodes", {
     .primaryKey()
     .$defaultFn(() => createId()),
   playCount: integer("play_count").default(0).notNull(),
+  progress: integer("progress").default(0).notNull(),
   sourceId: varchar("source_id", { length: 128 })
     .notNull()
     .references(() => sources.id),

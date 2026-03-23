@@ -1,3 +1,5 @@
+import { createHash } from "crypto";
+
 // Scraping service types and interfaces
 
 export interface ScrapedContent {
@@ -7,6 +9,7 @@ export interface ScrapedContent {
   id: string;
   publishedAt: Date;
   source: string;
+  sourceId?: string;
   summary: string;
   tags: string[];
   title: string;
@@ -17,6 +20,7 @@ export interface ScraperConfig {
   baseUrl: string;
   category: string;
   name: string;
+  sourceId?: string;
   rateLimit: number; // requests per minute
   retries: number;
   selectors?: {
@@ -79,7 +83,7 @@ export abstract class BaseScraper {
 
   // Content hash generation
   protected generateContentHash(content: string): string {
-    return Buffer.from(content).toString("base64").slice(0, 16);
+    return createHash("md5").update(content).digest("hex");
   }
 
   // Rate limiting helper

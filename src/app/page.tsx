@@ -1,273 +1,333 @@
 import {
   ArrowRight,
-  CheckCircle,
-  Clock,
   Globe,
   Headphones,
   Play,
-  Plus,
+  Podcast,
+  Sparkles,
   Zap,
+  RefreshCw,
 } from "lucide-react";
 import Link from "next/link";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 60;
+
 import {
   EpisodeCard,
-  GenerateButton,
   GenerateEpisodeButton,
+  GenerationModal,
+  ListenNowButton,
 } from "@/components/features";
-import { ApiTest } from "@/components/features/api-test";
-import { MainLayout } from "@/components/layouts";
+import { HomeClientWrapper, MainLayout } from "@/components/layouts";
 import { Button } from "@/components/ui";
-import { type Episode } from "@/lib/mock-data";
+import { db } from "@/lib/db";
+import { Episode, episodes, sources, scrapedContent } from "@/lib/db/schema";
 import {
   mockEpisodes,
-  mockGenerationStats,
   mockSources,
-} from "@/lib/mock-data";
+  mockScrapedContent,
+} from "@/lib/mock-data/mocks";
 
-import { HomeClientWrapper } from "./home-client-wrapper";
+async function getClientHomeData() {
+  if (process.env.NEXT_PUBLIC_ENABLE_API_MOCKING === "true") {
+    return {
+      episodes: mockEpisodes.slice(0, 3),
+      sources: mockSources.filter((s) => s.active).slice(0, 3),
+      latestStories: mockScrapedContent.slice(0, 4),
+      latestReadyEpisode: mockEpisodes[0],
+    };
+  }
 
-// Simple fallback function when DB is not available
-function getServerDataWithFallback() {
-  // Temporarily use mock data to avoid server-side rendering issues
-  console.warn("Using mock data for development");
-  return {
-    episodes: mockEpisodes.slice(0, 3),
-    queueStats: mockGenerationStats,
-    sources: mockSources.filter((s) => s.active),
-  };
+  try {
+    const [recentEpisodes, activeSources, latestScraped, latestReady] =
+      await Promise.all([
+        db.query.episodes.findMany({
+          limit: 3,
+          orderBy: (episodesTable, { desc }) => [desc(episodesTable.createdAt)],
+        }),
+        db.query.sources.findMany({
+          where: (sourcesTable, { eq }) => eq(sourcesTable.active, true),
+          limit: 3,
+        }),
+        db.query.scrapedContent.findMany({
+          limit: 4,
+          orderBy: (scrapedTable, { desc }) => [desc(scrapedTable.publishedAt)],
+        }),
+        db.query.episodes.findFirst({
+          where: (episodesTable, { eq }) => eq(episodesTable.status, "ready"),
+          orderBy: (episodesTable, { desc }) => [desc(episodesTable.createdAt)],
+        }),
+      ]);
+
+    return {
+      episodes: recentEpisodes,
+      sources: activeSources,
+      latestStories: latestScraped,
+      latestReadyEpisode: latestReady || null,
+    };
+  } catch (error) {
+    console.error("Failed to fetch data, falling back to mock:", error);
+    return {
+      episodes: mockEpisodes.slice(0, 3),
+      sources: mockSources.filter((s) => s.active).slice(0, 3),
+      latestStories: [],
+      latestReadyEpisode: null,
+    };
+  }
 }
+import { HeroIllustration } from "@/components/ui/hero-illustration";
 
-export default function Home() {
-  // Fetch initial data on the server with fallback to mock data
-  const {
-    episodes: rawEpisodes,
-    queueStats,
-    sources: activeSources,
-  } = getServerDataWithFallback();
-
-  // Convert to UI format (episodes are already in correct format if from mock data)
-  const episodes = rawEpisodes as Episode[];
-
-  // Helper functions for cleaner conditional logic
-  const getQueueItemsValue = () => {
-    if (!queueStats) return 0;
-    return queueStats.totalInQueue;
-  };
-
-  const getQueueItemsChange = () => {
-    if (!queueStats) return null;
-    return queueStats.currentlyProcessing
-      ? `${queueStats.currentlyProcessing} processing`
-      : null;
-  };
-
-  const getSuccessRateValue = () => {
-    if (!queueStats) return "0%";
-    return `${Math.round((queueStats.successRate || 0) * 100)}%`;
-  };
-
-  const quickStats = [
-    {
-      change: "+2",
-      color: "text-primary",
-      icon: Headphones,
-      label: "Episodes Today",
-      value: episodes.filter((ep) => {
-        const today = new Date();
-        const epDate = new Date(ep.createdAt);
-        return epDate.toDateString() === today.toDateString();
-      }).length,
-    },
-    {
-      change: null,
-      color: "text-success",
-      icon: Globe,
-      label: "Active Sources",
-      value: activeSources?.length || 0,
-    },
-    {
-      change: getQueueItemsChange(),
-      color: "text-warning",
-      icon: Clock,
-      label: "Queue Items",
-      value: getQueueItemsValue(),
-    },
-    {
-      change: "Last 7 days",
-      color: "text-info",
-      icon: CheckCircle,
-      label: "Success Rate",
-      value: getSuccessRateValue(),
-    },
-  ];
+export default async function Home() {
+  const { episodes, sources, latestStories, latestReadyEpisode } =
+    await getClientHomeData();
 
   return (
     <MainLayout>
-      <div className="space-y-4">
-        {/* Welcome Header - Server Component */}
-        <div className="text-center">
-          <h1 className="text-3xl lg:text-4xl font-bold text-base-content mb-2">
-            Welcome to Morning Pod
-          </h1>
-          <p className="text-lg lg:text-xl text-base-content/70 max-w-2xl mx-auto mb-3">
-            AI-powered podcast generation from your favorite news sources. Stay
-            informed with personalized audio content delivered daily.
-          </p>
-          <div className="flex flex-wrap justify-center gap-3">
-            <Button className="gap-2" size="lg" variant="primary">
-              <Play className="w-5 h-5" />
-              Play Latest Episode
-            </Button>
-            <GenerateEpisodeButton />
-          </div>
-        </div>
-
-        {/* Quick Stats - Server Component */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {quickStats.map((stat) => {
-            const Icon = stat.icon as React.ComponentType<{
-              className?: string;
-            }>;
-            return (
-              <div
-                className="card bg-base-100 shadow-sm border border-base-300"
-                key={stat.label}
-              >
-                <div className="card-body p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-base-content/60">
-                        {stat.label}
-                      </p>
-                      <p className="text-2xl font-bold text-base-content">
-                        {stat.value}
-                      </p>
-                      {stat.change && (
-                        <p className="text-xs text-base-content/70">
-                          {stat.change}
-                        </p>
-                      )}
-                    </div>
-                    <div
-                      className={`w-12 h-12 rounded-full bg-base-200 flex items-center justify-center ${stat.color}`}
-                    >
-                      <Icon className="w-6 h-6" />
-                    </div>
-                  </div>
+      <HomeClientWrapper hasLatestStories={latestStories.length > 0}>
+        <div className="space-y-16 pb-12">
+          {/* Hero Section */}
+          <section className="relative overflow-hidden rounded-3xl bg-base-200 border border-base-300 p-8 lg:p-16">
+            <div className="relative z-10 flex flex-col lg:flex-row items-center gap-12">
+              <div className="flex-1 max-w-2xl">
+                <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-1.5 rounded-full text-sm font-bold mb-6">
+                  <Sparkles className="w-4 h-4" />
+                  AI-Powered Daily Briefings
+                </div>
+                <h1 className="text-4xl lg:text-6xl font-black mb-6 leading-tight text-base-content">
+                  Your News, <br />
+                  <span className="text-primary">In Your Ears.</span>
+                </h1>
+                <p className="text-xl text-base-content/70 mb-10 leading-relaxed max-w-xl">
+                  Morning Pod transforms your favorite news sources into
+                  personalized audio episodes. Stay informed while you commute,
+                  workout, or start your day.
+                </p>
+                <div className="flex flex-wrap gap-4">
+                  <ListenNowButton latestEpisode={latestReadyEpisode as any} />
+                  <GenerateEpisodeButton />
                 </div>
               </div>
-            );
-          })}
-        </div>
+              <div className="flex-1 w-full max-w-md hidden lg:block">
+                <HeroIllustration className="w-full h-auto max-w-[400px] mx-auto" />
+              </div>
+            </div>
+          </section>
 
-        {/* Recent Episodes - Server Component */}
-        <div className="card bg-base-100 shadow-sm border border-base-300">
-          <div className="card-body p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-semibold">Recent Episodes</h2>
+          {/* Fresh from feeds */}
+          <section>
+            <div className="flex items-center justify-between mb-8">
+              <div>
+                <h2 className="text-3xl font-bold mb-2">
+                  Fresh from your feeds
+                </h2>
+                <p className="text-base-content/60">
+                  The latest headlines waiting for generation
+                </p>
+              </div>
+              <Link href="/sources">
+                <Button btnStyle="ghost" className="gap-2 group">
+                  View All Feeds
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                </Button>
+              </Link>
+            </div>
+
+            {latestStories.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {latestStories.map((story) => (
+                  <div
+                    className="group bg-base-100 p-6 rounded-2xl border border-base-300 hover:shadow-xl transition-all duration-300 flex justify-between items-center gap-6"
+                    key={story.id}
+                  >
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-3 mb-3">
+                        <span className="badge badge-primary badge-outline badge-sm uppercase text-[10px] font-bold py-2">
+                          {story.source}
+                        </span>
+                        <span className="text-xs text-base-content/40">
+                          {new Date(story.publishedAt).toLocaleDateString()}
+                        </span>
+                      </div>
+                      <h3 className="text-lg font-bold mb-2 group-hover:text-primary transition-colors line-clamp-1">
+                        {story.title}
+                      </h3>
+                      <p className="text-sm text-base-content/60 line-clamp-2 leading-relaxed">
+                        {story.summary}
+                      </p>
+                    </div>
+                    <div className="flex-shrink-0">
+                      <GenerationModal
+                        autoStart={true}
+                        initialSource={{
+                          id:
+                            story.sourceId ||
+                            story.source.toLowerCase().replace(/\s+/g, "-"),
+                          name: story.source,
+                          url: story.url,
+                        }}
+                        trigger={
+                          <Button
+                            aria-label="Generate Podcast"
+                            className="h-12 w-12 p-0 rounded-full shadow-lg hover:scale-110 active:scale-95 transition-transform"
+                            variant="primary"
+                          >
+                            <Play className="w-5 h-5" />
+                          </Button>
+                        }
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-12 bg-base-200/20 rounded-2xl border-2 border-dashed border-base-300">
+                <RefreshCw className="w-8 h-8 text-primary animate-spin mb-4" />
+                <p className="text-base-content/60 font-medium">
+                  Checking for latest news...
+                </p>
+                <p className="text-xs text-base-content/40 mt-1">
+                  This will only take a moment
+                </p>
+              </div>
+            )}
+          </section>
+
+          {/* Feature Grid */}
+          <section>
+            <h2 className="sr-only">Core Features</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <div className="card bg-base-200/50 border border-base-300">
+                <div className="card-body p-8">
+                  <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center mb-6">
+                    <Globe className="w-6 h-6 text-primary" />
+                  </div>
+                  <h3 className="text-xl font-bold mb-3">Global Sources</h3>
+                  <p className="text-base-content/60 leading-relaxed">
+                    Connect to major news outlets, tech blogs, and niche
+                    publications for a comprehensive view.
+                  </p>
+                </div>
+              </div>
+              <div className="card bg-base-200/50 border border-base-300">
+                <div className="card-body p-8">
+                  <div className="w-12 h-12 bg-accent/10 rounded-2xl flex items-center justify-center mb-6">
+                    <Zap className="w-6 h-6 text-accent" />
+                  </div>
+                  <h3 className="text-xl font-bold mb-3">Instant Generation</h3>
+                  <p className="text-base-content/60 leading-relaxed">
+                    Our AI summarizes long articles into concise, engaging
+                    scripts and converts them to high-quality speech in seconds.
+                  </p>
+                </div>
+              </div>
+              <div className="card bg-base-200/50 border border-base-300">
+                <div className="card-body p-8">
+                  <div className="w-12 h-12 bg-info/10 rounded-2xl flex items-center justify-center mb-6">
+                    <Headphones className="w-6 h-6 text-info" />
+                  </div>
+                  <h3 className="text-xl font-bold mb-3">
+                    Crystal Clear Audio
+                  </h3>
+                  <p className="text-base-content/60 leading-relaxed">
+                    Using state-of-the-art text-to-speech technology for a
+                    natural listening experience that sounds like a professional
+                    host.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Recent Episodes */}
+          <section>
+            <div className="flex items-center justify-between mb-8">
+              <div>
+                <h2 className="text-3xl font-bold mb-2">Recent Episodes</h2>
+                <p className="text-base-content/60">
+                  The latest generation from your library
+                </p>
+              </div>
               <Link href="/episodes">
-                <Button btnStyle="ghost" className="gap-2" size="sm">
-                  View All
-                  <ArrowRight className="w-4 h-4" />
+                <Button btnStyle="ghost" className="gap-2 group">
+                  View All Library
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>
             </div>
 
             {episodes.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 {episodes.map((episode) => (
-                  <EpisodeCard episode={episode} key={episode.id} />
+                  <EpisodeCard episode={episode as Episode} key={episode.id} />
                 ))}
               </div>
             ) : (
-              <div className="text-center py-8">
-                <Headphones className="w-12 h-12 mx-auto mb-4 text-base-content/30" />
-                <h3 className="text-lg font-medium text-base-content mb-2">
-                  No episodes yet
-                </h3>
-                <p className="text-base-content/60 mb-4">
-                  Generate your first episode from one of your news sources
+              <div className="text-center py-16 bg-base-200/30 rounded-3xl border-2 border-dashed border-base-300">
+                <Podcast className="w-16 h-16 mx-auto mb-4 text-base-content/20" />
+                <h3 className="text-xl font-medium mb-2">No episodes yet</h3>
+                <p className="text-base-content/60 mb-8">
+                  Start by generating your first podcast from a news source
                 </p>
-                <GenerateButton />
+                <Link href="/sources">
+                  <Button variant="primary">Explore Sources</Button>
+                </Link>
               </div>
             )}
-          </div>
-        </div>
+          </section>
 
-        {/* Quick Actions - Server Component */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Sources Management */}
-          <div className="card bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/20">
-            <div className="card-body p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center">
-                  <Globe className="w-5 h-5 text-primary" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-base-content">
-                    News Sources
-                  </h3>
-                  <p className="text-sm text-base-content/60">
-                    {activeSources?.length || 0} active sources
-                  </p>
-                </div>
+          {/* Featured Sources */}
+          <section className="bg-base-200 rounded-3xl p-8 lg:p-12">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-10">
+              <div>
+                <h2 className="text-3xl font-bold mb-2">Featured Sources</h2>
+                <p className="text-base-content/60">
+                  High-quality news providers ready for generation
+                </p>
               </div>
-              <p className="text-base-content/70 mb-4">
-                Manage your news sources and configure content preferences for
-                episode generation.
-              </p>
-              <div className="flex gap-2">
-                <Link href="/sources">
-                  <Button btnStyle="outline" size="sm">
-                    Manage Sources
-                  </Button>
-                </Link>
-              </div>
+              <Link href="/sources">
+                <Button className="gap-2" btnStyle="outline">
+                  Manage Sources
+                  <ArrowRight className="w-4 h-4" />
+                </Button>
+              </Link>
             </div>
-          </div>
 
-          {/* Generation Queue */}
-          <div className="card bg-gradient-to-br from-accent/5 to-accent/10 border border-accent/20">
-            <div className="card-body p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-accent/20 rounded-full flex items-center justify-center">
-                  <Zap className="w-5 h-5 text-accent" />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {sources.map((source) => (
+                <div
+                  className="bg-base-100 p-6 rounded-2xl border border-base-300 flex items-center gap-4 hover:shadow-lg transition-shadow"
+                  key={source.id}
+                >
+                  <div className="w-12 h-12 bg-base-200 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <Globe className="w-6 h-6 text-base-content/40" />
+                  </div>
+                  <div className="overflow-hidden">
+                    <h3 className="font-bold truncate">{source.name}</h3>
+                    <p className="text-xs text-base-content/60 truncate">
+                      {new URL(source.url).hostname}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-semibold text-base-content">
-                    Generation Queue
-                  </h3>
-                  <p className="text-sm text-base-content/60">
-                    {queueStats?.currentlyProcessing || 0} processing
-                  </p>
-                </div>
-              </div>
-              <p className="text-base-content/70 mb-4">
-                Monitor episode generation progress and queue status in
-                real-time.
-              </p>
-              <div className="flex gap-2">
-                <Link href="/queue">
-                  <Button btnStyle="outline" size="sm">
-                    View Queue
-                  </Button>
-                </Link>
-              </div>
+              ))}
             </div>
-          </div>
-        </div>
+          </section>
 
-        {/* Debug/Development Section - Client Component wrapped */}
-        <div className="card bg-base-100 shadow-sm border border-base-300">
-          <div className="card-body p-6">
-            <h2 className="text-xl font-semibold mb-4">API Connection Test</h2>
-            <HomeClientWrapper>
-              <ApiTest />
-            </HomeClientWrapper>
-          </div>
+          {/* CTA Footer */}
+          <section className="text-center py-12">
+            <h2 className="text-3xl font-bold mb-6">Ready to listen?</h2>
+            <Link href="/sources">
+              <Button
+                className="h-14 px-10 text-lg"
+                size="lg"
+                variant="primary"
+              >
+                Generate Your Morning Pod
+              </Button>
+            </Link>
+          </section>
         </div>
-      </div>
+      </HomeClientWrapper>
     </MainLayout>
   );
 }

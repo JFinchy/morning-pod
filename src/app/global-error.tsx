@@ -1,10 +1,9 @@
-"use client"; // error.js must be a Client Component
+"use client";
 
+import { AlertTriangle, Podcast, RefreshCw } from "lucide-react";
 import Link from "next/link";
 import { useEffect } from "react";
-// Optional: If you create an SVG or image for TuneBot
-// import Image from 'next/image';
-// import TuneBotFrazzled from '../public/images/tunebot-frazzled.svg'; // Example path
+import { Button } from "@/components/ui";
 
 interface GlobalErrorProps {
   error: Error & { digest?: string };
@@ -13,54 +12,61 @@ interface GlobalErrorProps {
 
 export default function GlobalError({ error, reset }: GlobalErrorProps) {
   useEffect(() => {
-    // Log the error to an error reporting service
-    console.error("Global error:", error);
+    console.error("Global application error:", error);
   }, [error]);
 
   return (
-    <html lang="en">
+    <html lang="en" data-theme="forest">
       <body>
-        <div className="min-h-screen bg-red-50 dark:bg-gray-900 flex flex-col items-center justify-center text-center px-4">
+        <div className="min-h-screen bg-base-100 flex flex-col items-center justify-center text-center px-4">
           <div className="mb-8">
-            {/* Placeholder for TuneBot image/animation */}
-            {/* <Image src={TuneBotFrazzled} alt="TuneBot looking frazzled" width={150} height={150} /> */}
-            <div className="text-6xl mb-4">⚡🤖🔧</div>{" "}
-            {/* Simple emoji placeholder */}
-            <h1 className="text-4xl font-bold text-red-700 dark:text-red-400 mb-2">
-              500 - TuneBot&apos;s Circuits are Sizzling!
+            <div className="w-24 h-24 bg-error/10 rounded-3xl flex items-center justify-center mx-auto mb-6">
+              <AlertTriangle className="w-12 h-12 text-error" />
+            </div>
+            <h1 className="text-4xl font-black text-base-content mb-4">
+              Transmission Interrupted
             </h1>
-            <p className="text-lg text-gray-700 dark:text-gray-300 mb-6">
-              Our AI is experiencing some unexpected turbulence and needs a
-              quick reboot. The engineers have been notified!
+            <p className="text-lg text-base-content/60 mb-8 max-w-md mx-auto">
+              Our broadcast encountered some unexpected interference. We&apos;ve
+              logged the technical details and are working to restore the
+              signal.
             </p>
           </div>
-          <div className="space-x-4">
-            <button
-              className="px-6 py-3 bg-yellow-500 hover:bg-yellow-600 text-white font-semibold rounded-md shadow-md transition duration-300"
+
+          <div className="flex flex-wrap justify-center gap-4">
+            <Button
+              variant="primary"
+              size="lg"
+              className="h-12 px-8 gap-2"
               onClick={() => reset()}
             >
-              Try Refreshing Page
-            </button>
-            <Link
-              className="px-6 py-3 bg-gray-300 hover:bg-gray-400 text-gray-800 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-white font-semibold rounded-md shadow-md transition duration-300"
-              href="/"
-            >
-              Go to Homepage
+              <RefreshCw className="w-4 h-4" />
+              Reset Connection
+            </Button>
+            <Link href="/">
+              <Button btnStyle="outline" size="lg" className="h-12 px-8">
+                Go to Homepage
+              </Button>
             </Link>
           </div>
-          <p className="mt-12 text-sm text-gray-500 dark:text-gray-400">
-            We&apos;re working on it! Thanks for your patience.
-          </p>
-          {process.env.NODE_ENV === "development" && (
-            <details className="mt-4">
-              <summary className="cursor-pointer text-sm text-base-content/60">
-                Error details
-              </summary>
-              <pre className="text-xs mt-2 p-2 bg-base-200 rounded overflow-auto">
-                {error.message}
-              </pre>
-            </details>
-          )}
+
+          <div className="mt-16 pt-8 border-t border-base-300 w-full max-w-md">
+            <p className="text-xs text-base-content/40 uppercase font-bold tracking-widest mb-4">
+              Morning Pod • Debug Information
+            </p>
+            {process.env.NODE_ENV === "development" && (
+              <div className="text-left bg-base-200 p-4 rounded-xl overflow-auto max-h-48">
+                <pre className="text-xs font-mono text-error">
+                  <code>{error.message}</code>
+                </pre>
+                {error.digest && (
+                  <p className="text-[10px] text-base-content/40 mt-2 font-mono">
+                    Digest: {error.digest}
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </body>
     </html>

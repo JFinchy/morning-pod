@@ -17,7 +17,7 @@ import {
   getStatusColor,
   getStatusLabel,
   type QueueItem,
-} from "@/lib/mock-data";
+} from "@/lib/mock-data/mocks";
 
 interface QueueStatusV1Props {
   maxVisible?: number;

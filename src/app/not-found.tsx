@@ -1,42 +1,39 @@
 import Link from "next/link";
-// Optional: If you create an SVG or image for TuneBot
-// import Image from 'next/image';
-// import TuneBotConfused from '../public/images/tunebot-confused.svg'; // Example path
+import { Button } from "@/components/ui";
+import { BrokenRecordIllustration } from "@/components/ui/illustrations/error-illustrations";
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex flex-col items-center justify-center text-center px-4">
+    <div className="min-h-screen bg-base-100 flex flex-col items-center justify-center text-center px-4">
       <div className="mb-8">
-        {/* Placeholder for TuneBot image/animation */}
-        {/* <Image src={TuneBotConfused} alt="TuneBot looking confused" width={150} height={150} /> */}
-        <div className="text-6xl mb-4 animate-pulse">🎧🤖?</div>{" "}
-        {/* Simple emoji placeholder */}
-        <h1 className="text-4xl font-bold text-gray-800 dark:text-white mb-2">
-          404 - TuneBot Lost the Frequency!
+        <div className="w-48 h-48 mx-auto mb-8">
+          <BrokenRecordIllustration />
+        </div>
+        <h1 className="text-5xl font-black text-base-content mb-4 tracking-tight">
+          Sound Not Found
         </h1>
-        <p className="text-lg text-gray-600 dark:text-gray-300 mb-6">
-          Looks like the page you&apos;re searching for has gone off-air or
-          never existed. Don&apos;t worry, TuneBot can help you find a new
-          station!
+        <p className="text-lg text-base-content/60 mb-8 max-w-md mx-auto">
+          The briefing you&apos;re looking for has gone off-air or never
+          existed. Let&apos;s get you back to the news that matters.
         </p>
       </div>
-      <div className="space-x-4">
-        <Link
-          className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-md shadow-md transition duration-300"
-          href="/"
-        >
-          Back to Homepage
+      <div className="flex flex-wrap justify-center gap-4">
+        <Link href="/">
+          <Button variant="primary" size="lg" className="h-12 px-8">
+            Back Home
+          </Button>
         </Link>
-        <Link
-          className="px-6 py-3 bg-gray-300 hover:bg-gray-400 text-gray-800 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-white font-semibold rounded-md shadow-md transition duration-300"
-          href="/episodes"
-        >
-          Browse All Podcasts
+        <Link href="/episodes">
+          <Button btnStyle="outline" size="lg" className="h-12 px-8">
+            Your Library
+          </Button>
         </Link>
       </div>
-      <p className="mt-12 text-sm text-gray-500 dark:text-gray-400">
-        Morning Pod - Your Daily Dose of AI-Powered News
-      </p>
+      <div className="mt-16 pt-8 border-t border-base-300 w-full max-w-xs">
+        <p className="text-xs text-base-content/40 uppercase font-bold tracking-widest">
+          Morning Pod
+        </p>
+      </div>
     </div>
   );
 }

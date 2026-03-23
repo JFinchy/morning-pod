@@ -15,6 +15,13 @@
       "when": 1749224445138,
       "tag": "0001_thick_menace",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1771953208874,
+      "tag": "0002_round_doctor_spectrum",
+      "breakpoints": true
     }
   ]
 }

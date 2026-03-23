@@ -1,0 +1,1 @@
+ALTER TABLE "episodes" ADD COLUMN "progress" integer DEFAULT 0 NOT NULL;

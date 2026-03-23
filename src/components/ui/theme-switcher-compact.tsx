@@ -47,8 +47,11 @@ export function ThemeSwitcherCompact() {
   const buttonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
-    // Get theme from localStorage or default to forest
-    const savedTheme = localStorage.getItem("theme") || "forest";
+    // Get theme from server-rendered document attribute or fallback
+    const savedTheme =
+      document.documentElement.getAttribute("data-theme") ||
+      localStorage.getItem("theme") ||
+      "forest";
     document.documentElement.setAttribute("data-theme", savedTheme);
     setCurrentTheme(savedTheme);
   }, []);
@@ -76,6 +79,7 @@ export function ThemeSwitcherCompact() {
 
     // Store theme preference
     localStorage.setItem("theme", themeName);
+    document.cookie = `theme=${themeName}; path=/; max-age=31536000`;
   };
 
   const darkThemes = themes.filter((theme) => theme.category === "Dark");
@@ -183,19 +187,21 @@ export function ThemeSwitcherCompact() {
         </>
       )}
 
-      {/* Hidden theme controller inputs for daisyUI */}
-      {themes.map((theme) => (
-        <input
-          aria-label={theme.label}
-          checked={currentTheme === theme.name}
-          className="theme-controller sr-only"
-          key={theme.name}
-          name="theme-dropdown"
-          onChange={() => handleThemeChange(theme.name)}
-          type="radio"
-          value={theme.name}
-        />
-      ))}
+      {/* Hidden theme controller inputs for daisyUI - wrapped in a container to satisfy region requirements */}
+      <div aria-hidden="true" className="hidden" role="presentation">
+        {themes.map((theme) => (
+          <input
+            aria-label={theme.label}
+            checked={currentTheme === theme.name}
+            className="theme-controller sr-only"
+            key={theme.name}
+            name="theme-dropdown"
+            onChange={() => handleThemeChange(theme.name)}
+            type="radio"
+            value={theme.name}
+          />
+        ))}
+      </div>
     </div>
   );
 }

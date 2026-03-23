@@ -1,18 +1,18 @@
 {
-  "lastUpdated": "2024-01-25T10:30:00Z",
-  "projectPhase": "MVP Audio Generation",
+  "lastUpdated": "2026-02-18T14:30:00Z",
+  "projectPhase": "MVP Audio Generation - Phase 2 (Client Focused & Polished)",
   "components": {
     "scraping": {
       "status": "complete",
-      "description": "Web scraping system with database persistence",
+      "description": "Production scraping system with real RSS integration",
       "features": [
-        "TLDR Tech scraper",
-        "Hacker News scraper",
-        "Morning Brew scraper",
-        "Database persistence",
-        "Content deduplication"
+        "Hacker News & TLDR Tech RSS scrapers",
+        "Morning Brew real feed support",
+        "Automatic background feed refresh on home mount",
+        "Manual refresh functionality",
+        "SourceId-linked content persistence"
       ],
-      "lastWorkedOn": "2024-01-24",
+      "lastWorkedOn": "2026-02-18",
       "workingBranches": []
     },
     "database": {
@@ -21,79 +21,72 @@
       "features": [
         "Neon PostgreSQL connection",
         "Drizzle ORM schemas",
-        "scraped_content table",
-        "tRPC routers",
-        "CRUD operations"
+        "Episode progress tracking (0-100%)",
+        "System sources (Manual Entry) support",
+        "Automated play count tracking"
       ],
-      "lastWorkedOn": "2024-01-24",
+      "lastWorkedOn": "2026-02-18",
       "workingBranches": []
     },
     "ui": {
       "status": "complete",
-      "description": "Component library and layouts",
+      "description": "High-velocity client application",
       "features": [
-        "DaisyUI theme system",
-        "Component variants",
-        "Responsive layouts",
-        "Feature flag UI"
+        "New Discovery Hub (/discover) with search/filter",
+        "Persistent Global Audio Player across pages",
+        "Playback state recovery from LocalStorage",
+        "Live progress bars in Library view",
+        "Individual Episode detail pages with full player",
+        "WCAG AA Accessibility compliance (contrast, labels, landmarks)"
       ],
-      "lastWorkedOn": "2024-01-22",
+      "lastWorkedOn": "2026-02-18",
       "workingBranches": []
     },
     "ai-services": {
-      "status": "in-progress",
+      "status": "complete",
       "description": "AI summarization and TTS services",
       "features": [
-        "OpenAI integration",
-        "Content summarization",
-        "Text-to-speech",
-        "Cost tracking"
+        "Multi-provider support (OpenAI/Gemini)",
+        "Podcast-optimized script generation",
+        "Accurate cost tracking and estimation",
+        "SSE streaming with progress stage identification"
       ],
-      "lastWorkedOn": "2024-01-25",
-      "workingBranches": ["feat/ai-services"],
-      "blockers": [],
-      "nextSteps": [
-        "Rebuild summarization service",
-        "Implement TTS service",
-        "Create generation API endpoint"
-      ]
+      "lastWorkedOn": "2026-02-18",
+      "workingBranches": []
     },
     "generation-pipeline": {
-      "status": "not-started",
-      "description": "End-to-end episode generation",
+      "status": "complete",
+      "description": "Robust, persistent episode generation",
       "features": [
-        "On-demand generation",
-        "Progress tracking",
-        "Error handling",
-        "Audio storage"
+        "One-click 'Develop' flow from feeds",
+        "Persistent generation records (survives refreshes)",
+        "Real-time database-backed progress tracking",
+        "Automatic UI sync via router.refresh()",
+        "Manual-entry source fallback"
       ],
-      "dependsOn": ["ai-services", "scraping", "database"],
-      "nextSteps": [
-        "Create generation endpoint",
-        "Add UI trigger button",
-        "Implement progress feedback"
-      ]
+      "lastWorkedOn": "2026-02-18",
+      "workingBranches": []
     },
     "testing": {
       "status": "complete",
-      "description": "Testing infrastructure",
+      "description": "Quality assurance and analytics",
       "features": [
-        "Vitest unit tests",
-        "Playwright E2E tests",
-        "PostHog analytics",
-        "Feature flags"
+        "Internal Dev Hub with real-time metrics",
+        "Mock Generation tester using local assets",
+        "Accessibility audits and fixes",
+        "PostHog analytics and feature flag integration"
       ],
-      "lastWorkedOn": "2024-01-22",
+      "lastWorkedOn": "2026-02-18",
       "workingBranches": []
     }
   },
   "workflowNotes": {
-    "parallelDevelopment": "Use component-based status to avoid conflicts",
-    "branchStrategy": "Feature branches per component area",
-    "statusUpdates": "Update component status when starting/completing work",
-    "contextForAI": "Check component status + current branch for full context"
+    "parallelDevelopment": "Clean separation between /internal and root routes",
+    "branchStrategy": "Beta-ready state on main branch",
+    "statusUpdates": "Polished MVP with functional end-to-end flows",
+    "contextForAI": "Persistent audio and generation state across app"
   },
-  "repo": "https://github.com/JFinchy/tldr-podcast-generator",
-  "user": "JFinchy",
+  "repo": "https://github.com/JFinchy/morning-pod",
+  "user": "JacobFinch",
   "branch": "main"
 }

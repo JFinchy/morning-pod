@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { mockGenerationStats, mockQueueItems } from "../../mock-data/queue";
+import { mockGenerationStats, mockQueueItems } from "../../mock-data/mocks";
 import { createTRPCRouter, publicProcedure } from "../server-mock";
 
 export const queueMockRouter = createTRPCRouter({

@@ -94,18 +94,21 @@ export function getEnvironmentFlagOverrides(): Partial<
   Record<FeatureFlagKey, boolean>
 > {
   return {
-    "ai-summarization-enabled": process.env.AI_SUMMARIZATION_ENABLED === "true",
+    "ai-summarization-enabled":
+      process.env.NEXT_PUBLIC_AI_SUMMARIZATION_ENABLED === "true",
     "hacker-news-source-enabled":
-      process.env.HACKER_NEWS_SOURCE_ENABLED !== "false",
+      process.env.NEXT_PUBLIC_HACKER_NEWS_SOURCE_ENABLED !== "false",
     "morning-brew-source-enabled":
-      process.env.MORNING_BREW_SOURCE_ENABLED !== "false",
+      process.env.NEXT_PUBLIC_MORNING_BREW_SOURCE_ENABLED !== "false",
 
-    "openai-tts-enabled": process.env.OPENAI_TTS_ENABLED === "true",
+    "openai-tts-enabled": process.env.NEXT_PUBLIC_OPENAI_TTS_ENABLED === "true",
     // Premium features
-    "premium-tts-enabled": process.env.PREMIUM_TTS_ENABLED === "true",
+    "premium-tts-enabled":
+      process.env.NEXT_PUBLIC_PREMIUM_TTS_ENABLED === "true",
     "techcrunch-source-enabled":
-      process.env.TECHCRUNCH_SOURCE_ENABLED === "true",
+      process.env.NEXT_PUBLIC_TECHCRUNCH_SOURCE_ENABLED === "true",
     // Sources
-    "tldr-source-enabled": process.env.TLDR_SOURCE_ENABLED !== "false",
+    "tldr-source-enabled":
+      process.env.NEXT_PUBLIC_TLDR_SOURCE_ENABLED !== "false",
   };
 }

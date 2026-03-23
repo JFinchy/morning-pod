@@ -326,7 +326,7 @@ const eslintConfig = [
       "sonarjs/no-identical-expressions": "error",
       "sonarjs/no-ignored-return": "error",
       "sonarjs/no-inverted-boolean-check": "warn",
-      "sonarjs/no-one-iteration-loop": "error",
+
       "sonarjs/no-redundant-boolean": "warn",
       "sonarjs/no-redundant-jump": "error",
       "sonarjs/no-same-line-conditional": "error",

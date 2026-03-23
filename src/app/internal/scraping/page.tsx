@@ -56,35 +56,25 @@ export default function ScrapingInternalPage() {
     },
   });
 
-  // Mock debug data for development
-  const debugInfo: ScraperDebugInfo[] = [
-    {
-      errors: [],
-      itemsScraped: 12,
-      lastRun: new Date(Date.now() - 1000 * 60 * 5), // 5 minutes ago
-      name: "TLDR",
-      responseTime: 850,
-      status: "success",
-    },
-    {
-      errors: [],
-      itemsScraped: 8,
-      lastRun: new Date(Date.now() - 1000 * 30), // 30 seconds ago
-      name: "Hacker News",
-      responseTime: 1200,
-      status: "running",
-    },
-    {
-      errors: ["Rate limit exceeded", "Invalid response format"],
-      itemsScraped: 0,
-      lastRun: new Date(Date.now() - 1000 * 60 * 15), // 15 minutes ago
-      name: "Morning Brew",
-      responseTime: 5000,
-      status: "error",
-    },
-  ];
+  // Map real metrics to debug display
+  const displayMetrics = metrics?.metrics
+    ? Object.entries(metrics.metrics).map(([name, m]) => ({
+        errors:
+          m.successfulRequests < m.totalRequests
+            ? ["Some requests failed"]
+            : [],
+        itemsScraped: m.itemsScraped,
+        lastRun: new Date(m.lastScrapeTime),
+        name: name.charAt(0).toUpperCase() + name.slice(1),
+        responseTime: m.averageResponseTime,
+        status:
+          m.successfulRequests === m.totalRequests
+            ? "success"
+            : ("error" as const),
+      }))
+    : [];
 
-  const getStatusIcon = (status: ScraperDebugInfo["status"]) => {
+  const getStatusIcon = (status: string) => {
     switch (status) {
       case "success":
         return <CheckCircle className="w-4 h-4 text-success" />;
@@ -104,7 +94,8 @@ export default function ScrapingInternalPage() {
 
     if (minutes < 1) return "Just now";
     if (minutes < 60) return `${minutes}m ago`;
-    return `${Math.floor(minutes / 60)}h ago`;
+    if (minutes < 1440) return `${Math.floor(minutes / 60)}h ago`;
+    return date.toLocaleDateString();
   };
 
   return (
@@ -207,7 +198,7 @@ export default function ScrapingInternalPage() {
                 </h2>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {debugInfo.map((scraper) => (
+                  {displayMetrics.map((scraper) => (
                     <div className="card bg-base-200 border" key={scraper.name}>
                       <div className="card-body p-4">
                         <div className="flex items-center justify-between mb-3">
@@ -226,9 +217,7 @@ export default function ScrapingInternalPage() {
                                   ? "text-success"
                                   : scraper.status === "error"
                                     ? "text-error"
-                                    : scraper.status === "running"
-                                      ? "text-warning"
-                                      : "text-base-content/50"
+                                    : "text-base-content/50"
                               }`}
                             >
                               {scraper.status}
@@ -244,7 +233,7 @@ export default function ScrapingInternalPage() {
                             <span className="text-base-content/70">
                               Response:
                             </span>
-                            <span>{scraper.responseTime}ms</span>
+                            <span>{Math.round(scraper.responseTime)}ms</span>
                           </div>
 
                           {scraper.lastRun && (
@@ -259,7 +248,7 @@ export default function ScrapingInternalPage() {
                           {scraper.errors.length > 0 && (
                             <div className="mt-3">
                               <div className="text-error text-xs font-medium mb-1">
-                                Errors:
+                                Info:
                               </div>
                               {scraper.errors.map((error) => (
                                 <div
@@ -277,10 +266,7 @@ export default function ScrapingInternalPage() {
                           <Button
                             btnStyle="outline"
                             className="w-full"
-                            disabled={
-                              scrapeSource.isPending ||
-                              scraper.status === "running"
-                            }
+                            disabled={scrapeSource.isPending}
                             onClick={() =>
                               scrapeSource.mutate({
                                 source: scraper.name
@@ -290,12 +276,12 @@ export default function ScrapingInternalPage() {
                             }
                             size="sm"
                           >
-                            {scraper.status === "running" ? (
-                              <Pause className="w-3 h-3" />
+                            {scrapeSource.isPending ? (
+                              <RefreshCw className="w-3 h-3 animate-spin" />
                             ) : (
                               <Play className="w-3 h-3" />
                             )}
-                            {scraper.status === "running"
+                            {scrapeSource.isPending
                               ? "Running..."
                               : "Test Scrape"}
                           </Button>
@@ -361,7 +347,7 @@ export default function ScrapingInternalPage() {
               </h2>
 
               <div className="space-y-3">
-                {debugInfo.map((scraper) => (
+                {displayMetrics.map((scraper) => (
                   <div className="flex items-center gap-3" key={scraper.name}>
                     <div className="w-3 h-3 rounded-full bg-primary" />
                     <div className="flex-1">
@@ -380,11 +366,7 @@ export default function ScrapingInternalPage() {
                           className={`h-2 rounded-full ${
                             scraper.status === "success"
                               ? "bg-success"
-                              : scraper.status === "error"
-                                ? "bg-error"
-                                : scraper.status === "running"
-                                  ? "bg-warning"
-                                  : "bg-base-content/20"
+                              : "bg-error"
                           }`}
                           style={{
                             width: `${Math.min(100, (scraper.responseTime / 5000) * 100)}%`,
@@ -406,7 +388,7 @@ export default function ScrapingInternalPage() {
               </h2>
 
               <div className="space-y-4">
-                {debugInfo.map((scraper) => (
+                {displayMetrics.map((scraper) => (
                   <div key={scraper.name}>
                     <div className="flex justify-between text-sm mb-1">
                       <span>{scraper.name}</span>
@@ -416,7 +398,7 @@ export default function ScrapingInternalPage() {
                       <div
                         className="bg-primary h-2 rounded-full transition-all duration-300"
                         style={{
-                          width: `${Math.max(5, (scraper.itemsScraped / Math.max(...debugInfo.map((s) => s.itemsScraped))) * 100)}%`,
+                          width: `${Math.max(5, (scraper.itemsScraped / Math.max(...displayMetrics.map((s) => s.itemsScraped), 1)) * 100)}%`,
                         }}
                       />
                     </div>
@@ -428,7 +410,7 @@ export default function ScrapingInternalPage() {
         </div>
 
         {/* Quick Actions */}
-        <div className="card bg-base-100 shadow-lg border">
+        <div className="card bg-base-100 shadow-lg border mb-8">
           <div className="card-body">
             <h2 className="card-title text-lg mb-4">
               Quick Development Actions
@@ -457,6 +439,64 @@ export default function ScrapingInternalPage() {
             </div>
           </div>
         </div>
+
+        {/* Recent Content */}
+        {cachedContent?.content && cachedContent.content.length > 0 && (
+          <div className="card bg-base-100 shadow-sm border border-base-300">
+            <div className="card-body p-6">
+              <h3 className="card-title text-lg mb-4">
+                Recent Scraped Content
+              </h3>
+              <div className="space-y-4">
+                {cachedContent.content
+                  .sort(
+                    (a: any, b: any) =>
+                      new Date(b.publishedAt).getTime() -
+                      new Date(a.publishedAt).getTime()
+                  )
+                  .slice(0, 10)
+                  .map((article: any) => (
+                    <div
+                      className="border border-base-300 rounded-lg p-4 hover:bg-base-200/50 transition-colors"
+                      key={article.id}
+                    >
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-base-content mb-2 line-clamp-2">
+                            {article.title}
+                          </h3>
+                          <p className="text-sm text-base-content/70 mb-3 line-clamp-2">
+                            {article.summary}
+                          </p>
+                          <div className="flex items-center gap-4 text-xs text-base-content/60">
+                            <span className="badge badge-sm badge-outline">
+                              {article.source}
+                            </span>
+                            <span>
+                              {new Date(
+                                article.publishedAt
+                              ).toLocaleDateString()}
+                            </span>
+                            <span className="capitalize">
+                              {article.category}
+                            </span>
+                          </div>
+                        </div>
+                        <a
+                          className="btn btn-sm btn-outline"
+                          href={article.url}
+                          rel="noopener noreferrer"
+                          target="_blank"
+                        >
+                          View
+                        </a>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

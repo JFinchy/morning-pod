@@ -1,3 +1,4 @@
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import OpenAI from "openai";
 import { z } from "zod";
 
@@ -10,11 +11,14 @@ import { z } from "zod";
  * @decision-date 2024-01-22
  * @decision-by Product team after quality comparison testing
  */
+export type SummarizationProvider = "gemini" | "openai";
+
 const AI_CONFIG = {
   baseDelay: 1000, // 1 second base retry delay
   maxRetries: 3,
   maxTokens: 2000, // ~1600 words, optimal for 5-10 min TTS audio
-  model: "gpt-4" as const,
+  model: "gpt-4" as const, // Default model
+  provider: "openai" as SummarizationProvider, // Default provider
   temperature: 0.3, // Consistent, factual tone
 } as const;
 
@@ -23,6 +27,10 @@ const AI_CONFIG = {
  * @business-context Updated monthly from OpenAI pricing page
  */
 const PRICING = {
+  "gemini-2.5-flash": {
+    input: 0.000075,
+    output: 0.0003,
+  },
   "gpt-4": {
     input: 0.03, // $0.03 per 1K input tokens
     output: 0.06, // $0.06 per 1K output tokens
@@ -94,19 +102,43 @@ export class SummarizationError extends Error {
  */
 export class SummarizationService {
   private costTracker: SummarizationCost[] = [];
-  private openai: OpenAI;
+  private generativeAI: GoogleGenerativeAI | null = null;
+  private openai: OpenAI | null = null;
+  private provider: SummarizationProvider;
 
-  constructor(apiKey?: string) {
-    if (!apiKey && !process.env.OPENAI_API_KEY) {
+  constructor(
+    apiKey?: string,
+    provider: SummarizationProvider = AI_CONFIG.provider
+  ) {
+    this.provider = provider;
+
+    if (this.provider === "openai") {
+      if (!apiKey && !process.env.OPENAI_API_KEY) {
+        throw new SummarizationError(
+          "OpenAI API key is required",
+          "VALIDATION_ERROR"
+        );
+      }
+      this.openai = new OpenAI({
+        apiKey: apiKey || process.env.OPENAI_API_KEY,
+      });
+    } else if (this.provider === "gemini") {
+      if (!apiKey && !process.env.GEMINI_API_KEY) {
+        throw new SummarizationError(
+          "Gemini API key is required",
+          "VALIDATION_ERROR"
+        );
+      }
+      // Explicitly set API version to v1 if possible, or use the default
+      this.generativeAI = new GoogleGenerativeAI(
+        apiKey || process.env.GEMINI_API_KEY || ""
+      );
+    } else {
       throw new SummarizationError(
-        "OpenAI API key is required",
+        "Invalid summarization provider",
         "VALIDATION_ERROR"
       );
     }
-
-    this.openai = new OpenAI({
-      apiKey: apiKey || process.env.OPENAI_API_KEY,
-    });
   }
 
   /**
@@ -164,72 +196,163 @@ export class SummarizationService {
     const prompt = this.buildSummarizationPrompt(validatedContent);
 
     let lastError: Error | null = null;
+    let cost: SummarizationCost;
+    let summary: SummaryOutput;
 
     // Retry logic with exponential backoff
     for (let attempt = 1; attempt <= AI_CONFIG.maxRetries; attempt++) {
       try {
         const startTime = Date.now();
 
-        const completion = await this.openai.chat.completions.create({
-          max_tokens: AI_CONFIG.maxTokens,
-          messages: [
-            {
-              content: `You are a professional podcast script writer specializing in tech news. 
-                       Create engaging, conversational summaries optimized for AI voice synthesis.
-                       Use natural speech patterns, clear pronunciation, and smooth transitions.`,
-              role: "system",
-            },
-            {
-              content: prompt,
-              role: "user",
-            },
-          ],
-          model: AI_CONFIG.model,
-          response_format: { type: "json_object" },
-          temperature: AI_CONFIG.temperature,
-        });
+        if (this.provider === "openai" && this.openai) {
+          const completion = await this.openai.chat.completions.create({
+            max_tokens: AI_CONFIG.maxTokens,
+            messages: [
+              {
+                content: `You are a professional podcast script writer specializing in tech news. 
+                         Create engaging, conversational summaries optimized for AI voice synthesis.
+                         Use natural speech patterns, clear pronunciation, and smooth transitions.`,
+                role: "system",
+              },
+              {
+                content: prompt,
+                role: "user",
+              },
+            ],
+            model: AI_CONFIG.model as "gpt-4", // Cast to specific OpenAI model
+            response_format: { type: "json_object" },
+            temperature: AI_CONFIG.temperature,
+          });
 
-        const { usage } = completion;
-        if (!usage) {
+          const { usage } = completion;
+          if (!usage) {
+            throw new SummarizationError(
+              "No usage information returned",
+              "API_ERROR"
+            );
+          }
+
+          // Parse and validate response
+          const responseContent = completion.choices[0]?.message?.content;
+          if (!responseContent) {
+            throw new SummarizationError("No content in response", "API_ERROR");
+          }
+
+          let parsedResponse;
+          try {
+            parsedResponse = JSON.parse(responseContent);
+          } catch (parseError) {
+            throw new SummarizationError(
+              "Invalid JSON response from AI",
+              "API_ERROR",
+              parseError as Error
+            );
+          }
+
+          summary = SummarySchema.parse(parsedResponse);
+
+          // Calculate costs
+          cost = {
+            inputCost:
+              (usage.prompt_tokens / 1000) * PRICING[AI_CONFIG.model].input,
+            inputTokens: usage.prompt_tokens,
+            model: AI_CONFIG.model,
+            outputCost:
+              (usage.completion_tokens / 1000) *
+              PRICING[AI_CONFIG.model].output,
+            outputTokens: usage.completion_tokens,
+            timestamp: new Date(startTime),
+            totalCost: 0, // Will be calculated below
+            totalTokens: usage.total_tokens,
+          };
+          cost.totalCost = cost.inputCost + cost.outputCost;
+        } else if (this.provider === "gemini" && this.generativeAI) {
+          // Use gemini-2.5-flash as it is the most modern stable model available for this key
+          const modelName = "gemini-2.5-flash";
+          const model = this.generativeAI.getGenerativeModel({
+            model: modelName,
+          });
+
+          console.log(
+            `📡 Attempting Gemini summarization with model: ${modelName}`
+          );
+
+          try {
+            const result = await model.generateContent([
+              `You are a professional podcast script writer specializing in tech news. 
+               Create engaging, conversational summaries optimized for AI voice synthesis.
+               Use natural speech patterns, clear pronunciation, and smooth transitions.
+               Your response MUST be a valid JSON object.
+               
+               ARTICLE CONTENT TO SUMMARIZE:
+               ${prompt}`,
+            ]);
+
+            const response = await result.response;
+            const responseContent = response.text();
+
+            if (!responseContent) {
+              throw new SummarizationError(
+                "No content in response",
+                "API_ERROR"
+              );
+            }
+
+            let parsedResponse;
+            try {
+              // Sometimes Gemini wraps JSON in markdown blocks
+              const jsonMatch =
+                responseContent.match(/```json\s?([\s\S]*?)```/i) ||
+                responseContent.match(/```\s?([\s\S]*?)```/i);
+              const cleanContent = jsonMatch
+                ? jsonMatch[1].trim()
+                : responseContent.trim();
+
+              parsedResponse = JSON.parse(cleanContent);
+            } catch (parseError) {
+              console.error(
+                "Failed to parse Gemini JSON. Raw content:",
+                responseContent
+              );
+              throw new SummarizationError(
+                "Invalid JSON response from AI",
+                "API_ERROR",
+                parseError as Error
+              );
+            }
+
+            summary = SummarySchema.parse(parsedResponse);
+
+            // Gemini cost calculation
+            const inputTokens = Math.ceil(prompt.length / 4);
+            const outputTokens = Math.ceil(responseContent.length / 4);
+
+            cost = {
+              inputCost:
+                (inputTokens / 1000) * PRICING["gemini-2.5-flash"].input,
+              inputTokens: inputTokens,
+              model: modelName,
+              outputCost:
+                (outputTokens / 1000) * PRICING["gemini-2.5-flash"].output,
+              outputTokens: outputTokens,
+              timestamp: new Date(startTime),
+              totalCost: 0,
+              totalTokens: inputTokens + outputTokens,
+            };
+            cost.totalCost = cost.inputCost + cost.outputCost;
+          } catch (apiError: any) {
+            console.error(
+              `❌ Gemini API Error (${modelName}):`,
+              apiError.message
+            );
+            throw apiError;
+          }
+        } else {
           throw new SummarizationError(
-            "No usage information returned",
+            "AI provider not initialized",
             "API_ERROR"
           );
         }
-
-        // Parse and validate response
-        const responseContent = completion.choices[0]?.message?.content;
-        if (!responseContent) {
-          throw new SummarizationError("No content in response", "API_ERROR");
-        }
-
-        let parsedResponse;
-        try {
-          parsedResponse = JSON.parse(responseContent);
-        } catch (parseError) {
-          throw new SummarizationError(
-            "Invalid JSON response from AI",
-            "API_ERROR",
-            parseError as Error
-          );
-        }
-
-        const summary = SummarySchema.parse(parsedResponse);
-
-        // Calculate costs
-        const cost: SummarizationCost = {
-          inputCost:
-            (usage.prompt_tokens / 1000) * PRICING[AI_CONFIG.model].input,
-          inputTokens: usage.prompt_tokens,
-          model: AI_CONFIG.model,
-          outputCost:
-            (usage.completion_tokens / 1000) * PRICING[AI_CONFIG.model].output,
-          outputTokens: usage.completion_tokens,
-          timestamp: new Date(startTime),
-          totalCost: 0, // Will be calculated below
-          totalTokens: usage.total_tokens,
-        };
-        cost.totalCost = cost.inputCost + cost.outputCost;
 
         // Track cost for monitoring
         this.costTracker.push(cost);
@@ -242,7 +365,18 @@ export class SummarizationService {
           break;
         }
 
-        // Exponential backoff delay
+        // Don't retry on rate limit errors (429) — they won't recover within the backoff window
+        // and will only burn more quota. Surface the error immediately.
+        const status =
+          (error as any)?.status ?? (error as any)?.originalError?.status;
+        if (status === 429) {
+          console.error(
+            `❌ Rate limit hit (429). Not retrying — quota exhausted. Check your API plan.`
+          );
+          break;
+        }
+
+        // Exponential backoff delay for other transient errors
         const delay = AI_CONFIG.baseDelay * 2 ** (attempt - 1);
         await this.sleep(delay);
       }
@@ -305,9 +439,19 @@ export class SummarizationService {
    */
   async validateConnection(): Promise<boolean> {
     try {
-      await this.openai.models.list();
+      if (this.provider === "openai" && this.openai) {
+        await this.openai.models.list();
+      } else if (this.provider === "gemini" && this.generativeAI) {
+        // Simple call to a generative model to validate connection
+        await this.generativeAI
+          .getGenerativeModel({ model: "gemini-2.5-flash" })
+          .generateContent("hello");
+      } else {
+        return false;
+      }
       return true;
     } catch (error) {
+      console.error(`Error validating ${this.provider} connection:`, error);
       return false;
     }
   }
@@ -385,7 +529,8 @@ Create a JSON response with the following structure:
  *                   environment-based configuration and error handling
  */
 export function createSummarizationService(
-  apiKey?: string
+  apiKey?: string,
+  provider: SummarizationProvider = AI_CONFIG.provider
 ): SummarizationService {
-  return new SummarizationService(apiKey);
+  return new SummarizationService(apiKey, provider);
 }

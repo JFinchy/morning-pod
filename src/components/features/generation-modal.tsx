@@ -11,6 +11,7 @@ import {
   Share,
   X,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { z } from "zod";
 
@@ -25,6 +26,7 @@ import {
 } from "@/components/ui";
 import { useFeatureFlag } from "@/lib/feature-flags/client";
 import { api } from "@/lib/trpc/client";
+import { useAudio } from "../providers/AudioProvider";
 
 /**
  * Generation request validation with enhanced validation
@@ -32,31 +34,7 @@ import { api } from "@/lib/trpc/client";
 const GenerationRequestSchema = z.object({
   model: z.enum(["tts-1", "tts-1-hd"]).default("tts-1"),
   sourceId: z.string().optional(),
-  sourceUrl: z
-    .string()
-    .url("Please enter a valid URL")
-    .refine((url) => {
-      try {
-        const domain = new URL(url).hostname;
-        // Validate against common news domains
-        const validDomains = [
-          "techcrunch.com",
-          "ycombinator.com",
-          "hackernews.ycombinator.com",
-          "tldrnewsletter.com",
-          "morningbrew.com",
-          "axios.com",
-          "reuters.com",
-          "ap.org",
-          "bbc.com",
-          "cnn.com",
-          "nytimes.com",
-        ];
-        return validDomains.some((valid) => domain.includes(valid));
-      } catch {
-        return false;
-      }
-    }, "URL must be from a supported news source"),
+  sourceUrl: z.string().url("Please enter a valid URL"),
   title: z.string().optional(),
   voice: z
     .enum(["alloy", "echo", "fable", "onyx", "nova", "shimmer"])
@@ -116,6 +94,8 @@ interface GeneratedEpisode {
 }
 
 interface GenerationModalProps {
+  autoStart?: boolean;
+  initialSource?: any;
   onEpisodeGenerated?: (episode: GeneratedEpisode) => void;
   trigger?: React.ReactNode;
 }
@@ -130,15 +110,18 @@ interface GenerationModalProps {
  * @decision-by Product team for enhanced user experience
  */
 export function GenerationModal({
+  autoStart = false,
+  initialSource,
   onEpisodeGenerated,
   trigger,
 }: GenerationModalProps) {
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [formData, setFormData] = useState<GenerationRequest>({
     model: "tts-1",
-    sourceId: "",
-    sourceUrl: "",
+    sourceId: initialSource?.id || "",
+    sourceUrl: initialSource?.url || "",
     title: "",
     voice: "alloy",
   });
@@ -151,7 +134,32 @@ export function GenerationModal({
   // Enhanced state for source selection
   const [showSourceSelector, setShowSourceSelector] = useState(false);
   const [sourceSearch, setSourceSearch] = useState("");
-  const [selectedSource, setSelectedSource] = useState<any>(null);
+  const [selectedSource, setSelectedSource] = useState<any>(
+    initialSource || null
+  );
+
+  const { playEpisode } = useAudio();
+
+  // Initialize cost if initial source is provided
+  useEffect(() => {
+    if (initialSource?.url) {
+      estimateCost(initialSource.url);
+    }
+  }, [initialSource]);
+
+  // Handle auto-start
+  useEffect(() => {
+    if (
+      isOpen &&
+      autoStart &&
+      formData.sourceUrl &&
+      !isGenerating &&
+      !generatedEpisode &&
+      !progress
+    ) {
+      startGeneration();
+    }
+  }, [isOpen]);
 
   // Feature flags
   const premiumTtsEnabled = useFeatureFlag("premium-tts-enabled");
@@ -283,6 +291,7 @@ export function GenerationModal({
 
   /**
    * Enhanced generation with WebSocket support and detailed progress
+   * Uses mock endpoint during development to avoid AI costs
    */
   const startGeneration = async () => {
     if (!validateForm()) {
@@ -300,8 +309,12 @@ export function GenerationModal({
 
     try {
       // Enhanced request with additional context
+      const sourceId =
+        formData.sourceId || (formData.sourceUrl ? "manual-entry" : "");
+
       const enhancedRequest = {
         ...formData,
+        sourceId,
         featureFlags: {
           advancedPlayer: advancedPlayerEnabled,
           premiumTts: premiumTtsEnabled,
@@ -309,13 +322,27 @@ export function GenerationModal({
         },
         metadata: {
           selectedSourceName: selectedSource?.name,
-          sourceId: formData.sourceId,
+          sourceId,
           timestamp: new Date().toISOString(),
         },
       };
 
-      const response = await fetch("/api/episodes/generate", {
-        body: JSON.stringify(enhancedRequest),
+      // Use mock API endpoint in development to avoid AI costs
+      // This will use our NASA mock audio file
+      const apiEndpoint =
+        process.env.NEXT_PUBLIC_ENABLE_API_MOCKING === "true"
+          ? "/api/episodes/mocks/generate-mock" // Use the moved mock endpoint
+          : "/api/episodes/generate";
+
+      console.log(
+        `Using API endpoint: ${apiEndpoint} (MOCKING: ${process.env.NEXT_PUBLIC_ENABLE_API_MOCKING === "true" ? "ENABLED" : "DISABLED"})`
+      );
+
+      const response = await fetch(apiEndpoint, {
+        body: JSON.stringify({
+          ...enhancedRequest,
+          sourceId,
+        }),
         headers: {
           "Content-Type": "application/json",
           "X-Feature-Flags": JSON.stringify(enhancedRequest.featureFlags),
@@ -361,14 +388,26 @@ export function GenerationModal({
                   stage: data.stage,
                 });
               } else if (data.type === "complete") {
-                setGeneratedEpisode(data.episode);
+                const episodeData = data.data || data.episode || {};
+                const cost = episodeData.totalCost ?? episodeData.cost ?? 0;
+                const duration = episodeData.duration ?? 0;
+
+                setGeneratedEpisode({
+                  ...episodeData,
+                  cost,
+                  id: episodeData.episodeId || episodeData.id,
+                });
+
                 setProgress({
-                  cost: data.episode.cost,
-                  details: `Generated ${Math.round(data.episode.duration / 60)}m episode with ${data.episode.title}`,
+                  cost,
+                  details: `Generated ${Math.round(duration / 60)}m episode: ${episodeData.title || "New Episode"}`,
                   message: "Episode generated successfully!",
                   progress: 100,
                   stage: "complete",
                 });
+
+                // Sync UI state
+                router.refresh();
 
                 if (onEpisodeGenerated) {
                   onEpisodeGenerated(data.episode);
@@ -708,7 +747,8 @@ export function GenerationModal({
                 <div>
                   <h4 className="font-medium">{generatedEpisode.title}</h4>
                   <p className="text-sm text-base-content/70 mt-1">
-                    {generatedEpisode.summary.slice(0, 150)}...
+                    {generatedEpisode.summary?.slice(0, 150) ||
+                      "Episode generated."}
                   </p>
                 </div>
 
@@ -722,39 +762,22 @@ export function GenerationModal({
                   <span>Voice: {generatedEpisode.voice}</span>
                 </div>
 
-                {/* Enhanced Audio Player with Feature Flag Support */}
-                {generatedEpisode.audioUrl && (
-                  <div className="space-y-2">
-                    {advancedPlayerEnabled ? (
-                      <div className="p-3 bg-base-200 rounded-lg">
-                        <audio className="w-full" controls preload="metadata">
-                          <source
-                            src={generatedEpisode.audioUrl}
-                            type="audio/mpeg"
-                          />
-                          Your browser does not support the audio element.
-                        </audio>
-                        <div className="flex justify-between items-center mt-2 text-xs text-base-content/60">
-                          <span>Advanced Player Active</span>
-                          <span>High Quality Audio</span>
-                        </div>
-                      </div>
-                    ) : (
-                      <audio className="w-full" controls>
-                        <source
-                          src={generatedEpisode.audioUrl}
-                          type="audio/mpeg"
-                        />
-                        Your browser does not support the audio element.
-                      </audio>
-                    )}
-                  </div>
-                )}
-
-                {/* Action Buttons */}
-                <div className="flex gap-2 pt-2">
+                {/* Enhanced Action Buttons */}
+                <div className="flex flex-wrap gap-2 pt-2">
                   <Button
-                    className="btn btn-primary btn-sm"
+                    className="btn btn-primary btn-sm gap-2"
+                    onClick={() => {
+                      if (generatedEpisode) {
+                        playEpisode(generatedEpisode as any);
+                      }
+                    }}
+                  >
+                    <Play className="w-4 h-4" />
+                    Play Briefing
+                  </Button>
+
+                  <Button
+                    className="btn btn-outline btn-sm"
                     onClick={() => {
                       if (generatedEpisode.audioUrl) {
                         window.open(generatedEpisode.audioUrl, "_blank");
@@ -767,28 +790,12 @@ export function GenerationModal({
 
                   <Button
                     className="btn btn-ghost btn-sm"
-                    onClick={() => {
-                      if (navigator.share) {
-                        navigator.share({
-                          text: generatedEpisode.summary,
-                          title: generatedEpisode.title,
-                          url: generatedEpisode.audioUrl,
-                        });
-                      }
-                    }}
-                  >
-                    <Share className="w-4 h-4" />
-                    Share
-                  </Button>
-
-                  <Button
-                    className="btn btn-ghost btn-sm"
                     onClick={() =>
                       window.open(`/episodes/${generatedEpisode.id}`, "_blank")
                     }
                   >
-                    <Play className="w-4 h-4" />
-                    Open
+                    <ExternalLink className="w-4 h-4" />
+                    Detail Page
                   </Button>
                 </div>
               </div>

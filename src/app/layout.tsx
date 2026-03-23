@@ -5,11 +5,13 @@ import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { type Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { cookies } from "next/headers";
 import { Toaster } from "react-hot-toast";
 
 import { PerformanceMonitor } from "@/components/ui/performance-monitor";
 
 import { PostHogProvider } from "../components/providers/PostHogProvider";
+import { AudioProvider } from "../components/providers/AudioProvider";
 import { FeatureFlagProvider } from "../lib/feature-flags/provider";
 import { TRPCProvider } from "../lib/trpc/provider";
 
@@ -29,20 +31,27 @@ export const metadata: Metadata = {
   title: "Morning Pod - AI Podcast Generator",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const cookieStore = await cookies();
+  const theme = cookieStore.get("theme")?.value || "forest";
+
   return (
-    <html lang="en">
-      <link href="/favicon.svg" rel="icon" type="image/svg+xml" />
+    <html lang="en" data-theme={theme} suppressHydrationWarning>
+      <head>
+        <link href="/favicon.svg" rel="icon" type="image/svg+xml" />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <PostHogProvider>
           <FeatureFlagProvider>
-            <TRPCProvider>{children}</TRPCProvider>
+            <TRPCProvider>
+              <AudioProvider>{children}</AudioProvider>
+            </TRPCProvider>
           </FeatureFlagProvider>
         </PostHogProvider>
         <PerformanceMonitor />

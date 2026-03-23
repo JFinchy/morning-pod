@@ -2,6 +2,7 @@ const { getCSP } = require("../tooling/security.config");
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  srcDir: "src",
   async headers() {
     return [
       {

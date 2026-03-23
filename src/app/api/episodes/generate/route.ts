@@ -13,6 +13,7 @@ import { createScrapingService } from "@/lib/services/scraping/scraping-service"
  */
 const GenerateRequestSchema = z.object({
   model: z.enum(["tts-1", "tts-1-hd"]).default("tts-1"),
+  sourceId: z.string().optional(),
   sourceUrl: z.string().url("Valid URL is required"),
   title: z.string().optional(),
   voice: z
@@ -31,6 +32,7 @@ interface GenerationProgress {
   message: string;
   progress: number; // 0-100
   stage:
+    | "complete"
     | "completed"
     | "error"
     | "generating_audio"
@@ -65,17 +67,20 @@ export async function POST(request: NextRequest) {
       async start(controller) {
         try {
           await generateEpisode(validatedRequest, (progress) => {
-            const data = `data: ${JSON.stringify(progress)}\n\n`;
+            // Use the type provided in the progress object, default to "progress"
+            const type = (progress as any).type || "progress";
+            const data = `data: ${JSON.stringify({ ...progress, type })}\n\n`;
             controller.enqueue(encoder.encode(data));
           });
 
           controller.close();
         } catch (error) {
-          const errorProgress: GenerationProgress = {
+          const errorProgress = {
             error: error instanceof Error ? error.message : "Unknown error",
             message: "Generation failed",
             progress: 0,
-            stage: "error",
+            stage: "error" as const,
+            type: "error",
           };
 
           const data = `data: ${JSON.stringify(errorProgress)}\n\n`;
@@ -129,7 +134,10 @@ async function generateEpisode(
 
   // Initialize services
   const scrapingService = createScrapingService();
-  const summarizationService = createSummarizationService();
+  const summarizationService = createSummarizationService(
+    undefined,
+    process.env.GEMINI_SUMMARIZATION_PROVIDER === "true" ? "gemini" : "openai"
+  );
   const ttsService = createTTSService();
 
   let scrapedContent: any;
@@ -138,10 +146,31 @@ async function generateEpisode(
   let episodeId: string | undefined;
 
   try {
+    // Stage 0: Create initial record
+    onProgress({
+      message: "Initializing episode record...",
+      progress: 5,
+      stage: "saving",
+    });
+
+    const [initialEpisode] = await db
+      .insert(episodes)
+      .values({
+        contentHash: `gen-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+        progress: 5,
+        sourceId: request.sourceId || "manual-entry",
+        status: "generating" as const,
+        summary: "Generating summary...",
+        title: request.title || "New Episode Briefing",
+      })
+      .returning();
+
+    episodeId = initialEpisode.id;
+
     // Stage 1: Scraping
     onProgress({
       message: "Scraping content from source...",
-      progress: 10,
+      progress: 15,
       stage: "scraping",
     });
 
@@ -151,6 +180,11 @@ async function generateEpisode(
       throw new Error("Failed to scrape content from the provided URL");
     }
 
+    await db
+      .update(episodes)
+      .set({ progress: 30 })
+      .where(eq(episodes.id, episodeId));
+
     onProgress({
       data: {
         contentLength: scrapedContent.content.length,
@@ -158,14 +192,14 @@ async function generateEpisode(
         title: scrapedContent.title,
       },
       message: "Content scraped successfully",
-      progress: 25,
+      progress: 30,
       stage: "scraping",
     });
 
     // Stage 2: Summarization
     onProgress({
-      message: "Creating podcast-friendly summary...", // eslint-disable-line no-secrets/no-secrets
-      progress: 35,
+      message: "Creating podcast-friendly summary...",
+      progress: 45,
       stage: "summarizing",
     });
 
@@ -181,6 +215,16 @@ async function generateEpisode(
 
     summary = summaryResult.summary;
 
+    // Update record with summary and progress
+    await db
+      .update(episodes)
+      .set({
+        title: request.title || summary.title,
+        summary: summary.summary,
+        progress: 60,
+      })
+      .where(eq(episodes.id, episodeId));
+
     onProgress({
       data: {
         cost: summaryResult.cost.totalCost,
@@ -189,14 +233,14 @@ async function generateEpisode(
         title: summary.title,
       },
       message: "Summary generated successfully",
-      progress: 55,
+      progress: 60,
       stage: "summarizing",
     });
 
     // Stage 3: Text-to-Speech
     onProgress({
       message: "Converting text to speech...",
-      progress: 65,
+      progress: 75,
       stage: "generating_audio",
     });
 
@@ -212,6 +256,11 @@ async function generateEpisode(
       throw new Error(`TTS generation failed: ${audioResult.error}`);
     }
 
+    await db
+      .update(episodes)
+      .set({ progress: 90 })
+      .where(eq(episodes.id, episodeId));
+
     onProgress({
       data: {
         audioUrl: audioResult.audioUrl,
@@ -220,50 +269,46 @@ async function generateEpisode(
         fileSize: audioResult.fileSize,
       },
       message: "Audio generated successfully",
-      progress: 85,
+      progress: 90,
       stage: "generating_audio",
     });
 
-    // Stage 4: Save to Database
+    // Stage 4: Final Update
     onProgress({
-      message: "Saving episode to database...",
-      progress: 90,
+      message: "Finalizing episode...",
+      progress: 95,
       stage: "saving",
     });
 
-    const episodeData = {
-      audioSize: audioResult.fileSize || 0,
-      audioUrl: audioResult.audioUrl || "",
-      contentHash: `hash-${Date.now()}`, // TODO: Generate proper content hash
-      duration: audioResult.duration || 0,
-      generationCost: String(
-        summaryResult.cost.totalCost + (audioResult.cost || 0)
-      ),
-      sourceId: "temp-source-id", // TODO: Create proper source management
-      status: "ready" as const,
-      summary: summary.summary,
-      title: request.title || summary.title,
-    };
-
-    const [newEpisode] = await db
-      .insert(episodes)
-      .values(episodeData)
+    const [updatedEpisode] = await db
+      .update(episodes)
+      .set({
+        audioSize: audioResult.fileSize || 0,
+        audioUrl: audioResult.audioUrl || "",
+        duration: audioResult.duration || 0,
+        generationCost: String(
+          summaryResult.cost.totalCost + (audioResult.cost || 0)
+        ),
+        progress: 100,
+        status: "ready" as const,
+        updatedAt: new Date(),
+      })
+      .where(eq(episodes.id, episodeId))
       .returning();
-    episodeId = newEpisode.id;
 
     // Stage 5: Completed
     onProgress({
       data: {
-        audioUrl: newEpisode.audioUrl,
-        duration: newEpisode.duration,
-        episodeId: newEpisode.id,
+        audioUrl: updatedEpisode.audioUrl,
+        duration: updatedEpisode.duration,
+        episodeId: updatedEpisode.id,
         processingTime: Date.now() - startTime,
-        title: newEpisode.title,
-        totalCost: newEpisode.generationCost,
+        title: updatedEpisode.title,
+        totalCost: updatedEpisode.generationCost,
       },
       message: "Episode generated successfully!",
       progress: 100,
-      stage: "completed",
+      stage: "complete",
     });
   } catch (error) {
     console.error("Generation pipeline error:", error);
@@ -295,7 +340,10 @@ async function generateEpisode(
 export async function GET() {
   try {
     // Check service availability
-    const summarizationService = createSummarizationService();
+    const summarizationService = createSummarizationService(
+      undefined,
+      process.env.GEMINI_SUMMARIZATION_PROVIDER === "true" ? "gemini" : "openai"
+    );
     const ttsService = createTTSService();
 
     const [summarizationOk, ttsOk] = await Promise.all([

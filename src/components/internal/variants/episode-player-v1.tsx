@@ -3,12 +3,12 @@
 import { Pause, Play, SkipBack, SkipForward, Volume2 } from "lucide-react";
 import { useRef, useState } from "react";
 
-import { type Episode } from "@/lib/mock-data/episodes";
+import { type Episode } from "@/lib/db/schema";
 
 interface EpisodePlayerV1Props {
   currentTime?: number;
   duration?: number;
-  episode: Episode;
+  episode: Episode & { progress?: number };
   isPlaying?: boolean;
   onPlayPause?: () => void;
   onSeek?: (time: number) => void;
@@ -98,8 +98,8 @@ export function EpisodePlayerV1({
             <h3 className="font-semibold text-lg text-base-content">
               {episode.title}
             </h3>
-            <p className="text-sm text-primary font-medium">
-              {episode.source?.name || `Source ${episode.sourceId}`}
+            <p className="text-xs text-base-content/60">
+              {`Source ${episode.sourceId}`}
             </p>
           </div>
         </div>

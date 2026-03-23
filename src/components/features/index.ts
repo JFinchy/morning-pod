@@ -11,4 +11,6 @@ export {
   GenerateEpisodeButton,
   GenerationTrigger,
 } from "./generation-trigger";
+export { GlobalAudioPlayer } from "./global-audio-player";
+export { ListenNowButton } from "./listen-now-button";
 export { QueueStatus } from "./queue-status";
